@@ -1,0 +1,17 @@
+{
+  "format": "fox-news",
+  "version": 1,
+  "posts": [
+    {
+      "id": "8b8afe09-3f96-4c1a-97e3-74dedd36c2bb",
+      "kind": "community",
+      "title": "test",
+      "text": "test",
+      "body": "test",
+      "date": "2026-10-22T06:27:24.627Z",
+      "image": null,
+      "draft": false,
+      "pinned": false
+    }
+  ]
+}
