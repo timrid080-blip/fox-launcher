@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+*.foxpack
+admin.json
+accounts.json
+
+.env
+.env.*
+!.env.example
+*secret*
+*password*

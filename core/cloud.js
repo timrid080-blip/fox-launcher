@@ -1,0 +1,20 @@
+'use strict';
+const fs=require('fs').promises,path=require('path');
+const {readJson,writeJson}=require('./util');
+class Cloud {
+ constructor(root,safeStorage,config){this.root=root;this.crypto=safeStorage;this.config=config;this.session=null;this.refreshing=null;}
+ async settings(){const c=(await this.config()).supabase;if(!c?.url||!c.publishableKey)throw new Error('Аккаунты Fox пока не подключены владельцем: нужен Supabase. Офлайн-игра доступна.');if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(c.url))throw new Error('Неверный адрес Supabase');return c;}
+ async req(route,body,access){const c=await this.settings(),r=await fetch(c.url+route,{method:'POST',headers:{apikey:c.publishableKey,'Content-Type':'application/json',...(access?{Authorization:'Bearer '+access}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});let j;try{j=await r.json();}catch{throw new Error('Некорректный ответ сервиса аккаунтов');}if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||'Ошибка аккаунта');return j;}
+ async persist(j){if(!this.crypto.isEncryptionAvailable())throw new Error('Системное шифрование недоступно: облачный вход не сохранён');this.session=j;await writeJson(path.join(this.root,'cloud-session.json'),{encrypted:this.crypto.encryptString(JSON.stringify(j)).toString('base64')});}
+ async restore(){if(this.session)return this.session;const d=await readJson(path.join(this.root,'cloud-session.json'),null);if(d&&this.crypto.isEncryptionAvailable()){try{this.session=JSON.parse(this.crypto.decryptString(Buffer.from(d.encrypted,'base64')));}catch{}}return this.session;}
+ async register(email,password,nickname){if(!/^[A-Za-z0-9_]{3,16}$/.test(nickname)||typeof password!=='string'||password.length<12)throw new Error('Ник: 3–16 латинских букв/цифр/_. Пароль: от 12 символов.');const j=await this.req('/auth/v1/signup',{email,password,data:{nickname}});if(j.access_token)await this.persist(j);return {confirmation:!j.access_token};}
+ async login(email,password){const j=await this.req('/auth/v1/token?grant_type=password',{email,password});await this.persist(j);return this.state();}
+ async token(){let s=await this.restore();if(!s)throw new Error('Войдите в аккаунт Fox');if(!s.expires_at||s.expires_at*1000<Date.now()+60000){if(!this.refreshing)this.refreshing=this.req('/auth/v1/token?grant_type=refresh_token',{refresh_token:s.refresh_token}).then(async j=>{await this.persist(j);return j;}).finally(()=>this.refreshing=null);s=await this.refreshing;}return s.access_token;}
+ async action(action,data={}){return this.req('/rest/v1/rpc/fox_action',{p_action:action,p_data:data},await this.token());}
+ async state(){const c=await this.config();if(!c.supabase?.url||!c.supabase.publishableKey)return {configured:false};if(!await this.restore())return {configured:true};return {configured:true,...await this.action('state')};}
+ async logout(){const s=await this.restore();if(s){try{await this.req('/auth/v1/logout',{},await this.token());}catch{}}this.session=null;await fs.rm(path.join(this.root,'cloud-session.json'),{force:true});return {configured:true};}
+ async payment(data){const c=await this.settings(),r=await fetch(c.url+'/functions/v1/fox-payments',{method:'POST',headers:{apikey:c.publishableKey,Authorization:'Bearer '+await this.token(),'Content-Type':'application/json'},body:JSON.stringify(data),signal:AbortSignal.timeout(40000)});let result;try{result=await r.json();}catch{throw new Error('Сервис оплаты недоступен');}if(!r.ok)throw new Error(result.message||'Оплата пока не подключена владельцем');return result;}
+ async isAdmin(){const s=await this.state();if(!s.is_admin)throw new Error('Админ-панель доступна только аккаунту владельца');return s;}
+ async entitled(tier=1){const s=await this.state();if(!s.configured)return true;return s.purchases?.some(p=>Date.parse(p.expires_at)>Date.now()&&s.catalog.find(c=>c.id===p.product_id)?.tier>=tier)||s.is_admin===true;}
+}
+module.exports={Cloud};

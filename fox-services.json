@@ -1,0 +1,12 @@
+{
+  "github": {
+    "owner": "",
+    "repo": "",
+    "branch": "main",
+    "newsPath": "fox-news.json"
+  },
+  "supabase": {
+    "url": "https://bondthvpncczjkffeggb.supabase.co",
+    "publishableKey": "sb_publishable_s8c2JMs3Miy9p1yihX62Tw_Zu3pojiU"
+  }
+}

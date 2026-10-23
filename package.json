@@ -1,0 +1,64 @@
+{
+  "name": "fox-launcher",
+  "productName": "Fox Launcher",
+  "version": "1.5.0",
+  "description": "Fox Launcher — современный лаунчер Minecraft",
+  "main": "main.js",
+  "author": "FoxBro",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis portable --config.win.signAndEditExecutable=false",
+    "dist:dir": "electron-builder --win dir",
+    "test": "node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs",
+    "dist:portable": "electron-builder --win portable --config.win.signAndEditExecutable=false",
+    "test:sql": "node --test tests/club-sql.test.cjs"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.foxbro.foxlauncher",
+    "productName": "Fox Launcher",
+    "icon": "assets/icon.ico",
+    "files": [
+      "main.js",
+      "preload.js",
+      "core/**",
+      "renderer/**",
+      "assets/**",
+      "package.json",
+      "fox-news.json",
+      "fox-services.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Fox Launcher",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "portable": {
+      "artifactName": "FoxLauncher-Portable-${version}.exe",
+      "useZip": true
+    },
+    "compression": "normal"
+  }
+}

@@ -1,0 +1,2 @@
+[functions.fox-payments]
+verify_jwt = false

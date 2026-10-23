@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'">
+<title>Fox Launcher</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="titlebar">
+  <div class="brand"><img src="../assets/logo-mark.png" alt=""><span><b>Fox</b> Launcher</span></div>
+  <span class="app-version" id="appVersion">1.5.0</span><span class="tag accent" id="eventBadge"></span><div class="spacer"></div>
+  <button class="notification-bell" id="notificationBell" title="Уведомления" aria-label="Уведомления"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationCount" hidden></span></button>
+  <div class="winbtns">
+    <button id="wMin" title="Свернуть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+    <button id="wMax" title="Развернуть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></button>
+    <button id="wClose" class="close" title="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+</div>
+<div class="app">
+  <aside class="sidebar">
+    <nav class="nav" id="nav"></nav>
+    <div class="grow"></div>
+    <div class="acc-card" id="accCard"></div>
+  </aside>
+  <main class="main">
+    <section class="page" id="page-home"></section>
+    <section class="page" id="page-instances"></section>
+    <section class="page" id="page-modpacks"></section>
+    <section class="page" id="page-mods"></section>
+    <section class="page" id="page-skins"></section>
+    <section class="page" id="page-files"></section>
+    <section class="page" id="page-news"></section>
+    <section class="page" id="page-accounts"></section>
+    <section class="page" id="page-settings"></section>
+    <section class="page" id="page-shop"></section><section class="page" id="page-achievements"></section>
+    <section class="page" id="page-quests"></section><section class="page" id="page-leaderboards"></section>
+    <section class="page" id="page-subscription"></section><section class="page" id="page-players"></section>
+    <section class="page" id="page-wallet"></section><section class="page" id="page-friends"></section><section class="page" id="page-support"></section><section class="page" id="page-work"></section><section class="page" id="page-control"></section><section class="page" id="page-profile-settings"></section>
+    <section class="page" id="page-admin"></section>
+    <div class="console" id="console">
+      <div class="ch"><b>Консоль игры</b><span class="dim" id="conInfo"></span><div style="flex:1"></div>
+        <button class="btn sm ghost" id="conCopy">Копировать</button><button class="btn sm ghost" id="conClear">Очистить</button><button class="btn sm ghost" id="conClose">Скрыть</button></div>
+      <pre id="conText"></pre>
+    </div>
+    <footer class="playbar">
+      <div class="inst-pick" id="instPick"></div>
+      <div class="prog"><div class="txt" id="progTxt">Готов к игре</div><div class="bar" id="progBar"><i></i></div></div>
+      <button class="btn icon ghost" id="conToggle" title="Консоль"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m4 17 6-5-6-5M12 19h8"/></svg></button>
+      <button class="play" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>ИГРАТЬ</button>
+    </footer>
+  </main>
+</div>
+<div class="toasts" id="toasts"></div>
+<script src="skin.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
