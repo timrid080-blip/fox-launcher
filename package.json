@@ -1,4 +1,3 @@
-
 {
   "name": "fox-launcher",
   "productName": "Fox Launcher",
@@ -11,7 +10,7 @@
     "start": "electron .",
     "dist": "electron-builder --win nsis portable",
     "dist:dir": "electron-builder --win dir",
-    "test": "node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs",
+    "test": "node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs tests/v160.test.cjs",
     "dist:portable": "electron-builder --win portable",
     "test:sql": "node --test tests/club-sql.test.cjs"
   },

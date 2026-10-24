@@ -54,3 +54,8 @@
 `npm test` запускает основные тесты и SQL-тесты на PostgreSQL WASM (PGlite), без внешнего Supabase, аккаунтов или секретов. SQL-тесты отдельно: `npm run test:sql`.
 
 Проверяются чистая установка и миграция 1.1 с сохранением данных, повторные награды, серия/пропуск, квесты, списание за кейс, отсутствие дублей, отказ без средств, надевание, рейтинги и запрет прямого доступа. Это не заменяет проверку подключённого Supabase, регистрации/email и Windows-сборки перед релизом.
+
+
+## Fox Launcher 1.6 incremental migration
+
+After the existing `migrate-1.5.sql` has been applied successfully, back up the database and apply `migrate-1.6.sql`. It adds an owner-only RPC to set the legacy accounting-ruble wallet to an exact value. It does not alter the paid payment balance (`paid_kopeks`) and does not enable payment processing. Do not run this migration before the 1.2–1.5 migrations.

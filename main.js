@@ -65,7 +65,7 @@ const running = new Map(); // instanceId -> process
 function send(type, payload) { if (win && !win.isDestroyed()) win.webContents.send('event', type, payload); }
 
 // ---------- хранилище ----------
-const getSettings = async () => { const saved = await readJson(P.settings, {}); /* 1.7 preview accidentally changed the default accent to blue; restore the original orange once. */ if (String(saved.accent || '').toLowerCase() === '#36a9ff') saved.accent = '#ff7a1a'; return { ...DEFAULT_SETTINGS, ...saved }; };
+const getSettings = async () => ({ ...DEFAULT_SETTINGS, ...(await readJson(P.settings, {})) });
 const saveSettings = async s => { const cur = await getSettings(); const n = { ...cur, ...s }; await writeJson(P.settings, n); return n; };
 const getInstances = () => readJson(P.instances, []);
 const saveInstances = list => writeJson(P.instances, list);
@@ -138,7 +138,7 @@ const api = {
   async cloudRegister(email,password,nickname) { return cloud.register(email,password,nickname); },
   async cloudLogin(email,password) { if(running.size)throw new Error('Сначала закройте Minecraft для смены Fox ID'); const state=await cloud.login(email,password); if(state.profile) { const acc=auth.offline(state.profile.nickname); await upsertAccount(acc); } return state; },
   cloudLogout: () => { if(running.size)throw new Error('Сначала закройте Minecraft для выхода из Fox ID'); return cloud.logout(); },
-  async cloudAction(action,data) { if (!['notifications','notification_read','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_event'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
+  async cloudAction(action,data) { if (!['notifications','notification_read','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
   async createPayment(amount,requestId){if(!Number.isInteger(amount)||amount<100||amount>15000||typeof requestId!=='string')throw new Error('Сумма пополнения: 100–15000 рублей');const r=await cloud.payment({op:'create',amount,request_id:requestId});if(r.id){const uid=(await cloud.restore())?.user?.id;if(uid){const pending=await readJson(path.join(ROOT,'pending-payments.json'),{});pending[uid]={id:r.id};await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}if(r.confirmation_url){const url=new URL(r.confirmation_url);if(url.protocol!=='https:')throw new Error('Небезопасная ссылка оплаты');await shell.openExternal(url.href);}return r;},
   async getPendingPayment(){const uid=(await cloud.restore())?.user?.id;return uid?(await readJson(path.join(ROOT,'pending-payments.json'),{}))[uid]||null:null;},
   async checkPayment(id){const result=await cloud.payment({op:'status',id});if(['succeeded','canceled'].includes(result.status)){const uid=(await cloud.restore())?.user?.id,pending=await readJson(path.join(ROOT,'pending-payments.json'),{});if(uid&&pending[uid]?.id===id){delete pending[uid];await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}return result;},
@@ -211,7 +211,7 @@ const api = {
   info: async () => ({ root: ROOT, totalMem: Math.floor(os.totalmem() / 1048576), version: app.getVersion(), platform: process.platform }),
 
   // настройки
-  getSettings, saveSettings: async s => { const saved = await saveSettings(s); if (process.platform === 'win32' || process.platform === 'darwin' || process.platform === 'linux') { try { app.setLoginItemSettings({ openAtLogin: !!saved.launchAtStartup, openAsHidden: false }); } catch {} } return saved; },
+  getSettings, saveSettings,
 
   // версии
   listVersions: () => versions.listVersions(ROOT),
@@ -226,7 +226,7 @@ const api = {
     let id = base.replace(/\s+/g, '-').toLowerCase() + '-' + crypto.randomBytes(3).toString('hex'), n = 1;
     while (list.some(x => x.id === id)) id = `${base.replace(/\s+/g, '-').toLowerCase()}-${++n}`;
     const inst = { id, name: data.name || data.mc, mc: data.mc, type: data.type || 'release', loader: data.loader || 'vanilla',
-      loaderVersion: data.loaderVersion || null, versionId: null, memory: data.memory || null, color: data.color || '#ff7a1a',
+      loaderVersion: data.loaderVersion || null, versionId: null, memory: data.memory || null, color: data.color || '#36a9ff',
       created: Date.now(), lastPlayed: null, playTime: 0 };
     list.push(inst);
     await saveInstances(list);
