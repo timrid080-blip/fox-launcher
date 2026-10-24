@@ -6,12 +6,12 @@
   "main": "main.js",
   "author": "FoxBro",
   "license": "MIT",
-  "scripts": {
+    "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis portable --config.win.signAndEditExecutable=false",
+    "dist": "electron-builder --win nsis portable",
     "dist:dir": "electron-builder --win dir",
     "test": "node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs",
-    "dist:portable": "electron-builder --win portable --config.win.signAndEditExecutable=false",
+    "dist:portable": "electron-builder --win portable",
     "test:sql": "node --test tests/club-sql.test.cjs"
   },
   "dependencies": {
