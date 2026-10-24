@@ -56,7 +56,7 @@ function validateInstance(data) {
 const DEFAULT_SETTINGS = {
   memory: Math.min(4096, Math.max(1024, Math.floor(os.totalmem() / 1048576 / 4 / 256) * 256)),
   javaPath: '', jvmArgs: '-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions', width: 0, height: 0,
-  closeOnLaunch: false, showConsoleOnLaunch: false, selectedInstance: null, selectedAccount: null, newsFeedUrl: '', accent: '#ff7a1a', sounds: true, soundVolume: 0.25, eventTheme: true,
+  closeOnLaunch: false, showConsoleOnLaunch: false, selectedInstance: null, selectedAccount: null, newsFeedUrl: '', accent: '#36a9ff', sounds: true, soundVolume: 0.25, eventTheme: true,
 };
 
 let win;
@@ -211,7 +211,7 @@ const api = {
   info: async () => ({ root: ROOT, totalMem: Math.floor(os.totalmem() / 1048576), version: app.getVersion(), platform: process.platform }),
 
   // настройки
-  getSettings, saveSettings,
+  getSettings, saveSettings: async s => { const saved = await saveSettings(s); if (process.platform === 'win32' || process.platform === 'darwin' || process.platform === 'linux') { try { app.setLoginItemSettings({ openAtLogin: !!saved.launchAtStartup, openAsHidden: false }); } catch {} } return saved; },
 
   // версии
   listVersions: () => versions.listVersions(ROOT),
