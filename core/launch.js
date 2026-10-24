@@ -6,6 +6,7 @@ const { rulesAllow } = require('./util');
 const { installVersion } = require('./install');
 const { ensureJava } = require('./java');
 const { resolveVersion } = require('./versions');
+const { networkArgs, launchNetwork } = require('./network');
 
 // BootstrapLauncher ignores the launcher client JAR by filename, not version id.
 function bootstrapArgs(args, version, jarPath) {
@@ -106,7 +107,8 @@ async function launch(opts) {
   else game = fill(version.minecraftArguments || '', vars).split(' ').filter(Boolean);
   if (!version.arguments && features.has_custom_resolution) game.push('--width', vars.resolution_width, '--height', vars.resolution_height);
 
-  const args = [...bootstrapArgs(jvm, version, jarPath), version.mainClass, ...game];
+  const adapters = launchNetwork(onLog, account.type);
+  const args = [...networkArgs(bootstrapArgs(jvm, version, jarPath), adapters), version.mainClass, ...game];
   onLog(`[Fox] Запуск ${version.id} как ${account.name}\n`);
   onProgress({ stage: 'launch', text: 'Запуск игры…', done: 1, total: 1 });
 
