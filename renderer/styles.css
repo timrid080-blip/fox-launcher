@@ -489,3 +489,23 @@ input,textarea{user-select:text}
 
 /* Profile achievement badges use illustrations instead of raw internal IDs. */
 .achievement-badges{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.achievement-badge{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}.achievement-badge img{width:34px;height:34px;object-fit:contain}.achievement-badge span{font-size:12px;font-weight:600}
+
+
+/* Full-screen download / launch progress */
+.download-overlay[hidden]{display:none!important}
+.download-overlay{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:28px;background:rgba(7,7,10,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:foxOverlayIn .18s ease-out}
+.download-panel{width:min(560px,100%);padding:38px 40px 32px;text-align:center;border:1px solid #ffffff18;border-radius:24px;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 58%),#151519;box-shadow:0 28px 100px #0009}
+.download-mark{width:66px;height:66px;margin:0 auto 20px;border-radius:19px;background:var(--accent);display:grid;place-items:center;box-shadow:0 8px 34px color-mix(in srgb,var(--accent) 30%,transparent)}
+.download-mark img{width:42px;height:42px;object-fit:contain}
+.download-eyebrow{font-size:11px;letter-spacing:3px;font-weight:800;color:var(--accent);margin-bottom:10px}
+.download-panel h2{font-size:25px;line-height:1.25;margin:0 0 10px;color:#fff}
+.download-panel p{font-size:13px;line-height:1.6;color:#a9a9b5;margin:0 auto 25px;max-width:390px}
+.download-percent{font-size:36px;font-weight:800;letter-spacing:-1px;color:#fff;margin-bottom:16px;font-variant-numeric:tabular-nums}
+.download-track{height:10px;border-radius:99px;overflow:hidden;background:#303036;box-shadow:inset 0 1px 2px #0008}
+.download-track i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),#ffbd70);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 48%,transparent);transition:width .22s ease}
+.download-track.indeterminate i{width:34%!important;animation:foxIndeterminate 1.15s ease-in-out infinite alternate}
+.download-foot{display:flex;justify-content:space-between;gap:12px;margin-top:13px;text-align:left;color:#a9a9b5;font-size:12px}
+.download-foot span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+@keyframes foxOverlayIn{from{opacity:0}to{opacity:1}}
+@keyframes foxIndeterminate{from{transform:translateX(-5%)}to{transform:translateX(205%)}}
+@media(max-width:560px){.download-panel{padding:28px 22px}.download-panel h2{font-size:21px}.download-foot{font-size:11px}}

@@ -71,16 +71,38 @@
   bind('#accCard',()=>nav('accounts'));
   function renderBar(){const i=selected();$('#instPick').innerHTML=`<div class="ava" style="background:${/^#[a-f0-9]{6}$/i.test(i?.color)?i.color:'#ff7a1a'}"><img src="../assets/logo-mark.png" alt=""></div><div style="min-width:0;flex:1"><b>${esc(i?.name||'Выбрать сборку')}</b><small>${i?esc(i.mc+' · '+i.loader):'Создай или импортируй'}</small></div>${icon('down')}`;const run=i&&S.running.has(i.id),b=$('#playBtn');b.classList.toggle('stop',!!run);b.disabled=!!S.busy;b.innerHTML=icon(run?'stop':'play')+(S.busy?'ЗАГРУЗКА':run?'ОСТАНОВИТЬ':'ИГРАТЬ');}
   bind('#instPick',()=>{const m=modal('Выбери сборку',S.instances.length?`<div class="col">${S.instances.map(i=>`<button class="btn" data-pick="${esc(i.id)}">${esc(i.name)} <span class="dim">${esc(i.mc+' · '+i.loader)}</span></button>`).join('')}</div>`:empty('Пока нет сборок'),[{text:'Создать сборку',primary:true,run:m=>{m.close();instanceDialog();}}]);$$('[data-pick]',m.root).forEach(b=>b.onclick=async()=>{await settings({selectedInstance:b.dataset.pick});m.close();if(S.page==='instances')renderInstances();});});
-  async function play(id){if(S.busy)return;const i=S.instances.find(x=>x.id===id)||selected();if(!i){nav('instances');return instanceDialog();}await settings({selectedInstance:i.id});if(S.running.has(i.id)){await call('stop',i.id);return;}if(!account()){nav('accounts');toast('Добавь аккаунт перед запуском');return;}S.busy=i.id;renderBar();$('#progTxt').textContent='Подготовка запуска…';if(S.settings.showConsoleOnLaunch)$('#console').classList.add('open');try{await call('launch',i.id);}catch(e){$('#progTxt').textContent='Запуск не удался — открой консоль';$('#progBar').classList.remove('indet');$('#progBar i').style.width='0';toast(e.message,'err');appendLog('[Fox] '+e.message+'\n');$('#console').classList.add('open');}finally{S.busy=null;renderBar();}}
+  async function play(id){if(S.busy)return;const i=S.instances.find(x=>x.id===id)||selected();if(!i){nav('instances');return instanceDialog();}await settings({selectedInstance:i.id});if(S.running.has(i.id)){await call('stop',i.id);return;}if(!account()){nav('accounts');toast('Добавь аккаунт перед запуском');return;}S.busy=i.id;renderBar();$('#progTxt').textContent='Подготовка запуска…';if(S.settings.showConsoleOnLaunch)$('#console').classList.add('open');try{await call('launch',i.id);}catch(e){$('#progTxt').textContent='Запуск не удался — открой консоль';$('#progBar').classList.remove('indet');$('#progBar i').style.width='0';toast(e.message,'err');appendLog('[Fox] '+e.message+'\n');$('#console').classList.add('open');}finally{S.busy=null;hideDownloadOverlay(500);renderBar();}}
   bind('#playBtn',()=>play());
   function appendLog(text){const p=$('#conText'),bottom=p.scrollHeight-p.scrollTop-p.clientHeight<80;p.textContent=(p.textContent+text).slice(-250000);if(bottom)p.scrollTop=p.scrollHeight;}
   bind('#conToggle',()=>$('#console').classList.toggle('open'));bind('#conClose',()=>$('#console').classList.remove('open'));bind('#conClear',()=>$('#conText').textContent='');bind('#conCopy',async()=>{await navigator.clipboard.writeText($('#conText').textContent);toast('Лог скопирован','ok');});
   ['Min','Max','Close'].forEach(n=>bind('#w'+n,()=>call('win'+n)));
+  let overlayHideTimer=null;
+  function showDownloadOverlay({title='Подготовка загрузки',description='Пожалуйста, подожди. Не закрывай лаунчер.',text='Подготовка файлов…',percent=null,done=null,total=null}={}){
+    const overlay=$('#downloadOverlay');if(!overlay)return;
+    clearTimeout(overlayHideTimer);overlay.hidden=false;
+    $('#downloadTitle').textContent=title;$('#downloadDescription').textContent=description;$('#downloadStage').textContent=text||'Подготовка файлов…';
+    const valid=Number.isFinite(percent)&&percent>=0;const pct=valid?Math.max(0,Math.min(100,percent)):null;
+    $('#downloadPercent').textContent=pct===null?'…':Math.round(pct)+'%';
+    $('#downloadTrack').classList.toggle('indeterminate',pct===null);$('#downloadFill').style.width=(pct===null?34:pct)+'%';
+    const d=Number(done),t=Number(total);$('#downloadSize').textContent=Number.isFinite(d)&&Number.isFinite(t)&&t>0?`${formatProgressBytes(d)} / ${formatProgressBytes(t)}`:'';
+  }
+  function hideDownloadOverlay(delay=0){clearTimeout(overlayHideTimer);overlayHideTimer=setTimeout(()=>{$('#downloadOverlay').hidden=true;},delay);}
+  function formatProgressBytes(n){return n<1024?`${Math.round(n)} Б`:n<1048576?`${(n/1024).toFixed(1)} КБ`:`${(n/1048576).toFixed(1)} МБ`;}
   window.fox.on((type,p)=>{
-    if(type==='progress'){if(p.text)$('#progTxt').textContent=p.text;const pct=p.total?Math.min(100,p.done/p.total*100):null;$('#progBar').classList.toggle('indet',pct===null);$('#progBar i').style.width=(pct||0)+'%';}
+    if(type==='progress'){
+      if(p.text)$('#progTxt').textContent=p.text;const pct=p.total?Math.min(100,p.done/p.total*100):null;$('#progBar').classList.toggle('indet',pct===null);$('#progBar i').style.width=(pct||0)+'%';
+      const launch=S.busy!==null||p.scope==='launch';
+      const likelyDownload=launch||['java','download','meta','natives','loader','modpack'].includes(p.stage);
+      if(likelyDownload){showDownloadOverlay({title:launch?'Подготовка Minecraft':'Загрузка файлов',description:launch?'Проверяем файлы и готовим игру к запуску.':'Пожалуйста, подожди, пока Fox Launcher подготовит необходимые файлы.',text:p.text||'Подготовка файлов…',percent:p.total&&p.total>0?p.done/p.total*100:null,done:p.done,total:p.total});if(!launch&&p.total&&p.done>=p.total)hideDownloadOverlay(900);}
+    }
+    if(type==='update'){
+      S.launcherUpdate=p||{};
+      if(p?.state==='downloading')showDownloadOverlay({title:'Обновление Fox Launcher',description:'Загружаем новую версию лаунчера. Не закрывай приложение.',text:'Скачивание обновления…',percent:Number.isFinite(Number(p.percent))?Number(p.percent):null});
+      else if(['ready','current','available','no-release','error','unconfigured','manual'].includes(p?.state))hideDownloadOverlay(p.state==='ready'?1200:0);
+    }
     if(type==='log')appendLog(p.text);
-    if(type==='started'){sound('launch');S.running.add(p.instanceId);$('#progTxt').textContent='Игра запущена';$('#conInfo').textContent=S.instances.find(i=>i.id===p.instanceId)?.name||'';$('#progBar').classList.remove('indet');$('#progBar i').style.width='100%';renderBar();}
-    if(type==='exit'){S.running.delete(p.instanceId);$('#progTxt').textContent=p.code===0?'Игра закрыта':'Игра завершилась с кодом '+p.code;$('#progBar i').style.width='0';if(p.code!==0){toast('Игра завершилась с ошибкой. Подробности в консоли.','err');$('#console').classList.add('open');}renderBar();refreshInstances().catch(()=>{});}
+    if(type==='started'){hideDownloadOverlay(500);sound('launch');S.running.add(p.instanceId);$('#progTxt').textContent='Игра запущена';$('#conInfo').textContent=S.instances.find(i=>i.id===p.instanceId)?.name||'';$('#progBar').classList.remove('indet');$('#progBar i').style.width='100%';renderBar();}
+    if(type==='exit'){hideDownloadOverlay(0);S.running.delete(p.instanceId);$('#progTxt').textContent=p.code===0?'Игра закрыта':'Игра завершилась с кодом '+p.code;$('#progBar i').style.width='0';if(p.code!==0){toast('Игра завершилась с ошибкой. Подробности в консоли.','err');$('#console').classList.add('open');}renderBar();refreshInstances().catch(()=>{});}
     if(type==='cloud'&&p?.profile){S.cloud={configured:true,...p};applyAppearance();renderAccountCard();}
     if(type==='achievement'){sound('achievement');toast('Открыто достижение: '+({gamer:'Геймер',addict:'Игроман'}[p.code]||p.code),'ok');}
     if(type==='cloud-warning'&&Date.now()-(S.lastCloudWarning||0)>300000){S.lastCloudWarning=Date.now();toast('Облачный учёт времени: '+p,'err');}
