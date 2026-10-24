@@ -1,16 +1,13 @@
+
 {
   "name": "fox-launcher",
   "productName": "Fox Launcher",
-<<<<<<< HEAD
   "version": "1.7.0",
-=======
-  "version": "1.7.0",
->>>>>>> f197d972d4b175aa14b74ab2252ab6b038eb0e06
   "description": "Fox Launcher — современный лаунчер Minecraft",
   "main": "main.js",
   "author": "FoxBro",
   "license": "MIT",
-    "scripts": {
+  "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win nsis portable",
     "dist:dir": "electron-builder --win dir",
