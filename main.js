@@ -56,7 +56,7 @@ function validateInstance(data) {
 const DEFAULT_SETTINGS = {
   memory: Math.min(4096, Math.max(1024, Math.floor(os.totalmem() / 1048576 / 4 / 256) * 256)),
   javaPath: '', jvmArgs: '-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions', width: 0, height: 0,
-  closeOnLaunch: false, showConsoleOnLaunch: false, selectedInstance: null, selectedAccount: null, newsFeedUrl: '', accent: '#36a9ff', sounds: true, soundVolume: 0.25, eventTheme: true,
+  closeOnLaunch: false, showConsoleOnLaunch: false, selectedInstance: null, selectedAccount: null, newsFeedUrl: '', accent: '#ff7a1a', sounds: true, soundVolume: 0.25, eventTheme: true,
 };
 
 let win;
@@ -65,7 +65,7 @@ const running = new Map(); // instanceId -> process
 function send(type, payload) { if (win && !win.isDestroyed()) win.webContents.send('event', type, payload); }
 
 // ---------- хранилище ----------
-const getSettings = async () => ({ ...DEFAULT_SETTINGS, ...(await readJson(P.settings, {})) });
+const getSettings = async () => { const saved = await readJson(P.settings, {}); /* 1.7 preview accidentally changed the default accent to blue; restore the original orange once. */ if (String(saved.accent || '').toLowerCase() === '#36a9ff') saved.accent = '#ff7a1a'; return { ...DEFAULT_SETTINGS, ...saved }; };
 const saveSettings = async s => { const cur = await getSettings(); const n = { ...cur, ...s }; await writeJson(P.settings, n); return n; };
 const getInstances = () => readJson(P.instances, []);
 const saveInstances = list => writeJson(P.instances, list);
