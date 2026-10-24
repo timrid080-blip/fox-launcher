@@ -486,3 +486,6 @@ input,textarea{user-select:text}
   .modal .mh,.modal .mb,.modal .mf{padding-left:14px;padding-right:14px}
   .modal .mf>.btn{flex:1 1 140px}
 }
+
+/* Profile achievement badges use illustrations instead of raw internal IDs. */
+.achievement-badges{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.achievement-badge{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}.achievement-badge img{width:34px;height:34px;object-fit:contain}.achievement-badge span{font-size:12px;font-weight:600}

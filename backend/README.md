@@ -59,3 +59,8 @@
 ## Fox Launcher 1.6 incremental migration
 
 After the existing `migrate-1.5.sql` has been applied successfully, back up the database and apply `migrate-1.6.sql`. It adds an owner-only RPC to set the legacy accounting-ruble wallet to an exact value. It does not alter the paid payment balance (`paid_kopeks`) and does not enable payment processing. Do not run this migration before the 1.2–1.5 migrations.
+
+
+## Fox Launcher 1.7 — срок подписок
+
+После успешного применения `migrate-1.6.sql` сделайте резервную копию и выполните `migrate-1.7.sql`. Он добавляет варианты Fox Plus, Fox Pro и Fox Exclusive на 2, 3, 6, 12 и 24 месяца. Прежние 30-дневные продукты и покупки не удаляются и не меняются. Цены новых вариантов указаны в Фоксах пропорционально текущей цене тарифа; рублёвые цены (`price_kopeks`) намеренно остаются нулевыми, пока владелец не задаст их и не проверит платёжную систему. Не включайте приём платежей только ради этой миграции.
