@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, nativeImage, session } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, nativeImage, session, Tray, Menu, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
@@ -60,9 +60,37 @@ const DEFAULT_SETTINGS = {
 };
 
 let win;
+let tray = null;
+let forceQuit = false;
+let toastWindow = null;
 const running = new Map(); // instanceId -> process
 
-function send(type, payload) { if (win && !win.isDestroyed()) win.webContents.send('event', type, payload); }
+function showAchievementToast(payload = {}) {
+  const names = { gamer: 'Геймер', addict: 'Игроман' };
+  const title = 'Достижение разблокировано';
+  const body = names[payload.code] || String(payload.code || 'Новое достижение');
+  try {
+    if (Notification.isSupported()) {
+      const n = new Notification({ title, body, icon: path.join(__dirname, 'assets', 'icon.png'), silent: false });
+      n.show();
+    }
+  } catch (e) { console.warn('Achievement notification failed:', e.message); }
+  try {
+    if (toastWindow && !toastWindow.isDestroyed()) toastWindow.close();
+    toastWindow = new BrowserWindow({ width: 360, height: 104, x: Math.max(0, (require('electron').screen.getPrimaryDisplay().workArea.width - 380)), y: 40,
+      frame: false, transparent: true, resizable: false, movable: false, minimizable: false, maximizable: false,
+      alwaysOnTop: true, skipTaskbar: true, focusable: false, show: false,
+      webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
+    const html = `<!doctype html><html><body style="margin:0;background:transparent;font-family:Segoe UI,Arial;color:#fff"><div style="box-sizing:border-box;height:94px;border:1px solid #ff9a45;border-radius:14px;background:rgba(22,20,20,.97);padding:15px 18px;box-shadow:0 8px 30px #0008"><div style="color:#ffad63;font-size:11px;font-weight:700;letter-spacing:1px">FOX LAUNCHER · ДОСТИЖЕНИЕ</div><div style="font-size:18px;font-weight:700;margin-top:7px">${body.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div><div style="color:#c8c8c8;font-size:12px;margin-top:4px">Новое достижение разблокировано</div></div></body></html>`;
+    toastWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+    toastWindow.once('ready-to-show', () => { if (toastWindow && !toastWindow.isDestroyed()) toastWindow.showInactive(); });
+    setTimeout(() => { if (toastWindow && !toastWindow.isDestroyed()) toastWindow.close(); toastWindow = null; }, 6500);
+  } catch (e) { console.warn('Achievement toast failed:', e.message); }
+}
+function send(type, payload) {
+  if (type === 'achievement') showAchievementToast(payload);
+  if (win && !win.isDestroyed()) win.webContents.send('event', type, payload);
+}
 
 // ---------- хранилище ----------
 const getSettings = async () => ({ ...DEFAULT_SETTINGS, ...(await readJson(P.settings, {})) });
@@ -138,7 +166,7 @@ const api = {
   async cloudRegister(email,password,nickname) { return cloud.register(email,password,nickname); },
   async cloudLogin(email,password) { if(running.size)throw new Error('Сначала закройте Minecraft для смены Fox ID'); const state=await cloud.login(email,password); if(state.profile) { const acc=auth.offline(state.profile.nickname); await upsertAccount(acc); } return state; },
   cloudLogout: () => { if(running.size)throw new Error('Сначала закройте Minecraft для выхода из Fox ID'); return cloud.logout(); },
-  async cloudAction(action,data) { if (!['notifications','notification_read','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
+  async cloudAction(action,data) { if (!['notifications','notification_read','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
   async createPayment(amount,requestId){if(!Number.isInteger(amount)||amount<100||amount>15000||typeof requestId!=='string')throw new Error('Сумма пополнения: 100–15000 рублей');const r=await cloud.payment({op:'create',amount,request_id:requestId});if(r.id){const uid=(await cloud.restore())?.user?.id;if(uid){const pending=await readJson(path.join(ROOT,'pending-payments.json'),{});pending[uid]={id:r.id};await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}if(r.confirmation_url){const url=new URL(r.confirmation_url);if(url.protocol!=='https:')throw new Error('Небезопасная ссылка оплаты');await shell.openExternal(url.href);}return r;},
   async getPendingPayment(){const uid=(await cloud.restore())?.user?.id;return uid?(await readJson(path.join(ROOT,'pending-payments.json'),{}))[uid]||null:null;},
   async checkPayment(id){const result=await cloud.payment({op:'status',id});if(['succeeded','canceled'].includes(result.status)){const uid=(await cloud.restore())?.user?.id,pending=await readJson(path.join(ROOT,'pending-payments.json'),{});if(uid&&pending[uid]?.id===id){delete pending[uid];await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}return result;},
@@ -506,6 +534,7 @@ function createWindow() {
   win.webContents.on('will-navigate', e => e.preventDefault());
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => win.show());
+  win.on('close', e => { if (!forceQuit && tray) { e.preventDefault(); win.hide(); } });
   win.on('maximize', () => send('maximized', true));
   win.on('unmaximize', () => send('maximized', false));
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
@@ -524,8 +553,11 @@ if (!lock) app.quit();
 else {
   app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
   app.whenReady().then(async () => { await fsp.mkdir(ROOT, { recursive: true }); createWindow();
+    try { tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png'))); tray.setToolTip('Fox Launcher'); tray.setContextMenu(Menu.buildFromTemplate([{label:'Открыть Fox Launcher',click:()=>{if(win){win.show();win.focus();}}},{type:'separator'},{label:'Выйти',click:()=>{forceQuit=true;app.quit();}}])); tray.on('double-click',()=>{if(win){win.show();win.focus();}}); } catch(e) { console.warn('Tray unavailable:',e.message); }
+    
     updates.init().catch(e=>send('update',{state:'error',message:e.message}));
     if(process.platform==='win32'&&app.isPackaged){const st=await getSettings();if(!st.desktopShortcutCreated){try{await api.createDesktopShortcut();await saveSettings({desktopShortcutCreated:true});}catch{}}}
   });
-  app.on('window-all-closed', () => app.quit());
+  app.on('window-all-closed', () => { if (forceQuit || !tray) app.quit(); });
+  app.on('before-quit', () => { forceQuit = true; if (tray) { tray.destroy(); tray = null; } });
 }

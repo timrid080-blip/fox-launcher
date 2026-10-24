@@ -1,7 +1,7 @@
 {
   "github": {
-    "owner": "",
-    "repo": "",
+    "owner": "timrid080-blip",
+    "repo": "fox-launcher",
     "branch": "main",
     "newsPath": "fox-news.json"
   },
