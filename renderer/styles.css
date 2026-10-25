@@ -583,3 +583,15 @@ input,textarea{user-select:text}
 .club-product-art:has(img:not([src=""])) .club-product-art-fallback{display:none}
 .club-product-art.is-fallback .club-product-art-fallback{display:block}
 @media(max-width:640px){.club-product-art{height:108px}.club-product-art-fallback{font-size:44px}}
+
+/* Simplified support and ticket conversation layout. */
+.support-intro{display:flex;align-items:flex-start;gap:14px;padding:18px;margin:16px 0;border:1px solid var(--border,rgba(255,255,255,.1));border-radius:14px;background:linear-gradient(120deg,rgba(255,122,26,.10),rgba(255,255,255,.025))}
+.support-intro-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:rgba(255,122,26,.14);color:#ff9a4d}
+.support-intro b{font-size:15px}.support-intro p{margin:5px 0 0;line-height:1.5}
+.ticket-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;text-align:left;padding:15px 16px;margin:7px 0;border-radius:12px}
+.ticket-row-main{min-width:0;flex:1}.ticket-row-main b{display:block;overflow-wrap:anywhere}.ticket-row-main p{margin:6px 0 0;line-height:1.4}.ticket-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--border,rgba(255,255,255,.1));margin-bottom:12px}
+.ticket-thread{display:flex;flex-direction:column;gap:10px;max-height:46vh;overflow:auto;padding:2px 3px 12px}
+.ticket-message{padding:12px 13px;border:1px solid var(--border,rgba(255,255,255,.09));border-radius:12px;background:rgba(255,255,255,.025);overflow-wrap:anywhere}
+.ticket-message.staff{border-color:rgba(255,122,26,.24);background:rgba(255,122,26,.055)}
+.ticket-message-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}.ticket-message p{white-space:pre-wrap;line-height:1.55;margin:9px 0 0}
+@media(max-width:600px){.ticket-row{align-items:flex-start}.ticket-row .tag{flex-shrink:0}.ticket-thread{max-height:40vh}}
