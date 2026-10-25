@@ -166,7 +166,7 @@ const api = {
   async cloudRegister(email,password,nickname) { return cloud.register(email,password,nickname); },
   async cloudLogin(email,password) { if(running.size)throw new Error('Сначала закройте Minecraft для смены Fox ID'); const state=await cloud.login(email,password); if(state.profile) { const acc=auth.offline(state.profile.nickname); await upsertAccount(acc); } return state; },
   cloudLogout: () => { if(running.size)throw new Error('Сначала закройте Minecraft для выхода из Fox ID'); return cloud.logout(); },
-  async cloudAction(action,data) { if (!['notifications','notification_read','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes','call_signal'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
+  async cloudAction(action,data) { if (!['notifications','notification_read','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
   async createPayment(amount,requestId){if(!Number.isInteger(amount)||amount<100||amount>15000||typeof requestId!=='string')throw new Error('Сумма пополнения: 100–15000 рублей');const r=await cloud.payment({op:'create',amount,request_id:requestId});if(r.id){const uid=(await cloud.restore())?.user?.id;if(uid){const pending=await readJson(path.join(ROOT,'pending-payments.json'),{});pending[uid]={id:r.id};await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}if(r.confirmation_url){const url=new URL(r.confirmation_url);if(url.protocol!=='https:')throw new Error('Небезопасная ссылка оплаты');await shell.openExternal(url.href);}return r;},
   async getPendingPayment(){const uid=(await cloud.restore())?.user?.id;return uid?(await readJson(path.join(ROOT,'pending-payments.json'),{}))[uid]||null:null;},
   async checkPayment(id){const result=await cloud.payment({op:'status',id});if(['succeeded','canceled'].includes(result.status)){const uid=(await cloud.restore())?.user?.id,pending=await readJson(path.join(ROOT,'pending-payments.json'),{});if(uid&&pending[uid]?.id===id){delete pending[uid];await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}return result;},
@@ -395,29 +395,22 @@ const api = {
     safeId(accountId);
     if(!await cloud.entitled(1)) throw new Error('Редактор скинов доступен с Fox Plus');
     const buf = Buffer.from(b64, 'base64');
-    if (buf.length > 1024*1024 || buf.length < 100 || buf.subarray(0,8).toString('hex') !== '89504e470d0a1a0a') throw new Error('Некорректный PNG-файл скина');
+    if (buf.length > 1024*1024 || buf.subarray(0,8).toString('hex') !== '89504e470d0a1a0a') throw new Error('Некорректный PNG');
+    await fsp.mkdir(P.skins, { recursive: true });
+    await fsp.writeFile(path.join(P.skins, accountId + '.png'), buf);
     const list = await getAccounts();
     const acc = list.find(a => a.id === accountId);
-    if (!acc) throw new Error('Аккаунт не найден. Обнови список аккаунтов и выбери его заново.');
-    const model = variant === 'slim' ? 'slim' : 'classic';
-    // Проверяем, что PNG декодируется и имеет один из размеров Minecraft skin.
-    if (buf.length < 24 || buf.subarray(12,16).toString('ascii') !== 'IHDR') throw new Error('PNG повреждён. Пересохрани скин как обычный PNG.');
-    const dimensions = { width:buf.readUInt32BE(16), height:buf.readUInt32BE(20) };
-    if (!((dimensions.width === 64 && dimensions.height === 64) || (dimensions.width === 64 && dimensions.height === 32))) throw new Error('Размер скина должен быть 64×64 или 64×32 пикселя.');
+    if (!acc) throw new Error('Аккаунт не найден');
     let uploaded = false;
     if (acc.type === 'microsoft') {
       const fresh = await auth.refresh(acc);
       Object.assign(acc, fresh);
-      // Minecraft account upload is authoritative; do not claim success if it fails.
-      acc.skinUrl = await auth.uploadSkin(acc, buf, model);
-      if (!acc.skinUrl) throw new Error('Minecraft не подтвердил применение скина. Повтори попытку позже.');
+      acc.skinUrl = await auth.uploadSkin(acc, buf, variant);
       uploaded = true;
     }
-    await fsp.mkdir(P.skins, { recursive: true });
-    await fsp.writeFile(path.join(P.skins, accountId + '.png'), buf);
-    acc.hasSkin = true; acc.skinVariant = model;
+    acc.hasSkin = true; acc.skinVariant = variant;
     await saveAccounts(list);
-    return { uploaded, variant:model, width:dimensions.width, height:dimensions.height };
+    return { uploaded };
   },
   async skinByName(name) { const s = await auth.skinByName(name); return { b64: s.png.toString('base64'), variant: s.variant }; },
   async openSkinFile() {
@@ -539,11 +532,6 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: false },
   });
   win.webContents.on('will-navigate', e => e.preventDefault());
-  // Allow mic/camera only for the trusted local Fox renderer, never external pages.
-  session.defaultSession.setPermissionRequestHandler((contents, permission, callback) => {
-    const mediaPermission = permission === 'media' || permission === 'microphone' || permission === 'camera';
-    callback(contents === win?.webContents && mediaPermission);
-  });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => win.show());
   win.on('close', e => { if (!forceQuit && tray) { e.preventDefault(); win.hide(); } });

@@ -10,7 +10,7 @@
 <body>
 <div class="titlebar">
   <div class="brand"><img src="../assets/logo-mark.png" alt=""><span><b>Fox</b> Launcher</span></div>
-  <span class="app-version" id="appVersion">2.0.0</span><span class="tag accent" id="eventBadge"></span><div class="spacer"></div>
+  <span class="app-version" id="appVersion">1.5.0</span><span class="tag accent" id="eventBadge"></span><div class="spacer"></div>
   <button class="notification-bell" id="notificationBell" title="Уведомления" aria-label="Уведомления"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationCount" hidden></span></button>
   <div class="winbtns">
     <button id="wMin" title="Свернуть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
@@ -51,28 +51,6 @@
       <button class="play" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>ИГРАТЬ</button>
     </footer>
   </main>
-</div>
-<div class="startup-overlay" id="startupOverlay" role="status" aria-live="polite">
-  <div class="startup-orbit startup-orbit-one"></div><div class="startup-orbit startup-orbit-two"></div>
-  <div class="startup-card">
-    <div class="startup-logo-wrap"><div class="startup-logo-glow"></div><img class="startup-logo" src="../assets/logo-mark.png" alt="Fox Launcher"></div>
-    <div class="startup-kicker">WELCOME BACK</div><h1 class="startup-heading"><span>FOX</span> LAUNCHER</h1>
-    <p class="startup-status" id="startupStatus">Запускаем лаунчер…</p>
-    <div class="startup-progress"><i id="startupProgressFill"></i></div>
-    <div class="startup-meta"><span id="startupStage">Инициализация</span><b id="startupPercent">0%</b></div>
-    <div class="startup-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-  </div>
-</div>
-<div class="download-overlay" id="downloadOverlay" hidden role="status" aria-live="polite" aria-atomic="true">
-  <div class="download-panel">
-    <div class="download-mark"><img src="../assets/logo-mark.png" alt="Fox Launcher"></div>
-    <div class="download-eyebrow">FOX LAUNCHER</div>
-    <h2 id="downloadTitle">Подготовка загрузки</h2>
-    <p id="downloadDescription">Пожалуйста, подожди. Не закрывай лаунчер.</p>
-    <div class="download-percent" id="downloadPercent">—</div>
-    <div class="download-track" id="downloadTrack"><i id="downloadFill"></i></div>
-    <div class="download-foot"><span id="downloadStage">Подготовка файлов…</span><span id="downloadSize"></span></div>
-  </div>
 </div>
 <div class="toasts" id="toasts"></div>
 <script src="skin.js"></script>
