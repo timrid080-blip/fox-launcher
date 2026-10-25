@@ -535,3 +535,42 @@ input,textarea{user-select:text}
 .friend-chat-message.mine{align-self:flex-end;background:rgba(80,160,255,.12);border-color:rgba(80,160,255,.24)}
 .friend-chat-message p{margin:0 0 5px;white-space:pre-wrap}
 .friend-chat-message small{display:block;color:var(--muted,#9ca3af);font-size:11px}
+
+
+/* Fox ID auth redesign */
+.fox-auth{padding:6px 2px 4px;max-width:460px;margin:0 auto}
+.fox-auth-mark{display:flex;align-items:center;gap:10px;margin:0 0 24px;color:#dfeee4;font-size:12px;letter-spacing:2px;font-weight:800}
+.fox-auth-mark img{width:36px;height:36px;object-fit:contain;border-radius:11px;box-shadow:0 0 28px rgba(85,216,137,.15)}
+.fox-auth-mark b{color:#70e29a}
+.fox-auth-kicker{font-size:10px;font-weight:800;letter-spacing:1.8px;color:#70e29a;margin-bottom:8px}
+.fox-auth h2,.fox-wait h2{font-size:25px;line-height:1.2;letter-spacing:-.6px;margin:0 0 10px;color:#f2fbf5}
+.fox-auth-sub{color:#9eafa5;line-height:1.65;margin-bottom:22px;font-size:13px}
+.fox-auth .field{display:block;margin:14px 0;color:#d5e2d9;font-size:12px;font-weight:650}
+.fox-auth-input{height:46px!important;border-radius:11px!important;border:1px solid #34493b!important;background:#101a14!important;margin-top:7px;width:100%;padding:0 14px!important;transition:border-color .18s,box-shadow .18s}
+.fox-auth-input:focus{outline:0;border-color:#62d98d!important;box-shadow:0 0 0 3px rgba(98,217,141,.12)}
+.fox-auth-note{display:flex;gap:9px;align-items:flex-start;padding:12px 13px;margin-top:17px;background:rgba(98,217,141,.08);border:1px solid rgba(98,217,141,.18);border-radius:10px;color:#b7d5c1;font-size:11px;line-height:1.55}
+.fox-auth-note span{color:#70e29a}
+.fox-auth-error{margin-top:12px;padding:10px 12px;background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.22);border-radius:9px;color:#ff9e9e}
+.fox-wait{text-align:center;padding:8px 4px 4px;max-width:440px;margin:0 auto}
+.fox-wait-orbit{height:96px;width:96px;margin:0 auto 18px;position:relative;display:grid;place-items:center}
+.fox-wait-icon{height:58px;width:58px;border-radius:20px;background:linear-gradient(145deg,#1b3d29,#14271b);border:1px solid #386749;color:#81e8a4;display:grid;place-items:center;font-size:27px;box-shadow:0 0 36px rgba(89,218,137,.14)}
+.fox-wait-orbit i{position:absolute;inset:0;border:1px solid rgba(112,226,154,.28);border-radius:50%;animation:foxWaitPulse 2.4s ease-out infinite}
+.fox-wait-orbit i:nth-of-type(2){animation-delay:.8s}.fox-wait-orbit i:nth-of-type(3){animation-delay:1.6s}
+@keyframes foxWaitPulse{0%{transform:scale(.7);opacity:.8}100%{transform:scale(1.3);opacity:0}}
+.fox-wait-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;background:rgba(112,226,154,.08);border:1px solid rgba(112,226,154,.18);font-size:9px;letter-spacing:1.3px;color:#8ee6ab;font-weight:800;margin-bottom:14px}
+.fox-wait-chip span{width:6px;height:6px;background:#70e29a;border-radius:50%;box-shadow:0 0 10px #70e29a}
+.fox-wait>p{color:#a5b6aa;line-height:1.6;font-size:12px;margin:0 auto 9px;max-width:330px}
+.fox-wait-email{display:inline-block;max-width:100%;overflow-wrap:anywhere;color:#e6f8eb;font-size:14px;font-weight:700;padding:10px 14px;border:1px solid #304b38;background:#111e15;border-radius:10px;margin:4px 0 20px}
+.fox-wait-steps{text-align:left;display:grid;gap:12px;margin:0 auto 18px;max-width:350px}
+.fox-wait-step{display:flex;gap:12px;align-items:center;color:#a8b9ad}
+.fox-wait-step>b{width:28px;height:28px;display:grid;place-items:center;flex:none;border-radius:9px;border:1px solid #35483a;background:#17231a;color:#7d9d86;font-size:11px}
+.fox-wait-step.active>b{background:#1a3a25;border-color:#3d7951;color:#8ce9a8}
+.fox-wait-step strong{display:block;color:#e0ece3;font-size:12px;margin-bottom:2px}.fox-wait-step small{display:block;color:#8b9e91;font-size:10px}
+.fox-wait-status{display:flex;justify-content:center;align-items:center;gap:9px;padding:12px;border:1px solid #2d4133;background:#111b14;border-radius:10px;color:#b5cbb9;font-size:11px;min-height:42px}
+.fox-wait-spinner{width:13px;height:13px;border:2px solid #355840;border-top-color:#7ce6a0;border-radius:50%;display:inline-block;animation:foxWaitSpin .8s linear infinite}
+@keyframes foxWaitSpin{to{transform:rotate(360deg)}}
+.fox-wait-success{font-weight:900;color:#78e7a0;font-size:16px}
+.fox-wait-resend{margin-top:12px;width:100%;min-height:40px;border:1px solid #3c6949!important;background:rgba(93,205,130,.08)!important;color:#91e8ac!important;border-radius:10px!important}
+.fox-wait-resend:hover:not(:disabled){background:rgba(93,205,130,.16)!important}
+.fox-wait-resend:disabled{opacity:.55;cursor:wait}
+.fox-wait-foot{display:block;color:#718578;font-size:10px;line-height:1.5;margin:13px auto 0;max-width:330px}
