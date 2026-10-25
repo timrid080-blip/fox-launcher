@@ -137,7 +137,8 @@ function showAchievementToast(payload = {}) {
   } catch (e) { console.warn('Achievement notification failed:', e.message); }
   try {
     if (toastWindow && !toastWindow.isDestroyed()) toastWindow.close();
-    toastWindow = new BrowserWindow({ width: 360, height: 104, x: Math.max(0, (require('electron').screen.getPrimaryDisplay().workArea.width - 380)), y: 40,
+    const area = require('electron').screen.getPrimaryDisplay().workArea;
+    toastWindow = new BrowserWindow({ width: 360, height: 104, x: area.x + Math.max(0, area.width - 378), y: area.y + Math.max(0, area.height - 122),
       frame: false, transparent: true, resizable: false, movable: false, minimizable: false, maximizable: false,
       alwaysOnTop: true, skipTaskbar: true, focusable: false, show: false,
       webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
