@@ -6,25 +6,83 @@ const fsp = fs.promises;
 const os = require('os');
 const crypto = require('crypto');
 
+// Startup diagnostics: write main/renderer failures to a stable temp log.
+const STARTUP_LOG = path.join(os.tmpdir(), 'fox-launcher-startup.log');
+function startupLog(...parts) {
+  try { fs.appendFileSync(STARTUP_LOG, `[${new Date().toISOString()}] ${parts.map(v => {
+    if (v instanceof Error) return v.stack || v.message;
+    if (typeof v === 'string') return v;
+    try { return JSON.stringify(v); } catch { return String(v); }
+  }).join(' ')}\\n`, 'utf8'); } catch {}
+}
+try { fs.writeFileSync(STARTUP_LOG, `Fox Launcher startup diagnostics\\nStarted: ${new Date().toISOString()}\\nNode: ${process.version} Electron: ${process.versions.electron}\\n`, 'utf8'); } catch {}
+process.on('uncaughtException', e => startupLog('MAIN uncaughtException', e));
+process.on('unhandledRejection', e => startupLog('MAIN unhandledRejection', e));
+process.on('exit', code => startupLog('MAIN process exit', code));
+app.on('will-quit', () => startupLog('APP will-quit'));
+app.on('before-quit', () => startupLog('APP before-quit'));
+startupLog('main.js reached module initialization');
+app.on('render-process-gone', (_e, details) => startupLog('APP render-process-gone', details));
+app.on('child-process-gone', (_e, details) => startupLog('APP child-process-gone', details));
+
+
+startupLog('before require ./core/util');
 const { readJson, writeJson, exists } = require('./core/util');
+startupLog('after require ./core/util');
+startupLog('before require ./core/versions');
 const versions = require('./core/versions');
+startupLog('after require ./core/versions');
+startupLog('before require ./core/loaders');
 const loaders = require('./core/loaders');
+startupLog('after require ./core/loaders');
+startupLog('before require ./core/java');
 const java = require('./core/java');
+startupLog('after require ./core/java');
+startupLog('before require ./core/auth');
 const auth = require('./core/auth');
+startupLog('after require ./core/auth');
+startupLog('before require ./core/modrinth');
 const modrinth = require('./core/modrinth');
+startupLog('after require ./core/modrinth');
+startupLog('before require ./core/news');
 const newsApi = require('./core/news');
+startupLog('after require ./core/news');
+startupLog('before require ./core/files');
 const files = require('./core/files');
+startupLog('after require ./core/files');
+startupLog('before require ./core/launch');
 const { launch } = require('./core/launch');
+startupLog('after require ./core/launch');
+startupLog('before require ./core/admin');
 const { Admin } = require('./core/admin');
+startupLog('after require ./core/admin');
+startupLog('before require ./core/community-news');
 const { CommunityNews } = require('./core/community-news');
+startupLog('after require ./core/community-news');
+startupLog('before require ./core/packs');
 const packs = require('./core/packs');
+startupLog('after require ./core/packs');
+startupLog('before require ./core/modpacks');
 const modpacks = require('./core/modpacks');
+startupLog('after require ./core/modpacks');
+startupLog('before require ./core/services');
 const { Services } = require('./core/services');
+startupLog('after require ./core/services');
+startupLog('before require ./core/cloud');
 const { Cloud } = require('./core/cloud');
+startupLog('after require ./core/cloud');
+startupLog('before require ./core/playtime');
 const { Playtime } = require('./core/playtime');
+startupLog('after require ./core/playtime');
+startupLog('before require ./core/updater');
 const { Updates } = require('./core/updater');
+startupLog('after require ./core/updater');
+startupLog('before require ./core/compatibility');
 const compatibility = require('./core/compatibility');
+startupLog('after require ./core/compatibility');
+startupLog('before require ./core/optifine');
 const optifine = require('./core/optifine');
+startupLog('after require ./core/optifine');
 
 app.setName('Fox Launcher');
 if (process.platform === 'win32') app.setAppUserModelId('com.foxbro.foxlauncher');
@@ -539,6 +597,14 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: false },
   });
   win.webContents.on('will-navigate', e => e.preventDefault());
+  win.webContents.on('console-message', (_event, details) => startupLog('RENDERER console', details.level, details.message, `line=${details.lineNumber}`, details.sourceId || ''));
+  win.webContents.on('preload-error', (_event, preloadPath, error) => startupLog('PRELOAD error', preloadPath, error));
+  win.webContents.on('did-fail-load', (_event, code, description, url, isMainFrame) => startupLog('did-fail-load', { code, description, url, isMainFrame }));
+  win.webContents.on('render-process-gone', (_event, details) => startupLog('RENDERER process gone', details));
+  win.webContents.on('dom-ready', () => startupLog('DOM ready', win.webContents.getURL()));
+  win.webContents.on('did-finish-load', () => startupLog('did-finish-load', win.webContents.getURL()));
+  win.webContents.on('unresponsive', () => startupLog('RENDERER unresponsive'));
+  win.webContents.on('responsive', () => startupLog('RENDERER responsive'));
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => win.show());
   win.on('close', e => { if (!forceQuit && tray) { e.preventDefault(); win.hide(); } });
@@ -559,12 +625,12 @@ const lock = app.requestSingleInstanceLock();
 if (!lock) app.quit();
 else {
   app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
-  app.whenReady().then(async () => { await fsp.mkdir(ROOT, { recursive: true }); createWindow();
+  app.whenReady().then(async () => { startupLog('app.whenReady'); await fsp.mkdir(ROOT, { recursive: true }); startupLog('data dir ready', ROOT); createWindow();
     try { tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png'))); tray.setToolTip('Fox Launcher'); tray.setContextMenu(Menu.buildFromTemplate([{label:'Открыть Fox Launcher',click:()=>{if(win){win.show();win.focus();}}},{type:'separator'},{label:'Выйти',click:()=>{forceQuit=true;app.quit();}}])); tray.on('double-click',()=>{if(win){win.show();win.focus();}}); } catch(e) { console.warn('Tray unavailable:',e.message); }
     
     updates.init().catch(e=>send('update',{state:'error',message:e.message}));
     if(process.platform==='win32'&&app.isPackaged){const st=await getSettings();if(!st.desktopShortcutCreated){try{await api.createDesktopShortcut();await saveSettings({desktopShortcutCreated:true});}catch{}}}
-  });
+  }).catch(e => startupLog('app.whenReady promise rejected', e));
   app.on('window-all-closed', () => { if (forceQuit || !tray) app.quit(); });
   app.on('before-quit', () => { forceQuit = true; if (tray) { tray.destroy(); tray = null; } });
 }
