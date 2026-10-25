@@ -1,5 +1,6 @@
 {
   "key.foxclient.toggle_hints": "Переключить подсказки Fox Client",
   "key.foxclient.toggle_fov": "Переключить FOV+",
+  "key.foxclient.toggle_coordinates": "Переключить координаты HUD",
   "category.foxclient": "Fox Client"
 }
