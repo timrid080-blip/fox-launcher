@@ -527,3 +527,11 @@ input,textarea{user-select:text}
 .reward-card-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
 .reward-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:13px;background:rgba(255,183,77,.13);font-size:23px}
 @media(max-width:700px){.achievement-card-icon{width:40px;height:40px;flex-basis:40px}.reward-icon{width:36px;height:36px}}
+
+
+/* Private friend chat */
+.friend-chat-messages{display:flex;flex-direction:column;gap:10px;max-height:46vh;min-height:160px;overflow:auto;padding:10px;border:1px solid var(--line,rgba(255,255,255,.1));border-radius:14px;background:rgba(0,0,0,.12)}
+.friend-chat-message{align-self:flex-start;max-width:88%;padding:10px 12px;border:1px solid var(--line,rgba(255,255,255,.1));border-radius:12px;background:rgba(255,255,255,.035);overflow-wrap:anywhere}
+.friend-chat-message.mine{align-self:flex-end;background:rgba(80,160,255,.12);border-color:rgba(80,160,255,.24)}
+.friend-chat-message p{margin:0 0 5px;white-space:pre-wrap}
+.friend-chat-message small{display:block;color:var(--muted,#9ca3af);font-size:11px}
