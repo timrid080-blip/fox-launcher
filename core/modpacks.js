@@ -30,10 +30,10 @@ function inspect(file) {
   const deps = m.dependencies || {}, mc = deps.minecraft;
   if (!/^[\w.+-]+$/.test(mc || '') || mc.includes('..')) throw new Error('Не указана версия Minecraft');
   const loaders = Object.keys(deps).filter(k => k !== 'minecraft');
-  if (loaders.length > 1 || loaders.some(k => !['fabric-loader', 'quilt-loader', 'neoforge'].includes(k))) throw new Error('Эта сборка требует неподдерживаемый загрузчик. Выбери Fabric, Quilt или NeoForge.');
+  if (loaders.length > 1 || loaders.some(k => !['fabric-loader', 'quilt-loader', 'forge', 'neoforge'].includes(k))) throw new Error('Эта сборка требует неподдерживаемый загрузчик. Выбери Fabric, Quilt, Forge или NeoForge.');
   const key = loaders[0], loaderVersion = key ? deps[key] : null;
   if (key && !/^[\w.+-]+$/.test(loaderVersion || '')) throw new Error('Некорректная версия загрузчика');
-  const instance = { name: String(m.name || 'Новая сборка').slice(0, 80), mc, loader: ({ 'fabric-loader': 'fabric', 'quilt-loader': 'quilt', neoforge: 'neoforge' })[key] || 'vanilla', loaderVersion, color: '#ff7a1a' };
+  const instance = { name: String(m.name || 'Новая сборка').slice(0, 80), mc, loader: ({ 'fabric-loader': 'fabric', 'quilt-loader': 'quilt', forge: 'forge', neoforge: 'neoforge' })[key] || 'vanilla', loaderVersion, color: '#ff7a1a' };
   let total = 0;
   const seen = new Set(), files = [], overrides = new Map();
   for (const f of m.files) {

@@ -9,6 +9,7 @@ const META = {
 
 async function loaderVersions(type, mc) {
   if (type === 'neoforge') return require('./neoforge').versions(mc);
+  if (type === 'forge') return require('./forge').versions(mc);
   if (!META[type]) return [];
   const list = await fetchJson(`${META[type]}/${encodeURIComponent(mc)}`);
   return list.map(x => ({ version: x.loader.version, stable: x.loader.stable !== false && !/beta|pre/i.test(x.loader.version) }));
@@ -17,6 +18,7 @@ async function loaderVersions(type, mc) {
 /** Ставит профиль загрузчика, возвращает id версии вида fabric-loader-X-mc */
 async function installLoader(root, type, mc, loaderVersion, opts = {}) {
   if (type === 'vanilla' || !type) return mc;
+  if (type === 'forge') { if (!loaderVersion) { const list=await loaderVersions(type,mc); loaderVersion=(list.find(v=>v.stable)||list[0])?.version; } if(!loaderVersion) throw new Error('Нет Forge для Minecraft '+mc); return require('./forge').install(root,mc,loaderVersion,opts); }
   if (type === 'neoforge') { if (!loaderVersion) { const list = await loaderVersions(type,mc); loaderVersion=(list.find(v=>v.stable)||list[0])?.version; } if(!loaderVersion) throw new Error('Нет NeoForge для Minecraft '+mc); return require('./neoforge').install(root,mc,loaderVersion,opts); }
   if (!META[type]) throw new Error('Загрузчик пока не поддерживается: ' + type);
   if (!loaderVersion) {

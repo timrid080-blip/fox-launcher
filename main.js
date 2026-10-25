@@ -23,6 +23,8 @@ const { Services } = require('./core/services');
 const { Cloud } = require('./core/cloud');
 const { Playtime } = require('./core/playtime');
 const { Updates } = require('./core/updater');
+const compatibility = require('./core/compatibility');
+const optifine = require('./core/optifine');
 
 app.setName('Fox Launcher');
 if (process.platform === 'win32') app.setAppUserModelId('com.foxbro.foxlauncher');
@@ -48,7 +50,7 @@ const installingMods = new Set();
 function idle(id) { if (running.has(id) || launching.has(id) || installingMods.has(id)) throw new Error('Сначала закройте игру и дождитесь окончания установки'); }
 function validateInstance(data) {
   if (!data || !/^[\w.\-+]+$/.test(data.mc || '') || data.mc.includes('..')) throw new Error('Некорректная версия Minecraft');
-  if (!['vanilla','fabric','quilt','neoforge'].includes(data.loader || 'vanilla')) throw new Error('Неподдерживаемый загрузчик');
+  if (!['vanilla','fabric','quilt','forge','neoforge'].includes(data.loader || 'vanilla')) throw new Error('Неподдерживаемый загрузчик');
   if(data.loaderVersion && !/^[\w.\-+]+$/.test(data.loaderVersion)) throw new Error('Некорректная версия загрузчика');
 }
 
@@ -177,7 +179,7 @@ const api = {
   async adminGitHubToken(token,value) { admin.require(token); if((await services.get()).supabase.url)await cloud.isAdmin();return services.token(value); },
   async adminPublishNews(token) { admin.require(token); if((await services.get()).supabase.url)await cloud.isAdmin();return services.publish(await community.feed()); },
   updateStatus: () => updates.status,
-  openUpdate: async () => { const url=updates.status.url;if(!url||!/^https:\/\/github\.com\//.test(url))throw new Error('Ссылка обновления недоступна');return shell.openExternal(url); },
+  openUpdate: async () => { const url=updates.status.url;if(!url||!/^https:\/\//i.test(url))throw new Error('Ссылка обновления недоступна');return shell.openExternal(url); },
   checkUpdates: () => updates.check(),
   installUpdate: () => updates.install(),
   // Редактор локальных новостей; не серверная админка.
@@ -246,6 +248,8 @@ const api = {
   loaderVersions: (type, mc) => loaders.loaderVersions(type, mc),
 
   // сборки
+  scanModCompatibility: async id => { const inst=(await getInstances()).find(x=>x.id===id); if(!inst)throw new Error('Сборка не найдена'); return compatibility.scanMods(instDir(id),{loader:inst.loader,mc:inst.mc}); },
+  async installOptiFine(id) { idle(id); const inst=(await getInstances()).find(x=>x.id===id);if(!inst)throw new Error('Сборка не найдена');const r=await dialog.showOpenDialog(win,{title:'Выбери OptiFine JAR',properties:['openFile'],filters:[{name:'Java archive',extensions:['jar']}]});if(r.canceled)return false;const info=await optifine.inspect(r.filePaths[0],inst.mc,inst.loader);const confirm=await dialog.showMessageBox(win,{type:'warning',title:'Установка OptiFine',message:`Minecraft ${info.version} · ${Math.ceil(info.bytes/1024)} КБ`,detail:'JAR-моды исполняют код внутри Minecraft. Продолжай только если файл получен из доверенного источника. OptiFine на Forge совместим не со всеми версиями и модами.',buttons:['Отмена','Установить'],defaultId:0,cancelId:0});if(confirm.response!==1)return false;await optifine.install(r.filePaths[0],path.join(instDir(id),'mods'),inst.mc,inst.loader);return true; },
   getInstances,
   async createInstance(data) {
     validateInstance(data);
@@ -460,6 +464,9 @@ const api = {
       const latestList = await getInstances(); const current=latestList.find(i=>i.id===instanceId); if(current) { current.versionId=inst.versionId; current.loaderVersion=inst.loaderVersion; } await saveInstances(latestList);
     }
     const gameDir = instDir(inst.id);
+    const modCheck = await compatibility.scanMods(gameDir,{loader:inst.loader,mc:inst.mc});
+    const errors = modCheck.warnings.filter(w=>w.severity==='error');
+    if(errors.length){const detail=errors.map(w=>'• '+w.message).join('\n');const choice=await dialog.showMessageBox(win,{type:'warning',title:'Возможные конфликты модов',message:`Найдено проблем: ${errors.length}`,detail:detail+'\n\nМожно продолжить запуск, но игра может аварийно завершиться.',buttons:['Отмена','Всё равно запустить'],defaultId:0,cancelId:0});if(choice.response!==1) return false;}
 
     // офлайн-скин для мода CustomSkinLoader
     if (acc.type === 'offline' && await exists(path.join(P.skins, acc.id + '.png'))) {

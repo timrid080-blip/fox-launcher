@@ -8,7 +8,7 @@ function validName(n) { return typeof n === 'string' && n.length > 0 && n.length
 function manifest(m) {
   if (m?.format !== 'foxpack' || m.version !== 1 || !m.instance || !/^[\w.\-+]+$/.test(m.instance.mc || '')) throw new Error('Это не сборка Fox Launcher');
   const i=m.instance;
-  if (!['vanilla','fabric','quilt','neoforge'].includes(i.loader)) throw new Error('Этот загрузчик не поддерживается');
+  if (!['vanilla','fabric','quilt','forge','neoforge'].includes(i.loader)) throw new Error('Этот загрузчик не поддерживается');
   if (i.loaderVersion && !/^[\w.\-+]+$/.test(i.loaderVersion)) throw new Error('Некорректная версия загрузчика');
   return { name:String(i.name || i.mc).slice(0,80), mc:i.mc, type:['release','snapshot','old_beta','old_alpha'].includes(i.type)?i.type:'release',
     loader:i.loader, loaderVersion:i.loaderVersion || null, color:/^#[a-f0-9]{6}$/i.test(i.color)?i.color:'#ff7a1a' };
