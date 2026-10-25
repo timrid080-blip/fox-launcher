@@ -509,3 +509,31 @@ input,textarea{user-select:text}
 @keyframes foxOverlayIn{from{opacity:0}to{opacity:1}}
 @keyframes foxIndeterminate{from{transform:translateX(-5%)}to{transform:translateX(205%)}}
 @media(max-width:560px){.download-panel{padding:28px 22px}.download-panel h2{font-size:21px}.download-foot{font-size:11px}}
+
+/* Illustrated quest, achievement and instance cards */
+.instance-art{background:#172b48!important;overflow:hidden;flex-shrink:0}.instance-art img{width:100%;height:100%;object-fit:cover;display:block}.instance-cover-preview{align-items:center;gap:16px;margin-bottom:14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.instance-cover-preview>img{width:112px;height:84px;object-fit:cover;border-radius:10px;flex-shrink:0}.instance-cover-preview .field{margin:0}.achievement-art,.quest-art{display:flex;align-items:center;gap:14px;min-height:88px}.achievement-art img,.quest-art img{width:76px;height:76px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 5px 14px #0004)}.achievement-art h2,.quest-art h2{margin:7px 0 0;font-size:19px;line-height:1.25}.achievement-card,.quest-card{gap:13px}.quest-card .club-progress,.achievement-card .club-progress{margin-top:4px}.daily-card:before{content:'🎁';display:grid;place-items:center;float:left;width:72px;height:72px;margin:0 18px 10px 0;border-radius:18px;background:linear-gradient(145deg,#ff7a1a33,#ffbd7033);font-size:36px}.daily-card{overflow:auto}
+
+
+/* Animated startup screen: progress advances only when real initialization tasks finish. */
+.startup-overlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 42%,rgba(255,122,26,.13),transparent 38%),linear-gradient(145deg,#101014 0%,#171318 52%,#0b0b0e 100%);opacity:1;visibility:visible;transition:opacity .48s ease,visibility .48s ease}
+.startup-overlay.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
+.startup-card{position:relative;z-index:2;width:min(440px,calc(100vw - 40px));padding:42px 38px 34px;text-align:center;border:1px solid rgba(255,255,255,.09);border-radius:26px;background:linear-gradient(145deg,rgba(32,29,31,.92),rgba(17,17,21,.94));box-shadow:0 30px 100px rgba(0,0,0,.48),0 0 65px rgba(255,122,26,.08);animation:startup-card-in .7s cubic-bezier(.2,.8,.2,1) both}
+.startup-logo-wrap{width:112px;height:112px;margin:0 auto 21px;display:grid;place-items:center;position:relative}
+.startup-logo-glow{position:absolute;inset:8px;border-radius:30px;background:rgba(255,122,26,.28);filter:blur(22px);animation:startup-glow 2.2s ease-in-out infinite alternate}
+.startup-logo{position:relative;width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(255,122,26,.22));animation:startup-float 2.8s ease-in-out infinite}
+.startup-kicker{font-size:10px;letter-spacing:4px;color:#ff9d45;font-weight:800;margin-bottom:8px}
+.startup-heading{font-size:28px;letter-spacing:2px;font-weight:850;color:#f5f3f2;line-height:1.2}.startup-heading span{color:#ff8124}
+.startup-status{min-height:22px;margin:17px 0 21px;color:#aaa6a7;font-size:13px;letter-spacing:.15px}
+.startup-progress{height:6px;width:100%;border-radius:99px;overflow:hidden;background:#302a2a;box-shadow:inset 0 1px 3px #0008}
+.startup-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#e85b12,#ff8b2c,#ffc071);box-shadow:0 0 16px #ff7a1a66;transition:width .28s ease}
+.startup-meta{display:flex;justify-content:space-between;gap:12px;margin-top:11px;color:#817c80;font-size:11px}.startup-meta b{color:#ff9d45;font-variant-numeric:tabular-nums}
+.startup-dots{display:flex;justify-content:center;gap:6px;margin-top:23px}.startup-dots i{width:5px;height:5px;border-radius:50%;background:#ff8124;opacity:.3;animation:startup-dot 1s ease-in-out infinite}.startup-dots i:nth-child(2){animation-delay:.16s}.startup-dots i:nth-child(3){animation-delay:.32s}
+.startup-orbit{position:absolute;width:540px;height:540px;border:1px solid rgba(255,122,26,.07);border-radius:50%;pointer-events:none;animation:startup-rotate 28s linear infinite}.startup-orbit-one{width:600px;height:600px;border-style:dashed}.startup-orbit-two{width:760px;height:760px;animation-direction:reverse;animation-duration:38s}
+@keyframes startup-card-in{from{opacity:0;transform:translateY(15px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes startup-float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}@keyframes startup-glow{from{opacity:.55;transform:scale(.88)}to{opacity:1;transform:scale(1.12)}}@keyframes startup-dot{0%,70%,100%{opacity:.25;transform:scale(.8)}35%{opacity:1;transform:scale(1.25)}}@keyframes startup-rotate{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.startup-overlay *{animation:none!important;transition:none!important}}
+
+/* WebRTC call dialog */
+.fox-call-box{display:grid;grid-template-columns:1fr;gap:12px;min-width:min(620px,75vw)}
+.fox-call-box video{width:100%;max-height:42vh;min-height:120px;object-fit:cover;background:#08090d;border:1px solid var(--line,rgba(255,255,255,.12));border-radius:14px}
+.fox-call-box #foxCallLocal{max-height:22vh;min-height:80px}
+@media(max-width:700px){.fox-call-box{min-width:0}.fox-call-box video{max-height:32vh}}
