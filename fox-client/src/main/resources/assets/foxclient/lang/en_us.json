@@ -1,3 +1,5 @@
 {
-  "key.foxclient.toggle_hints": "Toggle Fox Client HUD hints"
+  "key.foxclient.toggle_hints": "Toggle Fox Client hints",
+  "key.foxclient.toggle_fov": "Toggle FOV+",
+  "category.foxclient": "Fox Client"
 }
