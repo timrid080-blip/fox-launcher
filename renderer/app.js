@@ -352,7 +352,75 @@
   async function renderFoxAccount(e){const section=document.createElement('div');section.className='set-group';section.id='foxAccount';e.prepend(section);section.innerHTML='<h3>Fox ID</h3><div class="spinner"></div>';let s;try{s=await clubRefresh();}catch(err){section.innerHTML='<h3>Fox ID</h3>'+empty(esc(err.message));return;}if(!section.isConnected)return;
     section.innerHTML='<h3>Fox ID · аккаунт лаунчера</h3>'+(s.profile?foxTabs(''):'')+(s.profile?`<div class="set-item"><div><h2>${esc(s.profile.nickname)}</h2><small class="selectable">${esc(s.profile.id)}</small><p class="dim">Это аккаунт Fox Club, не лицензия Minecraft.</p></div>${btn('foxLogout','Выйти','','sm')}</div>`:clubNotice(s)+(s.configured?`<div class="row wrap">${btn('foxSignIn','Войти','user','primary')}${btn('foxSignUp','Создать аккаунт','plus')}</div><p class="dim">Email, пароль и ник. После регистрации подтверди email. Аккаунт Fox не заменяет лицензию Microsoft.</p>`:''));bind('#foxSignIn',()=>foxLoginDialog(false),section);bind('#foxSignUp',()=>foxLoginDialog(true),section);bind('#foxLogout',async()=>{await call('cloudLogout');S.cloud=null;S.admin=null;syncRoleNav();applyAppearance();renderAccounts();},section);
   }
-  function foxLoginDialog(signup){const m=modal(signup?'Создать Fox ID':'Вход в Fox ID',`${signup?'<label class="field">Игровой ник<input class="input" id="foxNick" maxlength="16" autocomplete="nickname"></label>':''}<label class="field">Email<input class="input" type="email" id="foxEmail" autocomplete="username"></label><label class="field">Пароль${signup?' — от 12 символов':''}<input class="input" type="password" id="foxPass" autocomplete="${signup?'new-password':'current-password'}" maxlength="128"></label>${signup?'<label class="field">Повтори пароль<input class="input" type="password" id="foxPass2" autocomplete="new-password"></label>':''}`, [{text:'Отмена',run:m=>m.close()},{text:signup?'Создать':'Войти',primary:true,run:async m=>{const mail=m.q('#foxEmail').value.trim(),pass=m.q('#foxPass').value;if(signup){if(pass!==m.q('#foxPass2').value)throw new Error('Пароли не совпадают');const r=await call('cloudRegister',mail,pass,m.q('#foxNick').value.trim());toast(r.confirmation?'Подтверди email, затем войди в Fox ID':'Аккаунт создан','ok');}else{S.cloud=await call('cloudLogin',mail,pass);await refreshAccounts();toast('Вход в Fox ID выполнен','ok');}m.q('#foxPass').value='';m.close();applyAppearance();renderAccounts();}}]);}
+  function foxLoginDialog(signup){
+    const form = '<div class="fox-auth"><div class="fox-auth-mark"><img src="../assets/icon.png" alt=""><span>FOX <b>LAUNCHER</b></span></div>' +
+      '<div class="fox-auth-kicker">' + (signup?'СОЗДАНИЕ АККАУНТА':'С РАДОСТЬЮ СНОВА ВИДИМ ТЕБЯ') + '</div>' +
+      '<h2>' + (signup?'Твой игровой профиль':'Войти в Fox ID') + '</h2>' +
+      '<p class="fox-auth-sub">' + (signup?'Создай аккаунт Fox, чтобы синхронизировать профиль и пользоваться возможностями Fox Club.':'Войди, чтобы открыть профиль Fox Club, друзей и облачные возможности.') + '</p>' +
+      (signup?'<label class="field">Игровой ник<input class="input fox-auth-input" id="foxNick" maxlength="16" autocomplete="nickname" placeholder="Например, FoxPlayer"></label>':'') +
+      '<label class="field">Email<input class="input fox-auth-input" type="email" id="foxEmail" autocomplete="username" placeholder="you@example.com" required></label>' +
+      '<label class="field">Пароль<input class="input fox-auth-input" type="password" id="foxPass" autocomplete="' + (signup?'new-password':'current-password') + '" maxlength="128" placeholder="' + (signup?'Минимум 12 символов':'Твой пароль') + '" required></label>' +
+      (signup?'<label class="field">Повтори пароль<input class="input fox-auth-input" type="password" id="foxPass2" autocomplete="new-password" maxlength="128" placeholder="Ещё раз пароль"></label><div class="fox-auth-note"><span>✦</span> После регистрации мы дождёмся подтверждения Email — повторно вводить данные не придётся.</div>':'') +
+      '<div id="foxAuthError" class="fox-auth-error" hidden></div></div>';
+    const m=modal(signup?'Создать Fox ID':'Вход в Fox ID',form,[
+      {text:'Назад',run:m=>m.close()},
+      {text:signup?'Создать аккаунт':'Войти',primary:true,run:async m=>{
+        const mail=m.q('#foxEmail').value.trim(),pass=m.q('#foxPass').value;
+        if(!mail||!m.q('#foxEmail').checkValidity())throw new Error('Введи корректный Email');
+        if(signup){
+          const nick=m.q('#foxNick').value.trim();
+          if(!/^[A-Za-z0-9_]{3,16}$/.test(nick))throw new Error('Ник: 3–16 латинских букв, цифр или _');
+          if(pass.length<12)throw new Error('Пароль должен содержать минимум 12 символов');
+          if(pass!==m.q('#foxPass2').value)throw new Error('Пароли не совпадают');
+          const result=await call('cloudRegister',mail,pass,nick);
+          if(result.confirmation){showFoxEmailWaiting(m,mail,pass);return;}
+          S.cloud=await call('cloudState');await refreshAccounts();toast('Аккаунт Fox создан','ok');
+        }else{
+          S.cloud=await call('cloudLogin',mail,pass);await refreshAccounts();toast('Вход в Fox ID выполнен','ok');
+        }
+        m.close();applyAppearance();renderAccounts();
+      }}
+    ]);
+  }
+  function showFoxEmailWaiting(m,email,password){
+    let finished=false,checking=false,timer=null,attempts=0;
+    const closeOriginal=m.close;
+    m.close=()=>{if(finished)closeOriginal();};
+    const x=m.q('.x');if(x){x.disabled=true;x.setAttribute('aria-hidden','true');x.title='Подтверди Email, чтобы продолжить';}
+    m.root.querySelector('.mf').replaceChildren();
+    m.root.querySelector('.mh h3').textContent='Подтверждение Email';
+    m.body.innerHTML='<div class="fox-wait"><div class="fox-wait-orbit"><div class="fox-wait-icon">✉</div><i></i><i></i><i></i></div>'+
+      '<div class="fox-wait-chip"><span></span> ОЖИДАНИЕ ПОДТВЕРЖДЕНИЯ</div><h2>Проверь свою почту</h2>'+
+      '<p>Мы отправили письмо со ссылкой подтверждения на адрес:</p><div class="fox-wait-email"></div>'+
+      '<div class="fox-wait-steps"><div class="fox-wait-step active"><b>1</b><span><strong>Открой письмо</strong><small>Проверь также папку «Спам».</small></span></div>'+
+      '<div class="fox-wait-step"><b>2</b><span><strong>Нажми «Подтвердить Email»</strong><small>Заверши подтверждение на открывшейся странице.</small></span></div>'+
+      '<div class="fox-wait-step"><b>3</b><span><strong>Вернись в Fox Launcher</strong><small>Мы автоматически проверим статус и войдём в аккаунт.</small></span></div></div>'+
+      '<div class="fox-wait-status" id="foxWaitStatus"><span class="fox-wait-spinner"></span> Ожидаем подтверждения…</div>'+
+      '<button class="btn fox-wait-resend" id="foxWaitCheck">Я уже подтвердил — проверить сейчас</button>'+
+      '<small class="fox-wait-foot">Не закрывай это окно: после подтверждения вход выполнится автоматически.</small></div>';
+    m.q('.fox-wait-email').textContent=email;
+    const check=async()=>{
+      if(finished||checking)return;
+      checking=true;attempts++;
+      const status=m.q('#foxWaitStatus'),button=m.q('#foxWaitCheck');
+      if(status)status.innerHTML='<span class="fox-wait-spinner"></span> Проверяем подтверждение…';
+      if(button)button.disabled=true;
+      try{
+        S.cloud=await call('cloudLogin',email,password);
+        finished=true;if(timer)clearInterval(timer);
+        if(status)status.innerHTML='<span class="fox-wait-success">✓</span> Email подтверждён! Открываем Fox Launcher…';
+        await refreshAccounts();applyAppearance();renderAccounts();
+        toast('Email подтверждён — вход выполнен','ok');
+        setTimeout(()=>{closeOriginal();nav('home');},900);
+      }catch(err){
+        if(status)status.innerHTML='<span class="fox-wait-spinner"></span> Письмо ещё не подтверждено. Проверим снова автоматически.';
+        if(button)button.disabled=false;
+        if(attempts===1&&err?.message&&!/confirm|email|verified|credentials|подтверд|почт|вход|invalid/i.test(err.message))toast(err.message,'err');
+      }finally{checking=false;}
+    };
+    m.q('#foxWaitCheck')?.addEventListener('click',check);
+    timer=setInterval(check,20000);
+  }
   async function extraSettings(e){const s=S.settings;const box=document.createElement('div');box.className='set-group';box.innerHTML=foxTabs('profile-settings')+`<h3>Твой стиль и удобство</h3><div class="set-item"><label class="field">Цвет интерфейса<input type="color" id="accentColor" value="${/^#[\da-f]{6}$/i.test(s.accent)?s.accent:'#ff7a1a'}"></label><div class="row wrap">${['#ff7a1a','#a174ff','#39c9bb','#ff5b85','#529bff'].map(c=>`<button class="color-choice" data-accent="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div></div><div class="set-item"><label class="row"><input type="checkbox" id="clubSounds" ${s.sounds!==false?'checked':''}> Звуки лаунчера</label><input type="range" id="clubVolume" min="0" max="100" value="${Math.round((s.soundVolume??.25)*100)}" aria-label="Громкость">${btn('soundTest','Послушать','','sm')}</div><div class="set-item"><label class="row"><input type="checkbox" id="clubEvents" ${s.eventTheme!==false?'checked':''}> Оформление активного праздничного ивента</label></div><div class="set-item">${btn('saveStyle','Сохранить оформление','check','primary')}${btn('desktopShortcut','Ярлык на рабочий стол','plus')}</div><div class="set-item"><div class="l"><b>Обновления лаунчера</b><small id="updateStatus">Проверка подключения…</small></div>${btn('updateCheck','Проверить','refresh','sm')}${btn('updateInstall','Установить','','sm primary')}</div><small class="dim">Обновления сохраняют твои сборки, миры и аккаунты. Для переносной версии доступна загрузка новой версии.</small>`;e.append(box);bind('#saveStyle',async()=>{await settings({accent:$('#accentColor',box).value,sounds:$('#clubSounds',box).checked,soundVolume:+$('#clubVolume',box).value/100,eventTheme:$('#clubEvents',box).checked});applyAppearance();toast('Оформление сохранено','ok');},box);$$('[data-accent]',box).forEach(b=>b.onclick=()=>{$('#accentColor',box).value=b.dataset.accent;});bind('#soundTest',()=>{const old=S.settings.soundVolume,enabled=S.settings.sounds;S.settings.soundVolume=+$('#clubVolume',box).value/100;S.settings.sounds=true;sound('achievement');S.settings.soundVolume=old;S.settings.sounds=enabled;},box);bind('#desktopShortcut',async()=>{await call('createDesktopShortcut');toast('Ярлык добавлен на рабочий стол','ok');},box);function showUpdate(u){const t={unconfigured:'Проверка обновлений пока недоступна',manual:u.reason,'no-release':u.reason||'В GitHub пока нет опубликованного релиза',available:'Доступна версия '+u.version+' — скачивание через колокольчик',checking:'Проверка…',current:'Установлена последняя версия',downloading:'Загрузка '+(u.version||'')+(u.percent?' · '+Math.round(u.percent)+'%':''),ready:'Доступно обновление '+u.version,error:u.message};$('#updateStatus',box).textContent=t[u.state]||u.state;$('#updateInstall',box).hidden=u.state!=='ready';}showUpdate(await call('updateStatus'));bind('#updateCheck',async()=>{const u=await call('checkUpdates');showUpdate(u);if(u.state==='manual'&&u.url)await call('openExternal',u.url);},box);bind('#updateInstall',()=>call('installUpdate'),box);}
   async function adminExtras(e){const box=document.createElement('div');box.className='set-group admin-section';e.append(box);const config=await call('getServices');box.innerHTML=`<h3>Подключения владельца</h3><p class="dim">GitHub — публичные новости и релизы. Supabase — защищённые аккаунты и баланс. В клиенте допустим только публичный anon/publishable ключ, никогда service_role.</p><div class="form-grid form-grid-three"><label class="field">GitHub — владелец<input class="input" id="ghOwner" value="${esc(config.github.owner)}"></label><label class="field">Репозиторий<input class="input" id="ghRepo" value="${esc(config.github.repo)}"></label><label class="field">Ветка<input class="input" id="ghBranch" value="${esc(config.github.branch)}"></label></div><label class="field">Supabase project URL<input class="input" id="sbUrl" value="${esc(config.supabase.url)}" placeholder="https://PROJECT.supabase.co"></label><label class="field">CDN установщиков и обновлений (HTTPS, необязательно)<input class="input" id="updateCdn" value="${esc(config.updates?.baseUrl||'')}" placeholder="https://cdn.example.com/fox-launcher"><small class="dim">На CDN должны лежать latest.json и файлы обновлений. Пусто — GitHub как резервный источник.</small></label><label class="field">Supabase publishable / anon key<input class="input" id="sbKey" value="${esc(config.supabase.publishableKey)}"></label><div class="row wrap">${btn('saveServices','Сохранить подключения','check')}${btn('exportServices','Конфигурация для друзей','upload')}</div><p class="dim">Сначала выполни backend/supabase.sql, зарегистрируй свой Fox ID и назначь его владельцем в SQL. После подключения войди в Fox ID заново. Экспортированный fox-services.json без секретов передай друзьям рядом с EXE. Изменения GitHub для автообновления вступают в силу после перезапуска.</p><label class="field">Твой fine-grained GitHub token — только этот репозиторий, Contents: read/write<input class="input" id="ghToken" type="password" autocomplete="off" placeholder="Не включается в сборки или экспорт"></label><div class="row wrap">${btn('saveGhToken','Сохранить токен','lock')}${btn('publishGitHub','Опубликовать ленту всем','upload','primary')}</div><p class="dim">Токен хранится на этом компьютере в системном шифровании. Публикуются только новости без отметки «Черновик». У друзей лента проверяется при старте и раз в 5 минут.</p>`;
     bind('#saveServices',async()=>{await adminCall('adminSaveServices',{github:{owner:$('#ghOwner',box).value.trim(),repo:$('#ghRepo',box).value.trim(),branch:$('#ghBranch',box).value.trim()},supabase:{url:$('#sbUrl',box).value.trim().replace(/\/$/,''),publishableKey:$('#sbKey',box).value.trim()},updates:{baseUrl:$('#updateCdn',box).value.trim().replace(/\/$/,'')}});S.cloud=null;S.admin=null;toast('Подключения сохранены. Войди в Fox ID; для обновлений перезапусти лаунчер.','ok');nav('accounts');},box);bind('#exportServices',async()=>{if(await adminCall('adminExportServices'))toast('Публичная конфигурация сохранена. Секретов в ней нет.','ok');},box);bind('#saveGhToken',async()=>{await adminCall('adminGitHubToken',$('#ghToken',box).value);$('#ghToken',box).value='';toast('Токен сохранён на этом компьютере','ok');},box);bind('#publishGitHub',ev=>busy(ev.currentTarget,async()=>{await adminCall('adminPublishNews');toast('Лента опубликована в GitHub. У клиентов обновится в течение нескольких минут.','ok');}),box);
