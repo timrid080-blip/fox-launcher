@@ -574,3 +574,12 @@ input,textarea{user-select:text}
 .fox-wait-resend:hover:not(:disabled){background:rgba(93,205,130,.16)!important}
 .fox-wait-resend:disabled{opacity:.55;cursor:wait}
 .fox-wait-foot{display:block;color:#718578;font-size:10px;line-height:1.5;margin:13px auto 0;max-width:330px}
+
+
+/* Fox Store: compact product artwork with graceful fallback for older catalog entries. */
+.club-product-art{height:132px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin:-4px -4px 12px;border-radius:12px;background:radial-gradient(ellipse at 50% 20%,rgba(255,122,26,.22),transparent 68%),linear-gradient(145deg,rgba(255,255,255,.045),rgba(0,0,0,.16));border:1px solid var(--border,rgba(255,255,255,.08))}
+.club-product-art img{width:100%;height:100%;object-fit:contain;padding:10px;position:relative;z-index:1}
+.club-product-art-fallback{font-size:52px;line-height:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.24))}
+.club-product-art:has(img:not([src=""])) .club-product-art-fallback{display:none}
+.club-product-art.is-fallback .club-product-art-fallback{display:block}
+@media(max-width:640px){.club-product-art{height:108px}.club-product-art-fallback{font-size:44px}}
