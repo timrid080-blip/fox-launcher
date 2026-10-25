@@ -1,7 +1,7 @@
 {
   "name": "fox-launcher",
   "productName": "Fox Launcher",
-  "version": "1.7.3",
+  "version": "3.0.0",
   "description": "Fox Launcher — современный лаунчер Minecraft",
   "main": "main.js",
   "author": "FoxBro",
