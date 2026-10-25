@@ -288,6 +288,37 @@ const api = {
     } catch(e) { await fsp.rm(instDir(inst.id), {recursive:true,force:true}); await saveInstances((await getInstances()).filter(i=>i.id!==inst.id)); throw e; }
   },
 
+  async testSystemNotification() {
+    const title = 'Fox Launcher';
+    const body = 'Тестовое уведомление работает! 🦊';
+    let nativeShown = false;
+    if (Notification.isSupported()) {
+      const n = new Notification({ title, body, icon: path.join(__dirname, 'assets', 'icon.png'), silent: false });
+      n.on('click', () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } });
+      n.show();
+      nativeShown = true;
+    }
+    try {
+      if (toastWindow && !toastWindow.isDestroyed()) toastWindow.close();
+      const { screen } = require('electron');
+      const area = screen.getPrimaryDisplay().workArea;
+      const width = 360, height = 112, margin = 18;
+      toastWindow = new BrowserWindow({
+        width, height, x: area.x + area.width - width - margin, y: area.y + area.height - height - margin,
+        frame: false, transparent: true, resizable: false, movable: false,
+        minimizable: false, maximizable: false, alwaysOnTop: true, skipTaskbar: true,
+        focusable: false, show: false, hasShadow: false,
+        webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
+      });
+      const safe = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const html = `<!doctype html><html><body style="margin:0;background:transparent;font-family:Segoe UI,Arial;color:#f5f5f7"><div style="box-sizing:border-box;height:104px;border:1px solid #ff9a45;border-radius:14px;background:rgba(22,20,20,.98);padding:14px 16px;box-shadow:0 8px 30px #0008"><div style="color:#ffad63;font-size:11px;font-weight:700;letter-spacing:1px">FOX LAUNCHER · ТЕСТ УВЕДОМЛЕНИЯ</div><div style="font-size:16px;font-weight:700;margin-top:7px">${safe(title)}</div><div style="color:#d1d1d6;font-size:12px;margin-top:4px">${safe(body)}</div></div></body></html>`;
+      toastWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+      const current = toastWindow;
+      current.once('ready-to-show', () => { if (!current.isDestroyed()) current.showInactive(); });
+      setTimeout(() => { if (!current.isDestroyed()) current.close(); if (toastWindow === current) toastWindow = null; }, 6500);
+    } catch (e) { console.warn('Test toast failed:', e.message); }
+    return { nativeShown, customToast: true };
+  },
   // окно
   winMin: () => win.minimize(),
   winMax: () => (win.isMaximized() ? win.unmaximize() : win.maximize()),
