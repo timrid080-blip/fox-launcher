@@ -315,9 +315,20 @@
 
   document.addEventListener('click',ev=>{const b=ev.target.closest('[data-profile-name]');if(b)showPlayer({nickname:b.dataset.profileName}).catch(err=>toast(err.message,'err'));});
   const cosmeticStyles={
-    'fox-hat':{symbol:'🦊',label:'Лисья шапка'},'night-cape':{symbol:'🌙',label:'Ночной плащ'},
-    'star-art':{symbol:'✦',label:'Звёздный рисунок'},'fox-badge':{symbol:'🦊',label:'Лисья эмблема'},
-    'pumpkin-frame':{symbol:'🎃',label:'Тыквенная рамка'},'witch-hat':{symbol:'🧙',label:'Шляпа ведьмы'},'ghost-friend':{symbol:'👻',label:'Призрачный спутник'},'bat-wings':{symbol:'🦇',label:'Крылья ночи'},'jack-lantern':{symbol:'🎃',label:'Фонарь Джека'}
+    'fox-hat':{symbol:'🦊',label:'Лисья шапка'},
+    'night-cape':{symbol:'🌙',label:'Ночной плащ'},
+    'star-art':{symbol:'✦',label:'Звёздный рисунок'},
+    'fox-badge':{symbol:'🦊',label:'Лисья эмблема'},
+    'pumpkin-frame':{symbol:'🎃',label:'Тыквенная рамка'},
+    'witch-hat':{symbol:'🧙',label:'Шляпа ведьмы'},
+    'ghost-friend':{symbol:'👻',label:'Призрачный спутник'},
+    'bat-wings':{symbol:'🦇',label:'Крылья ночи'},
+    'jack-lantern':{symbol:'🎃',label:'Фонарь Джека'},
+    'pumpkin-helmet':{symbol:'🎃',label:'Тыквенный шлем'},
+    'fox-wings':{symbol:'🪽',label:'Крылья Фокса'},
+    'fox-hood':{symbol:'🦊',label:'Капюшон Фокса'},
+    'fox-cape':{symbol:'🦊',label:'Плащ с эмблемой Фокса'},
+    'fox-cape-free':{symbol:'🦊',label:'Бесплатный плащ Фокса'}
   };
   function cosmeticInfo(id){return Object.hasOwn(cosmeticStyles,id||'')?cosmeticStyles[id]:null;}
   function topUpPlaceholder(){return topUpDialog();}
