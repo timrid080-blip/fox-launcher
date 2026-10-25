@@ -1,7 +1,7 @@
 {
   "name": "fox-launcher",
   "productName": "Fox Launcher",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Fox Launcher — современный лаунчер Minecraft",
   "main": "main.js",
   "author": "FoxBro",
@@ -10,9 +10,10 @@
     "start": "electron .",
     "dist": "electron-builder --win nsis portable",
     "dist:dir": "electron-builder --win dir",
-    "test": "node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs tests/v160.test.cjs tests/v170.test.cjs tests/updater-config.test.cjs tests/codes-v190.test.cjs",
+    "test": "node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs tests/v160.test.cjs tests/v170.test.cjs tests/updater-config.test.cjs tests/codes-v190.test.cjs tests/autoupdate-release-config.test.cjs",
     "dist:portable": "electron-builder --win portable",
-    "test:sql": "node --test tests/club-sql.test.cjs"
+    "test:sql": "node --test tests/club-sql.test.cjs",
+    "dist:update": "electron-builder --win nsis --publish never"
   },
   "dependencies": {
     "adm-zip": "^0.6.1",
@@ -59,6 +60,18 @@
       "artifactName": "FoxLauncher-Portable-${version}.exe",
       "useZip": true
     },
-    "compression": "normal"
+    "compression": "normal",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "timrid080-blip",
+        "repo": "fox-launcher",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timrid080-blip/fox-launcher.git"
   }
 }

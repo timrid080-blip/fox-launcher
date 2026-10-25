@@ -463,6 +463,35 @@
 
   async function moderationPanel(e,s){const box=document.createElement('div');box.className='card moderation-card';box.style.marginTop='24px';if(s.features_version!==5){box.innerHTML='<h2>Модерация</h2><p class="muted">Выполни backend/migrate-1.5.sql поверх базы 1.4.</p>';e.append(box);return;}const users=await call('cloudAction','moderation_users');box.innerHTML=`<span class="tag accent">ТОЛЬКО ВЛАДЕЛЕЦ</span><h2>Блокировки и заморозка расходов</h2><p class="muted">Бан запрещает действия Fox Club и учёт новых игровых сессий. Поддержка и просмотр своего состояния остаются доступны. Это не блокировка офлайн-Minecraft. Заморозка запрещает покупки и новые платёжные запросы; входящие награды продолжают поступать. Подписка при бане не продлевается.</p><label class="field">Игрок<select class="input full-input" id="moderationUser">${users.map(u=>`<option value="${esc(u.id)}">${esc(u.nickname)}${u.banned?' · БАН':''}${u.spending_frozen?' · РАСХОДЫ ЗАМОРОЖЕНЫ':''}</option>`).join('')}</select></label><div id="moderationStatus" class="notice"></div><label class="field">Причина<input class="input full-input" id="moderationReason" minlength="3" maxlength="200" placeholder="Обязательна, 3–200 символов"></label><div class="row wrap"><button class="btn danger" data-moderation="ban">Заблокировать</button><button class="btn" data-moderation="unban">Разблокировать</button><button class="btn" data-moderation="freeze">Заморозить расходы</button><button class="btn" data-moderation="unfreeze">Снять заморозку</button></div><p class="dim">Владельца заблокировать нельзя. Действия сохраняются в серверном журнале; игроку приходит уведомление.</p>`;e.append(box);const status=()=>{const u=users.find(u=>u.id===$('#moderationUser',box).value);$('#moderationStatus',box).textContent=u?(u.banned?'Заблокирован: '+u.ban_reason:'Fox ID активен')+' · '+(u.spending_frozen?'Расходы заморожены':'Расходы разрешены'):'';};status();bind('#moderationUser',status,box,'change');$$('[data-moderation]',box).forEach(b=>b.onclick=()=>{const reason=$('#moderationReason',box).value.trim(),user=$('#moderationUser',box).value;if(reason.length<3){toast('Укажи причину: минимум 3 символа','err');return;}confirm('Подтвердить действие?',b.textContent+' · '+users.find(u=>u.id===user)?.nickname+' · '+reason,async()=>{await call('cloudAction','admin_moderate',{user,operation:b.dataset.moderation,reason});toast('Действие сохранено','ok');await renderControl();},b.dataset.moderation==='ban');});}
 
-  async function init(){try{[S.settings,S.instances,S.accounts,S.info]=await Promise.all([call('getSettings'),call('getInstances'),call('getAccounts'),call('info')]);for(const i of S.instances){if(await call('isRunning',i.id))S.running.add(i.id);}$('#appVersion').textContent=S.info.version;applyAppearance();clubRefresh().then(()=>refreshNotifications()).catch(()=>{});renderAccountCard();renderBar();nav('home');loadNews().catch(e=>toast('Новости недоступны: '+e.message,'err'));loadHeads();}catch(e){$('#page-home').classList.add('active');$('#page-home').innerHTML=empty('Не удалось запустить интерфейс: '+esc(e.message));toast(e.message,'err');}}
+  const startupOverlay=$('#startupOverlay');
+  let startupFinished=false;
+  function finishStartup(message){
+    if(startupFinished)return;
+    startupFinished=true;
+    if(message){const status=$('#startupStatus');if(status)status.textContent=message;}
+    const fill=$('#startupProgressFill'),stage=$('#startupStage'),percent=$('#startupPercent');
+    if(fill)fill.style.width='100%';if(stage)stage.textContent='Готово';if(percent)percent.textContent='100%';
+    if(startupOverlay){startupOverlay.classList.add('is-leaving');setTimeout(()=>startupOverlay.remove(),550);}
+  }
+  // Never let the decorative startup screen block the app indefinitely.
+  const startupFailsafe=setTimeout(()=>{
+    if(!startupFinished){finishStartup('Загрузка заняла больше времени — открываем интерфейс…');toast('Инициализация затянулась. Если данные не появились, перезапусти лаунчер.','err');}
+  },12000);
+  async function init(){
+    try{
+      const initial=await Promise.race([
+        Promise.all([call('getSettings'),call('getInstances'),call('getAccounts'),call('info')]),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error('Превышено время ожидания ответа от лаунчера')),10000))
+      ]);
+      [S.settings,S.instances,S.accounts,S.info]=initial;
+      for(const i of S.instances){try{if(await Promise.race([call('isRunning',i.id),new Promise(resolve=>setTimeout(()=>resolve(false),1500))]))S.running.add(i.id);}catch{}}
+      $('#appVersion').textContent=S.info.version;applyAppearance();clubRefresh().then(()=>refreshNotifications()).catch(()=>{});renderAccountCard();renderBar();nav('home');
+      finishStartup();clearTimeout(startupFailsafe);
+      loadNews().catch(e=>toast('Новости недоступны: '+e.message,'err'));loadHeads();
+    }catch(e){
+      $('#page-home').classList.add('active');$('#page-home').innerHTML=empty('Не удалось запустить интерфейс: '+esc(e.message));toast(e.message,'err');
+      finishStartup('Не удалось загрузить часть данных');clearTimeout(startupFailsafe);
+    }
+  }
   init();
 })();
