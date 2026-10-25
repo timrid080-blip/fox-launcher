@@ -514,3 +514,16 @@ input,textarea{user-select:text}
 .fox-call-box video{width:100%;max-height:42vh;min-height:120px;object-fit:cover;background:#08090d;border:1px solid var(--line,rgba(255,255,255,.12));border-radius:14px}
 .fox-call-box #foxCallLocal{max-height:22vh;min-height:80px}
 @media(max-width:700px){.fox-call-box{min-width:0}.fox-call-box video{max-height:32vh}}
+
+
+/* Missing visual affordances for builds, achievements and rewards */
+.instance-loader-icon{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,.96)}
+.instance-loader-icon svg{width:30px;height:30px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.18))}
+.achievement-title{display:flex;align-items:center;gap:12px;margin:12px 0}
+.achievement-title h2{margin:0}
+.achievement-card-icon{width:48px;height:48px;flex:0 0 48px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18))}
+.achievement-reward,.quest-reward{display:flex;align-items:center;gap:7px;margin:12px 0}
+.achievement-reward span,.quest-reward span{font-size:1.15em}
+.reward-card-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.reward-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:13px;background:rgba(255,183,77,.13);font-size:23px}
+@media(max-width:700px){.achievement-card-icon{width:40px;height:40px;flex-basis:40px}.reward-icon{width:36px;height:36px}}
