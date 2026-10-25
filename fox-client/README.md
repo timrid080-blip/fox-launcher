@@ -1,14 +1,22 @@
-# Fox Client — первый исходный модуль
+# Fox Client
 
-This is the initial Fabric client-side module, separate from the Electron launcher. The first compatibility target is Minecraft Java Edition 1.21.4 with Java 21. One JAR cannot safely support every Minecraft version from 1.12 through 26.x; separate versioned builds and loader-specific source sets are required.
+Separate client-side Minecraft mod source for Fox Launcher. Current implementation target: **Minecraft Java 1.21.4, Java 21, Fabric**.
 
-## Current foundation
-- Fabric client entrypoint and a Right Shift key binding to toggle the first HUD-hint preference.
+## Implemented in source
+- `F8`: temporarily increases the current FOV by 20 (capped at 110), then restores the captured value when toggled off.
+- `Right Shift`: toggles the initial HUD-hints preference flag.
 - Russian and English keybind labels.
-- No server plugin required; no external network calls.
+- Client-only behavior; no server plugin or external network request is required for these controls.
 
 ## Build
-Use JDK 21 and Gradle, then run `gradle build` from this directory. The resulting JAR is under `build/libs/`.
+From this directory, use JDK 21 and Gradle 8.12:
+```sh
+gradle build --no-daemon
+```
+The JARs should appear under `build/libs/`. GitHub Actions also attempts this build and uploads the output as an artifact.
 
-## Not implemented yet
-Voice chat, skins/capes, wings/headwear cosmetics, TAB server-side icon integration, and Forge/NeoForge/Quilt builds. This is source scaffolding, not a released or verified JAR.
+## Important limitations
+- The source has **not yet been confirmed by a successful build or in-game test**.
+- Forge and NeoForge versions are not implemented yet; their APIs and metadata need separate loader-specific projects.
+- Voice chat, skins/capes, wings/headwear cosmetics, and server-side TAB icon integration are not implemented.
+- One JAR cannot be assumed to support Minecraft 1.12 through modern 26.x versions. Those require version-specific compatibility work and separate builds.
