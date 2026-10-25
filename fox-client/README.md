@@ -1,31 +1,25 @@
 # Fox Client
 
-Separate client-side Minecraft mod source for Fox Launcher. Current implementation target: **Minecraft Java 1.21.4, Java 21, Fabric**.
+Отдельный клиентский мод Fox Launcher. Текущая цель сборки: **Minecraft Java 1.21.4, Fabric, Java 21**.
 
-## Implemented in source
-- `F8`: temporarily increases the current FOV by 20 (capped at 110), then restores the captured value when toggled off.
-- `Right Shift`: toggles the initial HUD-hints preference flag.
-- Russian and English keybind labels.
-- Client-only behavior; no server plugin or external network request is required for these controls.
+## Реализовано в исходниках
+- **F7** — включает/выключает HUD с координатами XYZ игрока.
+- **F8** — временно увеличивает FOV на 20 (максимум 110), повторное нажатие возвращает сохранённое значение.
+- **Right Shift** — переключает флаг подсказок интерфейса.
+- Русские и английские названия клавиш.
+- Все эти функции локальные: они не требуют плагина на сервере или отправки данных наружу.
 
-## Cosmetic goals
-The planned Fox cosmetics are defined conceptually as:
-- Free Fox-emblem cape.
-- Pumpkin helmet / pumpkin headwear.
-- Fox wings.
-- Fox hood and other headwear.
+## Косметика Fox
+Планируются бесплатный плащ с эмблемой Fox, тыквенный шлем, крылья и капюшон. Они **пока не отображаются на модели игрока**: для этого нужны текстуры, рендеринг и отдельный способ синхронизации, если косметику должны видеть другие игроки. Записи косметики в магазине лаунчера сами по себе не создают игровые предметы.
 
-**These are not rendered on the Minecraft player yet.** They need a client rendering implementation and texture assets; a launcher profile badge is not the same as an in-game cape or wings. A cape also cannot be made visible to other players just by adding a local texture—the distribution/visibility method must be implemented and clearly supported.
-
-## Build
-From this directory, use JDK 21 and Gradle 8.12:
+## Сборка и проверка
+Нужны JDK 21 и Gradle 8.12. Из этой папки:
 ```sh
 gradle build --no-daemon
 ```
-The JARs should appear under `build/libs/`. GitHub Actions also attempts this build and uploads the output as an artifact.
+GitHub Actions автоматически запускает сборку и публикует JAR как artifact. Пока сборка и запуск в Minecraft не подтверждены успешным результатом CI, считать мод проверенным нельзя.
 
-## Important limitations
-- The source has **not yet been confirmed by a successful build or in-game test**.
-- Forge and NeoForge versions are not implemented yet; their APIs and metadata need separate loader-specific projects.
-- Voice chat, player-rendered skins/capes, wings/headwear cosmetics, and server-side TAB icon integration are not implemented.
-- One JAR cannot be assumed to support Minecraft 1.12 through modern 26.x versions. Those require version-specific compatibility work and separate builds.
+## Ограничения
+- Сейчас реализован только Fabric для Minecraft 1.21.4.
+- Forge/NeoForge, голосовые функции, игровые плащи/крылья/головные уборы, TAB-интеграция и мультиверсионные сборки ещё не реализованы.
+- Один JAR нельзя считать совместимым с Minecraft 1.12—26.x без отдельных проверок и адаптаций.
