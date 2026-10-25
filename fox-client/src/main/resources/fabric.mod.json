@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "foxclient",
+  "version": "${version}",
+  "name": "Fox Client",
+  "description": "Client-side foundation for Fox Launcher: FOV control and configurable client preferences.",
+  "authors": ["Fox Launcher"],
+  "environment": "client",
+  "entrypoints": { "client": ["ru.foxlauncher.client.FoxClient"] },
+  "depends": {
+    "fabricloader": ">=0.16.10",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
