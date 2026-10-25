@@ -19,7 +19,7 @@ public final class FoxClient implements ClientModInitializer {
                 "key.foxclient.toggle_hints",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_RIGHT_SHIFT,
-                KeyBinding.Category.MISC
+                "category.foxclient"
         ));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleHudHints.wasPressed()) {
