@@ -1,3 +1,5 @@
 {
-  "key.foxclient.toggle_hints": "Переключить подсказки Fox Client"
+  "key.foxclient.toggle_hints": "Переключить подсказки Fox Client",
+  "key.foxclient.toggle_fov": "Переключить FOV+",
+  "category.foxclient": "Fox Client"
 }
