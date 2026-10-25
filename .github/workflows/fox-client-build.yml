@@ -1,0 +1,42 @@
+name: Fox Client build
+
+on:
+  push:
+    paths:
+      - "fox-client/**"
+      - ".github/workflows/fox-client-build.yml"
+  pull_request:
+    paths:
+      - "fox-client/**"
+      - ".github/workflows/fox-client-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build-fabric:
+    name: Build Fabric client mod
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fox-client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.12"
+      - name: Build mod
+        run: gradle build --no-daemon
+      - name: Upload mod JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: fox-client-fabric-minecraft-1.21.4
+          path: |
+            fox-client/build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14
