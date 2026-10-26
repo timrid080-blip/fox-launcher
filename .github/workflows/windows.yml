@@ -2,6 +2,7 @@ name: Build Windows
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     tags: ['v*']
 permissions:
   contents: read
@@ -43,9 +44,17 @@ jobs:
             RELEASE-1.5-RU.md
             BUILD-AND-HANDOFF-RU.md
             backend/migrate-1.5.sql
+            backend/migrate-1.6.sql
+            backend/migrate-1.7.sql
+            backend/migrate-1.8.sql
+            backend/migrate-1.9.sql
             backend/migrate-2.0.sql
             backend/migrate-2.1.sql
             backend/migrate-2.2.sql
+            backend/migrate-2.3.sql
+            backend/migrate-2.4.sql
+            backend/migrate-2.5-presence.sql
+            backend/migrate-2.6-launcher-modes.sql
       - name: Publish tagged release
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
