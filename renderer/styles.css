@@ -619,3 +619,39 @@ input,textarea{user-select:text}
 .support-filter .input{width:100%;min-width:0}
 .support-filter .dim{display:block;margin-bottom:6px}
 @media(max-width:600px){.support-filter{grid-template-columns:1fr;gap:10px}}
+
+
+/* Fox Launcher 3.1 — support workspace polish */
+#page-support .page-head{align-items:center;gap:16px;flex-wrap:wrap}
+#page-support .page-head>div:first-child{min-width:220px;flex:1}
+#page-support .page-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+#page-support .support-intro{align-items:center;min-height:94px;background:linear-gradient(112deg,rgba(255,122,26,.12),rgba(255,255,255,.018) 70%);border-color:rgba(255,145,66,.2);box-shadow:inset 3px 0 rgba(255,145,66,.65)}
+#page-support .support-intro-icon{width:46px;height:46px;flex-basis:46px}
+#page-support .support-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+#page-support .support-stat{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:68px;padding:15px 18px}
+#page-support .support-stat strong{font-size:25px;line-height:1;font-variant-numeric:tabular-nums}
+#page-support .notice{border-radius:10px;line-height:1.5}
+#page-support .section-title{align-items:center;margin-top:25px}
+#page-support .support-filter{grid-template-columns:minmax(0,2fr) minmax(150px,1fr);gap:12px}
+#page-support .support-filter .input{min-height:42px;border-radius:10px}
+#page-support .ticket-list{gap:8px;margin-top:14px}
+#page-support .ticket-row{min-height:76px;border:1px solid var(--line);background:var(--panel);transition:border-color .15s,background .15s,transform .15s}
+#page-support .ticket-row:hover{border-color:rgba(255,145,66,.42);background:var(--panel2);transform:translateY(-1px)}
+#page-support .ticket-row-main p{font-size:12px}
+#page-support .support-mode-switch{margin:0 0 14px}
+#page-support .support-mode-switch .btn{border-radius:9px}
+.modal:has(.ticket-thread) .modal-body{min-width:0}
+.modal:has(.ticket-thread) .ticket-thread{max-height:min(44vh,420px);padding:4px 5px 12px}
+.modal:has(.ticket-thread) .ticket-message{padding:13px 14px}
+.modal:has(.ticket-thread) .ticket-message.staff{border-left:3px solid #ff9a4d}
+.modal:has(.ticket-thread) .ticket-toolbar{position:sticky;top:0;background:var(--panel);padding:0 0 12px;z-index:1}
+.modal:has(.ticket-thread) .field{display:block;margin-top:14px}
+.modal:has(.ticket-thread) #ticketReply{min-height:100px;resize:vertical}
+@media(max-width:640px){
+  #page-support .page-head .actions{width:100%}
+  #page-support .page-head .actions .btn{flex:1}
+  #page-support .support-filter{grid-template-columns:minmax(0,1fr)}
+  #page-support .support-stat{padding:12px}
+  #page-support .support-stat strong{font-size:22px}
+  .modal:has(.ticket-thread) .ticket-thread{max-height:38vh}
+}
