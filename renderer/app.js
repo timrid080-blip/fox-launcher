@@ -293,7 +293,7 @@
   const currencyName={foxes:'Фоксы 🦊',pumpkins:'тыквы 🎃',rubles:'учётные ₽'};
   const holidays={halloween:'Хеллоуин 🎃',newyear:'Новый год 🎄',winter:'Зимний фестиваль ❄',spring:'Праздник весны 🌷',summer:'Летний фестиваль ☀',birthday:'День рождения Fox 🎂',valentine:'День дружбы ♥'};
   let audio=null,modeAudio=null;
-  const soundFiles={click:'c8fd8d10309e3e0.mp3',back:'8bb9a29014590e5.mp3',alarm:'03.11.2026.MP3',warning:'Сигнал об ошибке Error Tone № 22.wav',maintenance:'Сигнал об ошибке Error Tone № 23.wav',info:'Сигнал об ошибке Error Tone № 27.wav',ceremony:'e7e89aa39a8cef2.mp3',celebration:'e7e89aa39a8cef2.mp3',trailer:'e8500c03a9df88b.mp3',halloween:'a7cfbd79c161ba3.mp3',startup:'computer-shutdown-sound.mp3'};
+  const soundFiles={click:'c8fd8d10309e3e0.mp3',back:'8bb9a29014590e5.mp3',alarm:'03.11.2026.MP3',warning:'Сигнал об ошибке Error Tone № 22.wav',maintenance:'Сигнал об ошибке Error Tone № 23.wav',info:'Сигнал об ошибке Error Tone № 27.wav',ceremony:'e7e89aa39e8cef2.mp3',celebration:'e7e89aa39e8cef2.mp3',trailer:'e8500c03a9df88b.mp3',halloween:'a7cfbd79c161ba3.mp3',startup:'computer-shutdown-sound.mp3'};
   function tone(kind='click'){
     try{
       audio||=new AudioContext();audio.resume().catch(()=>{});
