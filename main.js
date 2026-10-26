@@ -334,11 +334,10 @@ const api = {
   getSettings, saveSettings,
   getAutoStart: () => process.platform === 'win32' ? app.getLoginItemSettings().openAtLogin : false,
   async setAutoStart(enabled) {
-    if (process.platform !== 'win32') throw new Error('Автозапуск поддерживается только в Windows');
     const value = !!enabled;
-    if (app.isPackaged) app.setLoginItemSettings({ openAtLogin: value, path: process.execPath, args: [] });
+    if (process.platform === 'win32' && app.isPackaged) app.setLoginItemSettings({ openAtLogin: value, path: process.execPath, args: [] });
     await saveSettings({ autoStart: value });
-    return { enabled: value, packaged: app.isPackaged };
+    return { enabled: value, packaged: app.isPackaged, supported: process.platform === 'win32' };
   },
 
   // версии
