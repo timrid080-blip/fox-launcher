@@ -7,7 +7,13 @@ group = project.maven_group
 version = project.mod_version
 base { archivesName = project.archives_base_name }
 
-repositories { maven { url = 'https://maven.fabricmc.net/' } }
+repositories {
+    // Google-hosted Maven Central mirror avoids intermittent/blocked 403 responses
+    // from repo.maven.apache.org in CI runners.
+    maven { url = 'https://maven-central.storage-download.googleapis.com/maven2/' }
+    maven { url = 'https://maven.fabricmc.net/' }
+    mavenCentral()
+}
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
