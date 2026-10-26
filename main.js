@@ -82,6 +82,7 @@ const compatibility = require('./core/compatibility');
 startupLog('after require ./core/compatibility');
 startupLog('before require ./core/optifine');
 const optifine = require('./core/optifine');
+const { OfficialMods } = require('./core/official-mods');
 startupLog('after require ./core/optifine');
 
 app.setName('Fox Launcher');
@@ -101,6 +102,7 @@ const sharedDir = process.env.PORTABLE_EXECUTABLE_DIR || (app.isPackaged ? path.
 const community = new CommunityNews(ROOT, sharedDir);
 const services = new Services(ROOT, sharedDir, safeStorage);
 const cloud = new Cloud(ROOT, safeStorage, () => services.get());
+const officialMods = new OfficialMods(services);
 const playtime = new Playtime(ROOT, cloud, send);
 const updates = new Updates(app, dialog, () => services.get(), () => running.size > 0 || launching.size > 0, send);
 const launching = new Set();
@@ -116,7 +118,7 @@ function validateInstance(data) {
 const DEFAULT_SETTINGS = {
   memory: Math.min(4096, Math.max(1024, Math.floor(os.totalmem() / 1048576 / 4 / 256) * 256)),
   javaPath: '', jvmArgs: '-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions', width: 0, height: 0,
-  closeOnLaunch: false, showConsoleOnLaunch: false, selectedInstance: null, selectedAccount: null, newsFeedUrl: '', accent: '#ff7a1a', sounds: true, soundVolume: 0.25, eventTheme: true,
+  closeOnLaunch: false, showConsoleOnLaunch: false, autoStart: true, selectedInstance: null, selectedAccount: null, newsFeedUrl: '', accent: '#ff7a1a', sounds: true, soundVolume: 0.25, eventTheme: true,
 };
 
 let win;
@@ -212,7 +214,14 @@ function makeLogParser(onLine) {
 }
 
 // ---------- API для интерфейса ----------
+async function getLauncherModeState() {
+  try { if (await cloud.restore()) return await cloud.action('launcher_mode', { op: 'get' }); }
+  catch (error) { startupLog('Authenticated launcher mode read failed; trying public read', error); }
+  return cloud.publicLauncherMode();
+}
+
 const api = {
+  getLauncherMode: getLauncherModeState,
   async createDesktopShortcut() {
     if (process.platform !== 'win32') throw new Error('Ярлык рабочего стола доступен в Windows');
     const target = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
@@ -227,7 +236,7 @@ const api = {
   async cloudRegister(email,password,nickname) { return cloud.register(email,password,nickname); },
   async cloudLogin(email,password) { if(running.size)throw new Error('Сначала закройте Minecraft для смены Fox ID'); const state=await cloud.login(email,password); if(state.profile) { const acc=auth.offline(state.profile.nickname); await upsertAccount(acc); } return state; },
   cloudLogout: () => { if(running.size)throw new Error('Сначала закройте Minecraft для выхода из Fox ID'); return cloud.logout(); },
-  async cloudAction(action,data) { if (!['presence','notifications','notification_read','friend_chat','call_signal','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
+  async cloudAction(action,data) { if (!['launcher_mode','presence','notifications','notification_read','friend_chat','call_signal','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
   async createPayment(amount,requestId){if(!Number.isInteger(amount)||amount<100||amount>15000||typeof requestId!=='string')throw new Error('Сумма пополнения: 100–15000 рублей');const r=await cloud.payment({op:'create',amount,request_id:requestId});if(r.id){const uid=(await cloud.restore())?.user?.id;if(uid){const pending=await readJson(path.join(ROOT,'pending-payments.json'),{});pending[uid]={id:r.id};await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}if(r.confirmation_url){const url=new URL(r.confirmation_url);if(url.protocol!=='https:')throw new Error('Небезопасная ссылка оплаты');await shell.openExternal(url.href);}return r;},
   async getPendingPayment(){const uid=(await cloud.restore())?.user?.id;return uid?(await readJson(path.join(ROOT,'pending-payments.json'),{}))[uid]||null:null;},
   async checkPayment(id){const result=await cloud.payment({op:'status',id});if(['succeeded','canceled'].includes(result.status)){const uid=(await cloud.restore())?.user?.id,pending=await readJson(path.join(ROOT,'pending-payments.json'),{});if(uid&&pending[uid]?.id===id){delete pending[uid];await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}return result;},
@@ -332,6 +341,13 @@ const api = {
 
   // настройки
   getSettings, saveSettings,
+  getAutoStart: () => process.platform === 'win32' ? app.getLoginItemSettings().openAtLogin : false,
+  async setAutoStart(enabled) {
+    const value = !!enabled;
+    if (process.platform === 'win32' && app.isPackaged) app.setLoginItemSettings({ openAtLogin: value, path: process.execPath, args: [] });
+    await saveSettings({ autoStart: value });
+    return { enabled: value, packaged: app.isPackaged, supported: process.platform === 'win32' };
+  },
 
   // версии
   listVersions: () => versions.listVersions(ROOT),
@@ -439,6 +455,30 @@ const api = {
     } finally { installingMods.delete(lock); if (inst) installingMods.delete(inst.id); }
   },
 
+  // Официальные моды Fox Launcher (публичный каталог + админ-загрузка в GitHub Releases)
+  officialModsList: () => officialMods.list(),
+  async adminOfficialMods(token) { admin.require(token); if ((await services.get()).supabase.url) await cloud.isAdmin(); return officialMods.list(); },
+  async adminOfficialModUpload(token, metadata = {}) {
+    admin.require(token);
+    if ((await services.get()).supabase.url) await cloud.isAdmin();
+    const r = await dialog.showOpenDialog(win, { title: 'Опубликовать официальный мод Fox Launcher', properties: ['openFile'], filters: [{ name: 'Minecraft mod (.jar)', extensions: ['jar'] }] });
+    if (r.canceled || !r.filePaths[0]) return { cancelled: true };
+    return officialMods.upload(r.filePaths[0], metadata);
+  },
+  async adminOfficialModDelete(token, assetId) {
+    admin.require(token);
+    if ((await services.get()).supabase.url) await cloud.isAdmin();
+    return officialMods.remove(Number(assetId));
+  },
+  async officialModInstall(instanceId, assetId) {
+    const inst = (await getInstances()).find(x => x.id === instanceId);
+    if (!inst) throw new Error('Выберите сборку');
+    if (inst.loader === 'vanilla') throw new Error('Для модов выбери сборку Fabric, Forge или NeoForge');
+    idle(instanceId); installingMods.add(instanceId);
+    try { return await officialMods.install(instDir(instanceId), Number(assetId)); }
+    finally { installingMods.delete(instanceId); }
+  },
+
   // моды
   mrSearch: q => modrinth.search(q),
   mrVersions: (id, o) => modrinth.versions(id, o),
@@ -525,6 +565,16 @@ const api = {
   stop: id => { const r = running.get(id); if (r) r.kill(); },
   async launch(instanceId) {
     idle(instanceId);
+    // Enforce maintenance mode in the privileged main process as well as the renderer.
+    if ((await services.get()).supabase.url) {
+      try {
+        const mode = await getLauncherModeState();
+        if (mode.blocked) { const blocked = new Error(mode.message || 'Fox Launcher временно закрыт на технические работы.'); blocked.code = 'LAUNCHER_MAINTENANCE'; throw blocked; }
+      } catch (error) {
+        if (error.code === 'LAUNCHER_MAINTENANCE') throw error;
+        startupLog('Launcher mode RPC unavailable; continuing normal launch', error);
+      }
+    }
     if (launching.size) throw new Error('Дождитесь окончания загрузки другой сборки');
     launching.add(instanceId);
     try {
@@ -662,8 +712,8 @@ else {
     
     updates.init().catch(e=>send('update',{state:'error',message:e.message}));
     if(process.platform==='win32'&&app.isPackaged){
-      // Register the packaged launcher to start with Windows for installed and portable builds.
-      try { app.setLoginItemSettings({ openAtLogin: true, path: process.execPath, args: [] }); startupLog('Windows autostart enabled'); }
+      // Respect the user's persistent preference; default is enabled on first packaged launch.
+      try { const st=await getSettings(); app.setLoginItemSettings({ openAtLogin: st.autoStart !== false, path: process.execPath, args: [] }); startupLog('Windows autostart configured', st.autoStart !== false); }
       catch (e) { startupLog('Windows autostart setup failed', e); }
       const st=await getSettings();if(!st.desktopShortcutCreated){try{await api.createDesktopShortcut();await saveSettings({desktopShortcutCreated:true});}catch{}}
     }
