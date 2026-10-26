@@ -449,9 +449,9 @@
   // Global announcement/mode state comes from the authenticated server RPC, not local settings.
   let lastLauncherModeKey='',dismissedLauncherModeKey='';
   async function refreshLauncherMode(){
-    if(!S.cloud?.profile)return;
+    if(!S.cloud?.configured)return;
     try{
-      const state=await call('cloudAction','launcher_mode',{op:'get'});
+      const state=await call('getLauncherMode');
       const overlay=$('#launcherModeOverlay');
       if(!overlay)return;
       const mode=state.mode||'',key=mode+'|'+(state.ends_at||'')+'|'+(state.message||'');
@@ -611,7 +611,7 @@
     box.innerHTML='<span class="tag accent">ГЛОБАЛЬНО ДЛЯ FOX ID</span><h2>Режимы и объявления лаунчера</h2><p class="muted">Состояние хранится на сервере, а не на компьютере администратора. Требуется применить миграцию backend/migrate-2.6-launcher-modes.sql.</p><label class="field">Режим<select class="input" id="launcherModeSelect"><option value="alarm">🚨 Тревога</option><option value="ceremony">🏆 Торжественный режим</option><option value="maintenance">🛠 Технические работы</option><option value="warning">⚠ Предупреждение</option><option value="celebration">🎉 Праздничный сигнал</option><option value="info">ℹ Информационное объявление</option></select></label><label class="field">Длительность<select class="input" id="launcherModeDuration"><option value="15">15 секунд</option><option value="30">30 секунд</option><option value="60" selected>1 минута</option><option value="180">3 минуты</option><option value="300">5 минут</option><option value="600">10 минут</option><option value="1800">30 минут</option></select></label><label class="field">Текст сообщения<input class="input" id="launcherModeMessage" maxlength="240" placeholder="Оставь пустым для стандартного текста"></label><div class="row wrap"><button class="btn primary" id="launcherModeActivate">Включить режим</button><button class="btn danger" id="launcherModeClear">Выключить режим</button><button class="btn" id="launcherModeRefresh">Обновить статус</button></div><div id="launcherModeStatus" class="notice" style="margin-top:14px">Проверяем серверное состояние…</div>';
     e.append(box);
     const defaults={alarm:'Администратор лаунчера включил режим тревоги!',ceremony:'Администратор лаунчера включил торжественный режим!',maintenance:'В Fox Launcher проводятся технические работы. Попробуйте позже.',warning:'Предупреждение от администрации Fox Launcher.',celebration:'Fox Launcher объявляет праздничный сигнал!',info:'Информационное объявление Fox Launcher.'};
-    async function refresh(){const r=await call('cloudAction','launcher_mode',{op:'get'});const st=$('#launcherModeStatus',box);st.textContent=r.mode?('Активен режим «'+r.mode+'» до '+(r.ends_at?new Date(r.ends_at).toLocaleString('ru-RU'):'неограниченно')+'. '+(r.message||'')):'Активного режима нет.';return r;}
+    async function refresh(){const r=await call('getLauncherMode');const st=$('#launcherModeStatus',box);st.textContent=r.mode?('Активен режим «'+r.mode+'» до '+(r.ends_at?new Date(r.ends_at).toLocaleString('ru-RU'):'неограниченно')+'. '+(r.message||'')):'Активного режима нет.';return r;}
     bind('#launcherModeActivate',async ev=>busy(ev.currentTarget,async()=>{const mode=$('#launcherModeSelect',box).value,duration=Number($('#launcherModeDuration',box).value),message=$('#launcherModeMessage',box).value.trim()||defaults[mode];await call('cloudAction','launcher_mode',{op:'set',payload:{mode,duration_seconds:duration,message}});toast('Глобальный режим включён','ok');await refresh();}),box);
     bind('#launcherModeClear',()=>confirm('Выключить глобальный режим?','Это сразу уберёт уведомление у подключённых пользователей.',async()=>{await call('cloudAction','launcher_mode',{op:'clear'});await refresh();toast('Режим выключен','ok');}),box);
     bind('#launcherModeRefresh',refresh,box);try{await refresh();}catch(err){$('#launcherModeStatus',box).textContent='Серверный режим недоступен: '+err.message;}
