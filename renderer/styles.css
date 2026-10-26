@@ -473,7 +473,7 @@ input,textarea{user-select:text}
   .playbar{grid-template-columns:minmax(0,1fr) 40px;gap:10px;padding:10px 12px}
   .playbar .play{grid-column:1/-1;grid-row:2;min-height:44px;height:auto;padding:10px}
   .playbar .prog{grid-row:3}
-  .toasts{bottom:196px}
+  .toasts{top:64px;bottom:auto}
   .app-version{position:static;transform:none;margin-left:auto}
   .titlebar .brand span{display:none}
   .titlebar .brand{padding-left:10px}
