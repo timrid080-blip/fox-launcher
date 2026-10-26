@@ -675,3 +675,18 @@ input,textarea{user-select:text}
 .quest-card-icon svg{width:25px;height:25px}
 .quest-reward-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--accent,#ff7a1a)}
 .quest-reward-icon svg{width:19px;height:19px}
+
+
+/* Fox Launcher 4.0 startup cinematic */
+.startup-cinematic{margin:12px auto 4px;font-size:clamp(38px,6vw,68px);line-height:1;font-weight:900;letter-spacing:-.06em;color:#ff963d;text-shadow:0 0 32px #ff7a1a55;transform:translateY(0);opacity:1;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .45s,color .45s,text-shadow .45s}
+.startup-cinematic.is-final{color:#ffe09a;text-shadow:0 0 14px #ffb44d,0 0 54px #ff7a1a;transform:scale(1.16);animation:fox-four-arrival .8s cubic-bezier(.2,.9,.2,1) both}
+@keyframes fox-four-arrival{0%{opacity:.2;transform:translateY(24px) scale(.7)}65%{opacity:1;transform:translateY(-5px) scale(1.22)}100%{opacity:1;transform:translateY(0) scale(1.16)}}
+.launcher-mode-overlay{animation:fox-mode-appear .35s ease-out both}
+.launcher-mode-overlay[hidden]{animation:none}
+.launcher-mode-card{animation:fox-mode-card-appear .5s cubic-bezier(.16,1,.3,1) both}
+.launcher-mode-overlay[data-mode="alarm"]{background:rgba(30,0,0,.94);backdrop-filter:blur(18px)}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{width:min(900px,100%);min-height:360px;display:flex;flex-direction:column;justify-content:center;border-width:2px}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card h1{font-size:clamp(30px,5vw,52px);letter-spacing:.04em}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card p{font-size:clamp(17px,2.4vw,25px)}
+@keyframes fox-mode-appear{from{opacity:0}to{opacity:1}}
+@keyframes fox-mode-card-appear{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
