@@ -16,7 +16,7 @@ test('global launcher modes are server-authoritative and admin-gated', () => {
   assert.match(sql, /if not adm then raise exception/i);
   assert.match(sql, /ends_at\s*<=\s*now\(\)/i);
   assert.match(sql, /'blocked',\s*\(r\.mode='maintenance' and not adm\)/i);
-  assert.match(sql, /grant execute on function public\.fox_launcher_mode\(text,jsonb\) to authenticated/i);
+  assert.match(sql, /grant execute on function public\.fox_launcher_mode\(text,jsonb\) to anon, authenticated/i);
 });
 
 test('launcher UI uses server modes and maintenance launch gate', () => {
