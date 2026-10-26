@@ -98,7 +98,7 @@
   const account = () => S.accounts.find(a=>a.id===S.settings.selectedAccount)||S.accounts[0];
   const defaultHead = () => Skin.headDataUrl(Skin.defaultSkin());
   const avatar = a => S.heads.get(a?.id)||defaultHead();
-  function toast(text,kind='') { if(kind==='err')sound('error'); const e=document.createElement('div');const body=$$('.modal-bg .mb').at(-1);e.className=(body?'modal-feedback ':'toast ')+kind;e.setAttribute('role',kind==='err'?'alert':'status');e.textContent=text;if(body){$('.modal-feedback',body)?.remove();body.prepend(e);body.scrollTop=0;}else $('#toasts').append(e);setTimeout(()=>e.remove(),kind==='err'?9000:4500); }
+  function toast(text,kind='') { if(kind==='err')sound('error'); const e=document.createElement('div');const body=$$('.modal-bg .mb').at(-1);e.className=(body?'modal-feedback ':'toast ')+kind;e.setAttribute('role',kind==='err'?'alert':'status');e.textContent=text;if(body){$('.modal-feedback',body)?.remove();body.prepend(e);body.scrollTop=0;}else $('#toasts').append(e);setTimeout(()=>e.remove(),kind==='err'?9000:5000); }
   function bind(selector,fn,root=document,event='click') { const e=$(selector,root);if(e)e.addEventListener(event,async ev=>{try { await fn(ev); }catch(e){toast(e.message||String(e),'err');}}); }
   async function busy(el,fn,text='Подождите…') { const old=el.innerHTML;el.disabled=true;el.textContent=text;try{return await fn();}finally{if(el.isConnected){el.disabled=false;el.innerHTML=old;}} }
   async function settings(patch) { S.settings=await call('saveSettings',patch);applyAppearance();renderBar();renderAccountCard(); }
