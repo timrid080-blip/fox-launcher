@@ -119,7 +119,7 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){modalStack.at(-1)?.close();$('.ctx')?.remove();}});
   async function confirm(title,text,run,danger=false) { modal(title,`<p>${esc(text)}</p>`,[{text:'Отмена',run:m=>m.close()},{text:danger?'Удалить':'Продолжить',primary:!danger,danger,run:async m=>{await run();m.close();}}]); }
   function textPrompt(title,label,value,run) { modal(title,`<label class="field">${esc(label)}<input class="input" id="promptValue" value="${esc(value)}" maxlength="200"></label>`,[{text:'Отмена',run:m=>m.close()},{text:'Сохранить',primary:true,run:async m=>{const v=m.q('#promptValue').value.trim();if(!v)throw new Error('Введите значение');await run(v);m.close();}}]); }
-  const pages=[['home','Главная','home'],['instances','Мои сборки','box'],['modpacks','Каталог сборок','download'],['mods','Моды и ресурсы','mods'],['skins','Редактор скинов','skin'],['files','Файлы сборки','folder'],['news','Новости','news'],['accounts','Аккаунты','user'],['settings','Настройки','settings'],['shop','Fox Store','box'],['subscription','Моя подписка','lock'],['wallet','Кошелёк','box'],['friends','Друзья','user'],['support','Поддержка','news'],['tutorial','Обучение','clock'],['v3-tools','Инструменты v3','settings'],['profile-settings','Профиль и приватность','settings'],['players','Профили игроков','user'],['achievements','Задания и достижения','clock'],['leaderboards','Топ игроков','user']];
+  const pages=[['home','Главная','home'],['instances','Мои сборки','box'],['modpacks','Каталог сборок','download'],['mods','Моды и ресурсы','mods'],['skins','Редактор скинов','skin'],['files','Файлы сборки','folder'],['news','Новости','news'],['accounts','Аккаунты','user'],['settings','Настройки','settings'],['shop','Fox Store','box'],['friends','Друзья','user'],['support','Поддержка','message-circle'],['achievements','Задания и достижения','clock']];
   $('#nav').innerHTML=pages.map(([id,label,ic],i)=>`${i===6?'<div class="sep"></div>':''}<button data-page="${id}" title="${label}">${icon(ic)}<span class="nav-label">${label}</span></button>`).join('');
   $$('#nav button').forEach(b=>b.onclick=()=>nav(b.dataset.page));
   function nav(page) {
@@ -451,7 +451,7 @@
   const roleLabels={owner:'Владелец',support:'Агент поддержки',support_lead:'Старший поддержки',developer:'Разработчик',media:'Медиа',media_manager:'Медиа-менеджер',moderator:'Модератор'};
   const rubles=k=>(Number(k||0)/100).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽';
   function roleTags(roles){return `<div class="role-tags">${(roles||[]).map(r=>`<span class="role-tag">${esc(roleLabels[r]||r)}</span>`).join('')}</div>`;}
-  function syncRoleNav(){for(const [id,label,allowed] of [['control','Админ-панель',S.cloud?.is_admin],['work','Работа',S.cloud?.can_support]]){let b=$(`#nav [data-page="${id}"]`);if(!allowed){b?.remove();continue;}if(!b){b=document.createElement('button');b.dataset.page=id;b.title=label;b.innerHTML=icon(id==='control'?'lock':'news')+`<span class="nav-label">${label}</span>`;b.onclick=()=>nav(id);$('#nav').prepend(b);}b.classList.toggle('active',S.page===id);}}
+  function syncRoleNav(){const id='control',label='Управление';let b=$(`#nav [data-page="${id}"]`);if(!S.cloud?.is_admin){b?.remove();return;}if(!b){b=document.createElement('button');b.dataset.page=id;b.title=label;b.innerHTML=icon('settings')+`<span class="nav-label">${label}</span>`;b.onclick=()=>nav(id);$('#nav').prepend(b);}b.classList.toggle('active',S.page===id);}
   function foxTabs(active){return `<div class="fox-tabs">${[['wallet','Кошелёк'],['subscription','Подписка'],['friends','Друзья'],['profile-settings','Профиль и приватность'],['support','Поддержка']].map(([id,label])=>`<button class="btn ${active===id?'primary':''}" data-fox-page="${id}">${label}</button>`).join('')}</div>`;}
   document.addEventListener('click',ev=>{const b=ev.target.closest('[data-fox-page]');if(b)nav(b.dataset.foxPage);});
   function foxHero(s){const a=account(),l=s.level||{level:1,progress:0,next:300,xp:0};return `<div class="card fox-profile-hero"><img class="hero-head" src="${avatar(a)}" alt="Аватар Fox"><div class="hero-info"><small class="dim">FOX LAUNCHER · МОЙ ПРОФИЛЬ</small><h2>${esc(s.profile.nickname)}</h2>${roleTags(s.roles)}<p class="muted">Уровень ${Number(l.level)} · ${Number(l.xp)} XP · ${Number(s.friends_count)||0} друзей</p><div class="level-track" aria-label="Прогресс уровня"><i style="width:${Math.max(0,Math.min(100,Number(l.progress)/Number(l.next)*100))}%"></i></div><small class="dim">${Number(l.progress)} / ${Number(l.next)} XP до следующего уровня</small></div><button class="btn" data-fox-page="profile-settings">Настроить профиль</button></div>`;}
@@ -531,22 +531,26 @@
     <article class="card admin-section"><h2>8. Приватность и безопасность</h2><p>Используй уникальный пароль и не передавай учётные данные другим. При импорте сборок помни, что моды — исполняемый код. Перед обновлением лаунчера сохраняй важные файлы и не устанавливай неизвестные EXE.</p></article>
     </div>`;$$("[data-tutorial-go]",e).forEach(b=>b.addEventListener("click",()=>nav(b.dataset.tutorialGo)));}
   async function renderSupport(work=false){
-    const e=$('#page-'+(work?'work':'support'));
-    const s=await socialState(e,work?'Работа · поддержка':'Поддержка Fox');
+    const e=$('#page-support');
+    const s=await socialState(e,'Поддержка Fox');
     if(!s)return;
-    if(work&&!s.can_support){e.innerHTML=head('Очередь поддержки')+empty('Нет доступа к очереди поддержки');return;}
+    work=Boolean(work&&s.can_support);
+    S.supportMode=work?'queue':'mine';
     let items;
     try{items=await call('cloudAction','support_list',{work});}
-    catch(err){e.innerHTML=head(work?'Очередь поддержки':'Поддержка')+empty('Не удалось загрузить обращения: '+esc(err.message));return;}
+    catch(err){e.innerHTML=head('Поддержка')+empty('Не удалось загрузить обращения: '+esc(err.message));return;}
     const openCount=items.filter(t=>t.status==='open').length;
     const closedCount=items.length-openCount;
-    e.innerHTML=head(work?'Очередь поддержки':'Поддержка',work?'Открой обращение, возьми его в работу или передай нужному специалисту.':'Одна переписка для всех вопросов. Создай обращение и продолжай диалог в нём.',btn('supportRefresh','Обновить','refresh')+(work?'':btn('supportNew','Новое обращение','plus','primary')))+
-      `<div class="support-intro"><div class="support-intro-icon">${icon('message-circle')}</div><div><b>${work?'Рабочая очередь':'Чем помочь?'}</b><p class="dim">${work?'Назначай ответственного, передавай тикет и отвечай в одном окне.':'Опиши проблему один раз — ответы команды появятся здесь.'}</p></div></div>
-      <div class="support-stats"><div class="card support-stat"><span class="dim">${work?'В очереди':'Активные обращения'}</span><strong>${openCount}</strong></div><div class="card support-stat"><span class="dim">Закрытые</span><strong>${closedCount}</strong></div></div>
-      <div class="notice">Не отправляй пароли, коды входа, данные карты или секретные ключи. Для экономии места в базе не прикладывай большие файлы и скриншоты без необходимости.</div>
-      <div class="section-title"><h3>${work?'Обращения игроков':'Мои обращения'}</h3><span class="tag">${items.length}</span></div>
-      <div class="ticket-list">${items.map(t=>`<button class="btn ticket-row" data-ticket="${esc(t.id)}"><div class="ticket-row-main"><b>${esc(t.title)}</b><p class="dim">${work?esc(t.nickname)+' · ':''}${date(t.updated_at)}${t.assigned?' · '+esc(t.assigned):work?' · Не назначен':''}</p></div><span class="tag ${t.status==='open'?'accent':''}">${t.status==='open'?'Открыт':'Закрыт'}</span></button>`).join('')||empty(work?'Новых обращений пока нет':'Обращений пока нет. Нажми «Новое обращение», чтобы написать поддержке.')}</div>`;
+    const modeSwitch=s.can_support?`<div class="support-mode-switch"><button class="btn ${work?'':'primary'}" id="supportMine">Мои обращения</button><button class="btn ${work?'primary':''}" id="supportQueue">Очередь команды</button></div>`:'';
+    e.innerHTML=head('Поддержка','Обращения, ответы и передача тикетов — в одном месте.',btn('supportRefresh','Обновить','refresh')+(work?'':btn('supportNew','Новое обращение','plus','primary')))+modeSwitch+
+      `<div class="support-intro"><div class="support-intro-icon">${icon('message-circle')}</div><div><b>${work?'Очередь команды':'Чем помочь?'}</b><p class="dim">${work?'Открой тикет, возьми его в работу или передай специалисту/агенту.':'Создай обращение и продолжай переписку с поддержкой здесь.'}</p></div></div>
+      <div class="support-stats"><div class="card support-stat"><span class="dim">${work?'Открытые тикеты':'Активные обращения'}</span><strong>${openCount}</strong></div><div class="card support-stat"><span class="dim">Закрытые</span><strong>${closedCount}</strong></div></div>
+      <div class="notice">Не отправляй пароли, коды входа или платёжные данные. Большие вложения не нужны — это помогает экономить место.</div>
+      <div class="section-title"><h3>${work?'Все обращения игроков':'Мои обращения'}</h3><span class="tag">${items.length}</span></div>
+      <div class="ticket-list">${items.map(t=>`<button class="btn ticket-row" data-ticket="${esc(t.id)}"><div class="ticket-row-main"><b>${esc(t.title)}</b><p class="dim">${work?esc(t.nickname)+' · ':''}${date(t.updated_at)}${t.assigned?' · '+esc(t.assigned):work?' · Не назначен':''}</p></div><span class="tag ${t.status==='open'?'accent':''}">${t.status==='open'?'Открыт':'Закрыт'}</span></button>`).join('')||empty(work?'В очереди пока нет обращений':'Обращений пока нет. Нажми «Новое обращение», чтобы написать поддержке.')}</div>`;
     bind('#supportRefresh',()=>renderSupport(work),e);
+    bind('#supportMine',()=>renderSupport(false),e);
+    bind('#supportQueue',()=>renderSupport(true),e);
     bind('#supportNew',()=>modal('Новое обращение',`<label class="field">Тема<input class="input full-input" id="ticketTitle" minlength="3" maxlength="100" placeholder="Например: не запускается сборка"></label><label class="field">Опиши проблему<textarea class="input full-input" id="ticketBody" rows="6" maxlength="4000" placeholder="Что делал, что ожидал и какая ошибка появилась?"></textarea></label><p class="dim">Не указывай пароль, коды подтверждения и платёжные данные.</p>`,[{text:'Отмена',run:m=>m.close()},{text:'Создать обращение',primary:true,run:async m=>{const title=m.q('#ticketTitle').value.trim(),body=m.q('#ticketBody').value.trim();if(title.length<3||body.length<5){toast('Заполни тему и подробно опиши проблему','err');return;}await call('cloudAction','support_create',{title,body});m.close();toast('Обращение создано. Ответ придёт в эту переписку.','ok');await renderSupport(false);}}]),e);
     $$('[data-ticket]',e).forEach(b=>bind('[data-ticket="'+b.dataset.ticket+'"]',()=>ticketDialog(b.dataset.ticket,work),e));
   }
