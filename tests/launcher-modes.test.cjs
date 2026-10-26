@@ -59,3 +59,14 @@ test('scheduled modes expose exact dates and alarm is non-dismissible', () => {
   assert.match(startup, /7000\)/);
   assert.match(html, /id="startupCinematic"/);
 });
+
+
+test('owner balance migration provides server-side self/admin balance operations', () => {
+  const sql = read('backend/migrate-2.8-owner-ruble-balance.sql');
+  assert.match(sql, /fox_owner_set_rubles/);
+  assert.match(sql, /fox_owner_grant_rubles/);
+  assert.match(sql, /exists\s*\(select 1 from public\.fox_admins where id=u\)/i);
+  assert.match(sql, /round\(p_amount \* 100\)/i);
+  assert.match(sql, /insert into public\.fox_ledger/i);
+  assert.match(sql, /grant execute on function public\.fox_owner_set_rubles/i);
+});
