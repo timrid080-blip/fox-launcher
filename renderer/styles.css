@@ -611,3 +611,11 @@ input,textarea{user-select:text}
 .ticket-row-main b{display:block;overflow-wrap:anywhere}
 .ticket-row-main p{margin:5px 0 0}
 @media(max-width:600px){.support-mode-switch{width:100%}.support-mode-switch .btn{flex:1}.ticket-row{padding:12px}}
+
+
+/* Support: compact search and status filters within the single ticket workspace. */
+.support-filter{display:grid;grid-template-columns:minmax(0,2fr) minmax(170px,1fr);gap:12px;align-items:end;margin:12px 0 18px}
+.support-filter .field{min-width:0;margin:0}
+.support-filter .input{width:100%;min-width:0}
+.support-filter .dim{display:block;margin-bottom:6px}
+@media(max-width:600px){.support-filter{grid-template-columns:1fr;gap:10px}}
