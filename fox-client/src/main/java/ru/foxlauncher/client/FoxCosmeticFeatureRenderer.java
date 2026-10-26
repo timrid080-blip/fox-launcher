@@ -33,7 +33,7 @@ public final class FoxCosmeticFeatureRenderer extends FeatureRenderer<PlayerEnti
         if ("none".equals(equipped)) return;
 
         ModelPart part = cosmeticRoot.getChild(equipped);
-        if ("cape".equals(equipped) || "wings".equals(equipped)) {
+        if ("cape".equals(equipped) || "wings".equals(equipped) || "backpack".equals(equipped)) {
             getContextModel().body.copyTransform(part);
         } else {
             getContextModel().head.copyTransform(part);
