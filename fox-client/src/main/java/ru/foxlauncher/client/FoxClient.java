@@ -20,21 +20,17 @@ import org.lwjgl.glfw.GLFW;
 
 /** Client-side quality-of-life features. */
 public final class FoxClient implements ClientModInitializer {
-    private static KeyBinding toggleHudHints;
     private static KeyBinding toggleFovBoost;
     private static KeyBinding toggleCoordinates;
     private static KeyBinding cycleCosmetic;
-    private static boolean hintsEnabled = true;
-    private static boolean fovBoostEnabled = false;
-    private static Integer originalFov = null;
+    private static boolean zoomKeyDown = false;
+    private static double zoomMultiplier = 4.0;
+    private static double smoothZoom = 1.0;
 
     @Override
     public void onInitializeClient() {
-        toggleHudHints = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.foxclient.toggle_hints", InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_RIGHT_SHIFT, "category.foxclient"));
         toggleFovBoost = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.foxclient.toggle_fov", InputUtil.Type.KEYSYM,
+                "key.foxclient.zoom", InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_C, "category.foxclient"));
         toggleCoordinates = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.toggle_coordinates", InputUtil.Type.KEYSYM,
@@ -56,11 +52,6 @@ public final class FoxClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renderFoxHud(drawContext));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (toggleHudHints.wasPressed()) {
-                hintsEnabled = !hintsEnabled;
-                notifyPlayer(client, "§6Fox Client §7· подсказки интерфейса: "
-                        + (hintsEnabled ? "§aвключены" : "§cвыключены"));
-            }
             while (toggleCoordinates.wasPressed()) {
                 FoxClientConfig.setCoordinatesEnabled(!FoxClientConfig.areCoordinatesEnabled());
                 notifyPlayer(client, "§6Fox Client §7· координаты: "
@@ -70,21 +61,10 @@ public final class FoxClient implements ClientModInitializer {
                 String cosmetic = FoxClientConfig.cycleCosmetic();
                 notifyPlayer(client, "§6Fox Client §7· аксессуар: §f" + FoxClientConfig.displayName(cosmetic));
             }
-            while (toggleFovBoost.wasPressed()) {
-                if (client.options == null) continue;
-                int currentFov = client.options.getFov().getValue();
-                if (!fovBoostEnabled) {
-                    originalFov = currentFov;
-                    client.options.getFov().setValue(Math.min(110, currentFov + 20));
-                    fovBoostEnabled = true;
-                } else {
-                    if (originalFov != null) client.options.getFov().setValue(originalFov);
-                    originalFov = null;
-                    fovBoostEnabled = false;
-                }
-                notifyPlayer(client, "§6Fox Client §7· FOV+: "
-                        + (fovBoostEnabled ? "§aвключён" : "§cвыключен"));
-            }
+            zoomKeyDown = toggleFovBoost.isPressed();
+            double targetZoom = zoomKeyDown ? zoomMultiplier : 1.0;
+            smoothZoom += (targetZoom - smoothZoom) * 0.28;
+            if (Math.abs(targetZoom - smoothZoom) < 0.015) smoothZoom = targetZoom;
         });
     }
 
@@ -107,16 +87,22 @@ public final class FoxClient implements ClientModInitializer {
             context.drawTextWithShadow(client.textRenderer, Text.literal(coordinates), 8, y, 0xFFFFB347);
             y += 12;
         }
-        if (hintsEnabled) {
-            context.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Fox Client  |  F7: координаты  C: FOV+  F9: аксессуары"),
-                    8, y, 0xFFE8E8E8);
-        }
+
     }
 
     private static void notifyPlayer(net.minecraft.client.MinecraftClient client, String message) {
         if (client.player != null) client.player.sendMessage(Text.literal(message), true);
     }
 
-    public static boolean areHudHintsEnabled() { return hintsEnabled; }
+    /** True while C is held; zoom interpolation is smoothed on client ticks. */
+    public static boolean isZoomKeyDown() { return zoomKeyDown; }
+
+    public static double getSmoothZoom() { return smoothZoom; }
+
+    /** Mouse wheel adjusts magnification only while the zoom key is held. */
+    public static boolean handleZoomScroll(double vertical) {
+        if (!zoomKeyDown || vertical == 0.0) return false;
+        zoomMultiplier = Math.max(2.0, Math.min(20.0, zoomMultiplier + vertical * 0.75));
+        return true;
+    }
 }
