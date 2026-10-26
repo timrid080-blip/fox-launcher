@@ -1,7 +1,7 @@
 {
-  "key.foxclient.toggle_hints": "Toggle Fox Client hints",
   "key.foxclient.toggle_fov": "Toggle FOV+",
   "key.foxclient.toggle_coordinates": "Toggle coordinates HUD",
   "key.foxclient.cycle_cosmetic": "Cycle Fox 3D cosmetic",
-  "category.foxclient": "Fox Client"
+  "category.foxclient": "Fox Client",
+  "key.foxclient.zoom": "Smooth zoom (hold C; scroll to adjust)"
 }
