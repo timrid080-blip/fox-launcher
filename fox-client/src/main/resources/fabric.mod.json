@@ -3,7 +3,7 @@
   "id": "foxclient",
   "version": "${version}",
   "name": "Fox Client",
-  "description": "Client-side foundation for Fox Launcher: FOV control and configurable client preferences.",
+  "description": "Client-side Fox Launcher mod with HUD, FOV+ and local 3D cosmetics.",
   "authors": ["Fox Launcher"],
   "environment": "client",
   "entrypoints": { "client": ["ru.foxlauncher.client.FoxClient"] },

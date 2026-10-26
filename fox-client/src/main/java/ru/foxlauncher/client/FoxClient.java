@@ -3,8 +3,10 @@ package ru.foxlauncher.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -14,9 +16,9 @@ public final class FoxClient implements ClientModInitializer {
     private static KeyBinding toggleHudHints;
     private static KeyBinding toggleFovBoost;
     private static KeyBinding toggleCoordinates;
+    private static KeyBinding cycleCosmetic;
     private static boolean hintsEnabled = true;
     private static boolean fovBoostEnabled = false;
-    private static boolean coordinatesEnabled = true;
     private static Integer originalFov = null;
 
     @Override
@@ -33,6 +35,20 @@ public final class FoxClient implements ClientModInitializer {
                 "key.foxclient.toggle_coordinates", InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_F7, "category.foxclient"));
 
+        cycleCosmetic = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.foxclient.cycle_cosmetic", InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_F9, "category.foxclient"));
+
+        EntityModelLayerRegistry.registerModelLayer(
+                FoxCosmeticModel.LAYER, FoxCosmeticModel::getTexturedModelData);
+        LivingEntityFeatureRendererRegistrationCallback.EVENT.register(
+                (entityType, entityRenderer, registrationHelper, context) -> {
+                    if (entityRenderer instanceof PlayerEntityRenderer playerRenderer) {
+                        registrationHelper.register(new FoxCosmeticFeatureRenderer(
+                                playerRenderer, context.getPart(FoxCosmeticModel.LAYER)));
+                    }
+                });
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleHudHints.wasPressed()) {
                 hintsEnabled = !hintsEnabled;
@@ -41,9 +57,14 @@ public final class FoxClient implements ClientModInitializer {
             }
 
             while (toggleCoordinates.wasPressed()) {
-                coordinatesEnabled = !coordinatesEnabled;
+                FoxClientConfig.setCoordinatesEnabled(!FoxClientConfig.areCoordinatesEnabled());
                 notifyPlayer(client, "§6Fox Client §7· координаты: "
-                        + (coordinatesEnabled ? "§aвключены" : "§cвыключены"));
+                        + (FoxClientConfig.areCoordinatesEnabled() ? "§aвключены" : "§cвыключены"));
+            }
+
+            while (cycleCosmetic.wasPressed()) {
+                String cosmetic = FoxClientConfig.cycleCosmetic();
+                notifyPlayer(client, "§6Fox Client §7· аксессуар: §f" + FoxClientConfig.displayName(cosmetic));
             }
 
             while (toggleFovBoost.wasPressed()) {
@@ -61,19 +82,6 @@ public final class FoxClient implements ClientModInitializer {
                 notifyPlayer(client, "§6Fox Client §7· FOV+: "
                         + (fovBoostEnabled ? "§aвключён" : "§cвыключен"));
             }
-        });
-
-        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
-            if (!coordinatesEnabled) return;
-            var client = net.minecraft.client.MinecraftClient.getInstance();
-            if (client.player == null || client.textRenderer == null) return;
-            var pos = client.player.getPos();
-            String coords = String.format(java.util.Locale.ROOT,
-                    "XYZ: %.1f / %.1f / %.1f", pos.x, pos.y, pos.z);
-            drawContext.drawTextWithShadow(client.textRenderer, Text.literal(coords),
-                    6, 6, 0xFFFFFF);
-            drawContext.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Fox Client"), 6, 18, 0xFFB347);
         });
     }
 
