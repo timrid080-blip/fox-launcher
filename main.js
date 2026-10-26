@@ -457,6 +457,7 @@ const api = {
 
   // Официальные моды Fox Launcher (публичный каталог + админ-загрузка в GitHub Releases)
   officialModsList: () => officialMods.list(),
+  async adminOfficialMods(token) { admin.require(token); if ((await services.get()).supabase.url) await cloud.isAdmin(); return officialMods.list(); },
   async adminOfficialModUpload(token, metadata = {}) {
     admin.require(token);
     if ((await services.get()).supabase.url) await cloud.isAdmin();
