@@ -31,10 +31,10 @@ class OfficialMods {
     return type.includes('json') ? response.json() : response.arrayBuffer();
   }
 
-  async release(create = false) {
+  async release(create = false, requireToken = false) {
     const g = await this.config();
     const base = 'https://api.github.com/repos/' + encodeURIComponent(g.owner) + '/' + encodeURIComponent(g.repo);
-    const token = await this.services.token();
+    const token = (create || requireToken) ? await this.services.token() : '';
     let r = await fetch(base + '/releases/tags/' + RELEASE_TAG, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'FoxLauncher-OfficialMods' }, signal: AbortSignal.timeout(20000) });
     if (r.status === 404 && create) {
       const made = await this.request(base + '/releases', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ tag_name: RELEASE_TAG, name: 'Fox Launcher — официальные моды', body: 'Официальные моды Fox Launcher. Файлы доступны из раздела «Моды» лаунчера.', draft: false, prerelease: false }) }, token);
@@ -70,13 +70,13 @@ class OfficialMods {
     if (existing) await this.request(base + '/releases/assets/' + existing.id, { method: 'DELETE' }, token);
     const bytes = await fs.readFile(filePath);
     const uploadUrl = 'https://uploads.github.com/repos/' + encodeURIComponent((await this.config()).owner) + '/' + encodeURIComponent((await this.config()).repo) + '/releases/' + release.id + '/assets?name=' + encodeURIComponent(name) + '&label=' + encodeURIComponent(label);
-    await this.request(uploadUrl, { method: 'POST', headers: { 'Content-Type': 'application/java-archive', 'Content-Length': String(bytes.length) }, body: bytes }, token);
+    await this.request(uploadUrl, { method: 'POST', headers: { 'Content-Type': 'application/java-archive' }, body: bytes }, token);
     return { name, label, size: bytes.length };
   }
 
   async remove(assetId) {
     if (!Number.isSafeInteger(Number(assetId)) || Number(assetId) <= 0) throw new Error('Некорректный идентификатор файла');
-    const { release, base, token } = await this.release(false);
+    const { release, base, token } = await this.release(false, true);
     if (!release) throw new Error('Релиз официальных модов не найден');
     const asset = (release.assets || []).find(a => a.id === Number(assetId) && a.name.toLowerCase().endsWith('.jar'));
     if (!asset) throw new Error('Файл не найден в списке официальных модов');
