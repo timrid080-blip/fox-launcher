@@ -100,7 +100,7 @@ begin
   appeal_until=created_at+interval '3 days',archived_at=created_at+interval '2 days 1 minute',updated_at=now()
   where status='open' and created_at<=now()-interval '2 days';
  get diagnostics closed_count=row_count;
- delete from public.fox_tickets where status='closed' and closed_at is not null and closed_at<=now()-interval '3 days';
+ delete from public.fox_tickets where status='closed' and created_at<=now()-interval '3 days' and appeal_until is not null and appeal_until<=now();
  get diagnostics deleted_count=row_count;
  delete from public.fox_friend_messages where created_at<=now()-interval '3 days';
  get diagnostics chat_count=row_count;
