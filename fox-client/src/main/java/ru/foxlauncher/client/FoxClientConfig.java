@@ -13,7 +13,7 @@ import java.util.Properties;
 /** Small, local-only config. It never stores account credentials or network data. */
 public final class FoxClientConfig {
     private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("foxclient.properties");
-    private static final List<String> COSMETICS = List.of("none", "cape", "pumpkin", "wings", "hood");
+    private static final List<String> COSMETICS = List.of("none", "cape", "pumpkin", "wings", "hood", "crown", "backpack", "halo");
     private static boolean coordinatesEnabled = true;
     private static String equippedCosmetic = "none";
 
@@ -36,6 +36,11 @@ public final class FoxClientConfig {
         return equippedCosmetic;
     }
 
+    public static synchronized void setEquippedCosmetic(String cosmetic) {
+        equippedCosmetic = COSMETICS.contains(cosmetic) ? cosmetic : "none";
+        save();
+    }
+
     public static synchronized String cycleCosmetic() {
         int index = COSMETICS.indexOf(equippedCosmetic);
         equippedCosmetic = COSMETICS.get((index + 1 + COSMETICS.size()) % COSMETICS.size());
@@ -49,6 +54,9 @@ public final class FoxClientConfig {
             case "pumpkin" -> "Тыквенный шлем Fox";
             case "wings" -> "Крылья Fox";
             case "hood" -> "Капюшон Fox";
+            case "crown" -> "Корона Fox";
+            case "backpack" -> "Рюкзак Fox";
+            case "halo" -> "Светящийся нимб";
             default -> "выключено";
         };
     }
