@@ -3,20 +3,29 @@ package ru.foxlauncher.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
+import net.minecraft.client.render.entity.feature.FeatureRendererContext;
+import net.minecraft.client.render.entity.model.PlayerEntityModel;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.glfw.GLFW;
 
-/** Client-side quality-of-life features. All controls run locally. */
+/** Client-side quality-of-life features. */
 public final class FoxClient implements ClientModInitializer {
     private static KeyBinding toggleHudHints;
     private static KeyBinding toggleFovBoost;
     private static KeyBinding toggleCoordinates;
+    private static KeyBinding cycleCosmetic;
     private static boolean hintsEnabled = true;
     private static boolean fovBoostEnabled = false;
-    private static boolean coordinatesEnabled = true;
     private static Integer originalFov = null;
 
     @Override
@@ -24,14 +33,27 @@ public final class FoxClient implements ClientModInitializer {
         toggleHudHints = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.toggle_hints", InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_RIGHT_SHIFT, "category.foxclient"));
-
         toggleFovBoost = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.toggle_fov", InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_F8, "category.foxclient"));
-
+                GLFW.GLFW_KEY_C, "category.foxclient"));
         toggleCoordinates = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.toggle_coordinates", InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_F7, "category.foxclient"));
+        cycleCosmetic = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.foxclient.cycle_cosmetic", InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_F9, "category.foxclient"));
+
+        EntityModelLayerRegistry.registerModelLayer(
+                FoxCosmeticModel.LAYER, FoxCosmeticModel::getTexturedModelData);
+        LivingEntityFeatureRendererRegistrationCallback.EVENT.register(
+                (entityType, entityRenderer, registrationHelper, context) -> {
+                    if (entityRenderer instanceof PlayerEntityRenderer) {
+                        registrationHelper.register(new FoxCosmeticFeatureRenderer(
+                                playerRendererContext(entityRenderer), context.getPart(FoxCosmeticModel.LAYER)));
+                    }
+                });
+
+        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renderFoxHud(drawContext));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleHudHints.wasPressed()) {
@@ -39,13 +61,15 @@ public final class FoxClient implements ClientModInitializer {
                 notifyPlayer(client, "§6Fox Client §7· подсказки интерфейса: "
                         + (hintsEnabled ? "§aвключены" : "§cвыключены"));
             }
-
             while (toggleCoordinates.wasPressed()) {
-                coordinatesEnabled = !coordinatesEnabled;
+                FoxClientConfig.setCoordinatesEnabled(!FoxClientConfig.areCoordinatesEnabled());
                 notifyPlayer(client, "§6Fox Client §7· координаты: "
-                        + (coordinatesEnabled ? "§aвключены" : "§cвыключены"));
+                        + (FoxClientConfig.areCoordinatesEnabled() ? "§aвключены" : "§cвыключены"));
             }
-
+            while (cycleCosmetic.wasPressed()) {
+                String cosmetic = FoxClientConfig.cycleCosmetic();
+                notifyPlayer(client, "§6Fox Client §7· аксессуар: §f" + FoxClientConfig.displayName(cosmetic));
+            }
             while (toggleFovBoost.wasPressed()) {
                 if (client.options == null) continue;
                 int currentFov = client.options.getFov().getValue();
@@ -62,19 +86,32 @@ public final class FoxClient implements ClientModInitializer {
                         + (fovBoostEnabled ? "§aвключён" : "§cвыключен"));
             }
         });
+    }
 
-        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
-            if (!coordinatesEnabled) return;
-            var client = net.minecraft.client.MinecraftClient.getInstance();
-            if (client.player == null || client.textRenderer == null) return;
-            var pos = client.player.getPos();
-            String coords = String.format(java.util.Locale.ROOT,
-                    "XYZ: %.1f / %.1f / %.1f", pos.x, pos.y, pos.z);
-            drawContext.drawTextWithShadow(client.textRenderer, Text.literal(coords),
-                    6, 6, 0xFFFFFF);
-            drawContext.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Fox Client"), 6, 18, 0xFFB347);
-        });
+    @SuppressWarnings("unchecked")
+    private static FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> playerRendererContext(
+            Object renderer) {
+        // PlayerEntityRenderer is the concrete renderer for PlayerEntityRenderState in 1.21.4;
+        // the callback exposes it through a wildcarded LivingEntityRenderer type.
+        return (FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel>) (Object) renderer;
+    }
+
+    private static void renderFoxHud(DrawContext context) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null || client.world == null || client.options.hudHidden) return;
+
+        int y = 8;
+        if (FoxClientConfig.areCoordinatesEnabled()) {
+            BlockPos pos = client.player.getBlockPos();
+            String coordinates = String.format("XYZ: %d  %d  %d", pos.getX(), pos.getY(), pos.getZ());
+            context.drawTextWithShadow(client.textRenderer, Text.literal(coordinates), 8, y, 0xFFFFB347);
+            y += 12;
+        }
+        if (hintsEnabled) {
+            context.drawTextWithShadow(client.textRenderer,
+                    Text.literal("Fox Client  |  F7: координаты  C: FOV+  F9: аксессуары"),
+                    8, y, 0xFFE8E8E8);
+        }
     }
 
     private static void notifyPlayer(net.minecraft.client.MinecraftClient client, String message) {

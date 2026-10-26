@@ -2,5 +2,6 @@
   "key.foxclient.toggle_hints": "Переключить подсказки Fox Client",
   "key.foxclient.toggle_fov": "Переключить FOV+",
   "key.foxclient.toggle_coordinates": "Переключить координаты HUD",
+  "key.foxclient.cycle_cosmetic": "Следующий 3D-аксессуар Fox",
   "category.foxclient": "Fox Client"
 }

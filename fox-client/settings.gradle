@@ -5,11 +5,7 @@ pluginManagement {
         mavenCentral()
     }
 }
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        maven { url = 'https://maven.fabricmc.net/' }
-        mavenCentral()
-    }
-}
+
+// Fabric Loom creates a remapped-mod repository during plugin application.
+// Keep dependency repositories in build.gradle so Loom can add its own repository.
 rootProject.name = 'fox-client'
