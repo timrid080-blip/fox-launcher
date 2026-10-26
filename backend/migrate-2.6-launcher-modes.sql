@@ -39,7 +39,8 @@ begin
     msg := btrim(coalesce(p_data->>'message',''));
     duration := (p_data->>'duration_seconds')::integer;
     if m not in ('alarm','ceremony','maintenance','warning','celebration','info') then raise exception 'Неизвестный режим'; end if;
-    if duration < 5 or duration > case when m='maintenance' then 86400 else 1800 end then raise exception 'Недопустимая длительность'; end if;
+    if duration is null or duration < 5 then raise exception 'Недопустимая длительность'; end if;
+    if (m='maintenance' and duration > 86400) or (m<>'maintenance' and duration > 1800) then raise exception 'Недопустимая длительность'; end if;
     if length(msg) < 2 or length(msg) > 240 then raise exception 'Текст должен содержать от 2 до 240 символов'; end if;
     update public.fox_launcher_mode_state
       set mode=m, message=msg, starts_at=now(), ends_at=now()+make_interval(secs=>duration),
