@@ -46,3 +46,16 @@ test('Windows autostart defaults on and user preference is preserved', () => {
   assert.match(renderer, /\['autoStart','Запускать Fox Launcher вместе с Windows'/);
   assert.match(renderer, /call\('setAutoStart',autoStart\)/);
 });
+
+
+test('scheduled modes expose exact dates and alarm is non-dismissible', () => {
+  const renderer = read('renderer/app.js');
+  const startup = read('renderer/startup.js');
+  const html = read('renderer/index.html');
+  assert.match(renderer, /id="launcherModeStarts" type="datetime-local"/);
+  assert.match(renderer, /id="launcherModeEnds" type="datetime-local"/);
+  assert.match(renderer, /mode==='alarm'\|\|!!state\.blocked/);
+  assert.match(renderer, /setTimeout\(\(\)=>\{stopAlarmTimers\(\);call\('winClose'\)/);
+  assert.match(startup, /7000\)/);
+  assert.match(html, /id="startupCinematic"/);
+});
