@@ -3,7 +3,7 @@
   'use strict';
   let finished = false;
   const splashStartedAt = Date.now();
-  const minimumSplashMs = 7000;
+  const minimumSplashMs = 6000;
   let delayedRemoval = false;
   const removeOverlay = (message = '', force = false) => {
     if (finished) return;
@@ -27,19 +27,19 @@
     if (overlay) {
       overlay.classList.add('is-leaving');
       // Hard removal is intentional: CSS/animation failures must not block the UI.
-      setTimeout(() => overlay.remove(), 600);
+      setTimeout(() => overlay.remove(), 1000);
     }
   };
   const debug = (message) => { try { console.error('[FOX STARTUP]', message); } catch {} };
   debug('startup.js loaded');
   window.__foxFinishStartup = removeOverlay;
-  // Seven-second cinematic splash; application initialization runs in parallel.
+  // Six-second cinematic splash, followed by a one-second fade; initialization runs in parallel.
   const timeline = [
     [0, 'Подготовка к большому обновлению…', 'Версия 1.0'],
     [1400, 'Вспоминаем путь Fox Launcher', 'Версия 2.0'],
     [3000, 'Чаты, звонки и обновлённая команда', 'Версия 3.0'],
-    [4700, 'Новые режимы, звуки, жалобы, медиа и поддержка', 'Почти готово'],
-    [6100, 'Встречайте Fox Launcher 4.0!', '4.0 · НОВАЯ ЭРА']
+    [4300, 'Новые режимы, звуки, жалобы, медиа и поддержка', 'Почти готово'],
+    [5000, 'Встречайте Fox Launcher 4.0!', '4.0 · НОВАЯ ЭРА']
   ];
   const status = document.getElementById('startupStatus');
   const stage = document.getElementById('startupStage');
@@ -57,18 +57,18 @@
     if (stage) stage.textContent = current[2];
     if (cinematic) {
       const n = Math.min(4, 1 + Math.floor(elapsed / 2000));
-      cinematic.textContent = elapsed > 6000 ? '4.0' : n.toFixed(1);
-      cinematic.classList.toggle('is-final', elapsed > 5900);
+      cinematic.textContent = elapsed > 5000 ? '4.0' : n.toFixed(1);
+      cinematic.classList.toggle('is-final', elapsed > 4900);
     }
     const fill = document.getElementById('startupProgressFill');
     const percent = document.getElementById('startupPercent');
-    const pct = Math.min(100, Math.round(elapsed / 7000 * 100));
+    const pct = Math.min(100, Math.round(elapsed / 6000 * 100));
     if (fill) fill.style.width = pct + '%';
     if (percent) percent.textContent = pct + '%';
   };
   tick();
   const ticker = setInterval(tick, 80);
-  setTimeout(() => { clearInterval(ticker); removeOverlay('', true); }, 7000);
+  setTimeout(() => { clearInterval(ticker); removeOverlay('', true); }, 6000);
   window.addEventListener('error', () => { if (status) status.textContent = 'Завершаем подготовку интерфейса…'; });
   window.addEventListener('unhandledrejection', () => { if (status) status.textContent = 'Завершаем подготовку интерфейса…'; });
 })();
