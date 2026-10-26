@@ -668,3 +668,8 @@ input,textarea{user-select:text}
 .launcher-mode-overlay[hidden]{display:none}
 .launcher-mode-card{width:min(620px,100%);padding:36px;border:1px solid #ffffff24;border-radius:22px;background:#17181d;box-shadow:0 24px 100px #000b;text-align:center}
 .launcher-mode-icon{font-size:54px}.launcher-mode-card h1{margin:14px 0;font-size:28px}.launcher-mode-card p{white-space:pre-wrap;line-height:1.6;color:#e7e7ea}.launcher-mode-card small{display:block;color:#b8b8c2;margin:16px 0}.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{border-color:#ff3434;box-shadow:0 0 70px #ff161633}.launcher-mode-overlay[data-mode="alarm"] h1{color:#ff4545}.launcher-mode-overlay[data-mode="ceremony"] .launcher-mode-card{border-color:#e9bf52;background:linear-gradient(145deg,#2c2412,#17181d)}.launcher-mode-overlay[data-mode="ceremony"] h1{color:#f4d16b}.launcher-mode-overlay[data-mode="maintenance"] .launcher-mode-card{border-color:#ff9a45}.launcher-mode-overlay[data-mode="warning"] h1{color:#ffb54a}.launcher-mode-overlay[data-mode="celebration"] h1{color:#ff9b52}
+
+/* Pinned Fox Launcher official mods catalog */
+.official-mods-card{margin:0 0 20px;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 10%,var(--panel)),var(--panel))}
+.official-mods-card h2{margin:0 0 4px;font-size:18px}.official-mod-list{display:grid;gap:10px;margin-top:14px}.official-mod{border-color:color-mix(in srgb,var(--accent) 24%,var(--border))}.official-mod-icon{display:grid;place-items:center;font-size:12px;font-weight:900;letter-spacing:1px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
+.official-mod-admin{border-color:color-mix(in srgb,var(--accent) 35%,var(--border))}
