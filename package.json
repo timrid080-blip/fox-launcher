@@ -1,7 +1,7 @@
 {
   "name": "fox-launcher",
   "productName": "Fox Launcher",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Fox Launcher — современный лаунчер Minecraft",
   "main": "main.js",
   "author": "FoxBro",
@@ -10,7 +10,7 @@
     "start": "electron .",
     "dist": "electron-builder --win nsis portable",
     "dist:dir": "electron-builder --win dir",
-    "test": "node --check main.js && node --check renderer/app.js && node --check core/cloud.js && node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs tests/v160.test.cjs tests/v170.test.cjs tests/updater-config.test.cjs tests/codes-v190.test.cjs tests/autoupdate-release-config.test.cjs tests/startup-overlay.test.cjs tests/social-features.test.cjs tests/launcher-modes.test.cjs",
+    "test": "node --check main.js && node --check renderer/app.js && node --check core/cloud.js && node --test tests/core.test.cjs tests/club-sql.test.cjs tests/v130.test.cjs tests/v140.test.cjs tests/payments.test.cjs tests/v150.test.cjs tests/news-updater.test.cjs tests/network.test.cjs tests/v160.test.cjs tests/v170.test.cjs tests/updater-config.test.cjs tests/codes-v190.test.cjs tests/autoupdate-release-config.test.cjs tests/startup-overlay.test.cjs tests/social-features.test.cjs tests/launcher-modes.test.cjs tests/ticket-groups-alarm.test.cjs",
     "dist:portable": "electron-builder --win portable",
     "test:sql": "node --test tests/club-sql.test.cjs",
     "dist:update": "electron-builder --win nsis --publish never"
