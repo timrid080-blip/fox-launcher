@@ -56,7 +56,7 @@
     if (status) status.textContent = current[1];
     if (stage) stage.textContent = current[2];
     if (cinematic) {
-      const n = Math.min(4, 1 + Math.floor(elapsed / 1650));
+      const n = Math.min(4, 1 + Math.floor(elapsed / 2000));
       cinematic.textContent = elapsed > 6000 ? '4.0' : n.toFixed(1);
       cinematic.classList.toggle('is-final', elapsed > 5900);
     }
