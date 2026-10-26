@@ -82,6 +82,7 @@ const compatibility = require('./core/compatibility');
 startupLog('after require ./core/compatibility');
 startupLog('before require ./core/optifine');
 const optifine = require('./core/optifine');
+const { OfficialMods } = require('./core/official-mods');
 startupLog('after require ./core/optifine');
 
 app.setName('Fox Launcher');
@@ -101,6 +102,7 @@ const sharedDir = process.env.PORTABLE_EXECUTABLE_DIR || (app.isPackaged ? path.
 const community = new CommunityNews(ROOT, sharedDir);
 const services = new Services(ROOT, sharedDir, safeStorage);
 const cloud = new Cloud(ROOT, safeStorage, () => services.get());
+const officialMods = new OfficialMods(services);
 const playtime = new Playtime(ROOT, cloud, send);
 const updates = new Updates(app, dialog, () => services.get(), () => running.size > 0 || launching.size > 0, send);
 const launching = new Set();
@@ -451,6 +453,29 @@ const api = {
       send('progress', { text: 'Сборка установлена — можно играть', done: 1, total: 1 });
       return inst;
     } finally { installingMods.delete(lock); if (inst) installingMods.delete(inst.id); }
+  },
+
+  // Официальные моды Fox Launcher (публичный каталог + админ-загрузка в GitHub Releases)
+  officialModsList: () => officialMods.list(),
+  async adminOfficialModUpload(token, metadata = {}) {
+    admin.require(token);
+    if ((await services.get()).supabase.url) await cloud.isAdmin();
+    const r = await dialog.showOpenDialog(win, { title: 'Опубликовать официальный мод Fox Launcher', properties: ['openFile'], filters: [{ name: 'Minecraft mod (.jar)', extensions: ['jar'] }] });
+    if (r.canceled || !r.filePaths[0]) return { cancelled: true };
+    return officialMods.upload(r.filePaths[0], metadata);
+  },
+  async adminOfficialModDelete(token, assetId) {
+    admin.require(token);
+    if ((await services.get()).supabase.url) await cloud.isAdmin();
+    return officialMods.remove(Number(assetId));
+  },
+  async officialModInstall(instanceId, assetId) {
+    const inst = (await getInstances()).find(x => x.id === instanceId);
+    if (!inst) throw new Error('Выберите сборку');
+    if (inst.loader === 'vanilla') throw new Error('Для модов выбери сборку Fabric, Forge или NeoForge');
+    idle(instanceId); installingMods.add(instanceId);
+    try { return await officialMods.install(instDir(instanceId), Number(assetId)); }
+    finally { installingMods.delete(instanceId); }
   },
 
   // моды
