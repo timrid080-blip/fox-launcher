@@ -294,10 +294,17 @@
   const holidays={halloween:'Хеллоуин 🎃',newyear:'Новый год 🎄',winter:'Зимний фестиваль ❄',spring:'Праздник весны 🌷',summer:'Летний фестиваль ☀',birthday:'День рождения Fox 🎂',valentine:'День дружбы ♥'};
   let audio=null,modeAudio=null;
   const soundFiles={click:'c8fd8d10309e3e0.mp3',back:'8bb9a29014590e5.mp3',alarm:'03.11.2026.MP3',warning:'Сигнал об ошибке Error Tone № 22.wav',maintenance:'Сигнал об ошибке Error Tone № 23.wav',info:'Сигнал об ошибке Error Tone № 27.wav',ceremony:'e7e89aa39a8cef2.mp3',celebration:'e7e89aa39a8cef2.mp3',trailer:'e8500c03a9df88b.mp3',halloween:'a7cfbd79c161ba3.mp3',startup:'computer-shutdown-sound.mp3'};
-  function sound(kind='click'){if(S.settings.sounds===false||!S.settings.soundVolume)return;try{const file=soundFiles[kind];if(file){const a=new Audio('../assets/sounds/'+encodeURIComponent(file));a.volume=Math.max(0,Math.min(1,(+S.settings.soundVolume||.25)));a.play().catch(()=>{});return;}}catch{}try{audio||=new AudioContext();audio.resume().catch(()=>{});const patterns={click:[{f:520,d:.045}],alarm:[{f:740,d:.18},{f:520,d:.18},{f:740,d:.18},{f:520,d:.18},{f:740,d:.18}],ceremony:[{f:523,d:.12},{f:659,d:.12},{f:784,d:.2},{f:1047,d:.28}],warning:[{f:660,d:.12},{f:440,d:.18}],celebration:[{f:659,d:.1},{f:784,d:.1},{f:988,d:.14},{f:1318,d:.22}],info:[{f:660,d:.09},{f:880,d:.14}],achievement:[{f:660,d:.10},{f:880,d:.13},{f:1100,d:.18}],error:[{f:220,d:.10},{f:165,d:.13}],launch:[{f:440,d:.08},{f:660,d:.12}],success:[{f:660,d:.08},{f:880,d:.12}]};let at=audio.currentTime;const vol=Math.min(.12,(+S.settings.soundVolume||.25)*.12);for(const note of (patterns[kind]||patterns.click)){const o=audio.createOscillator(),g=audio.createGain();o.type=kind==='achievement'?'triangle':'sine';o.frequency.setValueAtTime(note.f,at);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(vol,at+.012);g.gain.setTargetAtTime(.0001,at+note.d*.68,.025);o.connect(g).connect(audio.destination);o.start(at);o.stop(at+note.d);at+=note.d+.025;}}catch{}}
+  function sound(kind='click'){
+    if(S.settings.sounds===false||!S.settings.soundVolume)return;
+    const file=soundFiles[kind];
+    if(file){try{const a=new Audio('../assets/sounds/'+encodeURIComponent(file));a.volume=Math.max(0,Math.min(1,(+S.settings.soundVolume||.25)));a.play().catch(()=>tone(kind));return;}catch{}}
+    tone(kind);
+  }
+  function tone(kind='click'){try{audio||=new AudioContext();audio.resume().catch(()=>{});const patterns={click:[{f:520,d:.045}],alarm:[{f:740,d:.18},{f:520,d:.18},{f:740,d:.18},{f:520,d:.18},{f:740,d:.18}],ceremony:[{f:523,d:.12},{f:659,d:.12},{f:784,d:.2},{f:1047,d:.28}],warning:[{f:660,d:.12},{f:440,d:.18}],celebration:[{f:659,d:.1},{f:784,d:.1},{f:988,d:.14},{f:1318,d:.22}],info:[{f:660,d:.09},{f:880,d:.14}],achievement:[{f:660,d:.10},{f:880,d:.13},{f:1100,d:.18}],error:[{f:220,d:.10},{f:165,d:.13}],launch:[{f:440,d:.08},{f:660,d:.12}],success:[{f:660,d:.08},{f:880,d:.12}]};let at=audio.currentTime;const vol=Math.min(.12,(+S.settings.soundVolume||.25)*.12);for(const note of (patterns[kind]||patterns.click)){const o=audio.createOscillator(),g=audio.createGain();o.type=kind==='achievement'?'triangle':'sine';o.frequency.setValueAtTime(note.f,at);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(vol,at+.012);g.gain.setTargetAtTime(.0001,at+note.d*.68,.025);o.connect(g).connect(audio.destination);o.start(at);o.stop(at+note.d);at+=note.d+.025;}}catch{}}
   function startAlarmAudio(){if(S.settings.sounds===false||!S.settings.soundVolume)return;try{modeAudio=new Audio('../assets/sounds/'+encodeURIComponent(soundFiles.alarm));modeAudio.loop=true;modeAudio.volume=Math.max(0,Math.min(1,(+S.settings.soundVolume||.25)));modeAudio.play().catch(()=>{modeAudio=null;alarmRepeatTimer=setInterval(()=>sound('alarm'),1400);});}catch{modeAudio=null;alarmRepeatTimer=setInterval(()=>sound('alarm'),1400);}}
 
   document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;const back=b.matches('[data-back],.back,.btn-back')||b.querySelector('svg path[d^="m14 5-7 7"]');sound(back?'back':'click');});
+}
   function activeEvent(){return S.cloud?.events?.filter(e=>e.enabled&&Date.parse(e.starts_at)<=Date.now()&&Date.parse(e.ends_at)>Date.now()).sort((a,b)=>Date.parse(b.starts_at)-Date.parse(a.starts_at))[0];}
   function applyAppearance(){const a=/^#[\da-f]{6}$/i.test(S.settings.accent)?S.settings.accent:'#ff7a1a',style=document.documentElement.style;style.setProperty('--accent',a);style.setProperty('--accent2',a);style.setProperty('--accent3',a);style.setProperty('--accent-soft',a+'24');document.body.dataset.holiday=S.settings.eventTheme===false?'':activeEvent()?.theme||'';const badge=$('#eventBadge');if(badge){const e=activeEvent();badge.textContent=e?holidays[e.theme]||e.title:'';badge.title=e?'До '+new Date(e.ends_at).toLocaleString('ru-RU'):'';}}
   async function clubRefresh(){S.cloud=await call('cloudState');applyAppearance();renderAccountCard();syncRoleNav();return S.cloud;}
@@ -473,7 +480,7 @@
         if(mode==='alarm'){
           // Alarm is deliberately non-dismissible. Repeat until the server mode ends,
           // then stop the sound; force-close this client after one minute.
-          startAlarmAudio();alarmRepeatTimer=alarmRepeatTimer||setInterval(()=>{if(Date.now()>=(ends||Infinity))stopAlarmTimers();},1000);
+          startAlarmAudio();
           alarmShutdownTimer=setTimeout(()=>{stopAlarmTimers();call('winClose').catch(()=>{});},60000);
         }
       }
