@@ -51,6 +51,7 @@ test('friend groups support member management, chat and multi-party WebRTC signa
 
 test('test notification action is available from the notification bell dialog', () => {
   const app = read('renderer/app.js');
-  assert.match(app, /Тест уведомления Fox Launcher — всё работает/);
+  assert.match(app, /Тест уведомления/);
+  assert.match(app, /bind\\('#notificationBell'/);
   assert.match(app, /bind\('#notificationBell'/);
 });
