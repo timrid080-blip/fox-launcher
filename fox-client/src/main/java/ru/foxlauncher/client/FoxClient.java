@@ -4,7 +4,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
@@ -12,6 +15,7 @@ import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.glfw.GLFW;
 
 /** Client-side quality-of-life features. */
@@ -48,6 +52,8 @@ public final class FoxClient implements ClientModInitializer {
                                 playerRendererContext(entityRenderer), context.getPart(FoxCosmeticModel.LAYER)));
                     }
                 });
+
+        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renderFoxHud(drawContext));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleHudHints.wasPressed()) {
@@ -88,6 +94,24 @@ public final class FoxClient implements ClientModInitializer {
         // PlayerEntityRenderer is the concrete renderer for PlayerEntityRenderState in 1.21.4;
         // the callback exposes it through a wildcarded LivingEntityRenderer type.
         return (FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel>) (Object) renderer;
+    }
+
+    private static void renderFoxHud(DrawContext context) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null || client.world == null || client.options.hudHidden) return;
+
+        int y = 8;
+        if (FoxClientConfig.areCoordinatesEnabled()) {
+            BlockPos pos = client.player.getBlockPos();
+            String coordinates = String.format("XYZ: %d  %d  %d", pos.getX(), pos.getY(), pos.getZ());
+            context.drawTextWithShadow(client.textRenderer, Text.literal(coordinates), 8, y, 0xFFFFB347);
+            y += 12;
+        }
+        if (hintsEnabled) {
+            context.drawTextWithShadow(client.textRenderer,
+                    Text.literal("Fox Client  |  F7: HUD  F8: FOV+  F9: аксессуары"),
+                    8, y, 0xFFE8E8E8);
+        }
     }
 
     private static void notifyPlayer(net.minecraft.client.MinecraftClient client, String message) {
