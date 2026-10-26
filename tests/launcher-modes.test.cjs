@@ -70,3 +70,20 @@ test('owner balance migration provides server-side self/admin balance operations
   assert.match(sql, /insert into public\.fox_ledger/i);
   assert.match(sql, /grant execute on function public\.fox_owner_set_rubles/i);
 });
+
+
+test('updated sound brief is wired, test popup removed, and ten achievement icons exist', () => {
+  const renderer = read('renderer/app.js');
+  const css = read('renderer/styles.css');
+  const html = read('renderer/index.html');
+  assert.doesNotMatch(renderer, /ownerTestPopup/);
+  assert.match(renderer, /achievement:'fc31ca320b0edd3\.mp3'/);
+  assert.match(renderer, /reward:'3923cb8ada7ca47\.mp3'/);
+  assert.match(renderer, /sound\('reward'\)/);
+  assert.match(css, /\.launcher-mode-card\{width:100%;height:100%/);
+  assert.match(html, /id="launcherModeOverlay"/);
+  for (const id of ['firstLaunch','threeHours','fiftyHours','marathon','worlds5','worlds10','xp1000','xp5000','achievements5','achievements10']) {
+    assert.match(renderer, new RegExp(id));
+    assert.ok(require('fs').existsSync(require('path').join(ROOT, 'assets', 'achievements', id + '.svg')), 'missing icon for ' + id);
+  }
+});
