@@ -38,6 +38,7 @@
   const heading = document.querySelector('.startup-heading');
   const cinematic = document.getElementById('startupCinematic');
   if (cinematic) cinematic.textContent = '1.0';
+  try { const intro = new Audio('../assets/sounds/computer-shutdown-sound.mp3'); intro.volume = 0.28; intro.loop = false; intro.play().catch(() => {}); } catch {}
   const startedAt = Date.now();
   const tick = () => {
     const elapsed = Date.now() - startedAt;
