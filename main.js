@@ -220,6 +220,7 @@ async function getLauncherModeState() {
 
 const api = {
   getLauncherMode: getLauncherModeState,
+  alarmCloseApp: () => { forceQuit = true; if (win && !win.isDestroyed()) win.close(); app.quit(); return true; },
   async createDesktopShortcut() {
     if (process.platform !== 'win32') throw new Error('Ярлык рабочего стола доступен в Windows');
     const target = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
