@@ -461,7 +461,7 @@
       if(key!==lastLauncherModeKey){lastLauncherModeKey=key;dismissedLauncherModeKey='';sound(meta[2]);}
       if(key===dismissedLauncherModeKey&&!state.blocked){overlay.hidden=true;return;}
       overlay.dataset.mode=mode;$('#launcherModeIcon').textContent=meta[0];$('#launcherModeTitle').textContent=meta[1];$('#launcherModeBody').textContent=state.message||'Администратор Fox Launcher включил режим.';
-      const btn=$('#launcherModeAcknowledge');btn.hidden=!!state.blocked;btn.textContent=state.blocked?'': 'Понятно';
+      const btn=$('#launcherModeAcknowledge');btn.hidden=!!state.blocked||(mode==='alarm'&&!state.is_admin);btn.textContent=btn.hidden?'':'Понятно';
       $('#launcherModeCountdown').textContent=state.ends_at?'Окончание: '+new Date(state.ends_at).toLocaleString('ru-RU'):'';
       overlay.hidden=false;
       if(!btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',()=>{dismissedLauncherModeKey=lastLauncherModeKey;overlay.hidden=true;});}
@@ -651,7 +651,6 @@
     bind('#noticeCheckUpdate',()=>busy($('#noticeCheckUpdate',m.root),async()=>{await call('checkUpdates');m.close();await notificationsDialog();}),m.root);bind('#noticeOpenUpdate',()=>call('openUpdate'),m.root);bind('#noticeInstallUpdate',()=>call('installUpdate'),m.root);$$('[data-notice-read]',m.root).forEach(b=>b.onclick=async()=>{try{await call('cloudAction','notification_read',{id:b.dataset.noticeRead});m.close();await notificationsDialog();}catch(e){toast(e.message,'err');}});
   }
   bind('#notificationBell',()=>{try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission().catch(()=>{});}catch{}return notificationsDialog();});
-  bind('#testNotificationBtn',async()=>{try{const r=await call('testSystemNotification');toast(r.nativeShown?'Тестовое системное уведомление отправлено':'Показано тестовое уведомление Fox. Системные уведомления недоступны в этой среде.',r.nativeShown?'ok':'err');}catch(e){toast('Не удалось показать уведомление: '+e.message,'err');}});
   setInterval(()=>refreshNotifications().catch(()=>{}),30000);
   setInterval(()=>{const now=new Date(),key=now.toISOString().slice(0,10);if(lastQuestDay&&lastQuestDay!==key&&S.page==='quests')renderQuests().catch(()=>{});lastQuestDay=key;},15000);
 

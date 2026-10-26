@@ -675,3 +675,17 @@ input,textarea{user-select:text}
 .quest-card-icon svg{width:25px;height:25px}
 .quest-reward-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--accent,#ff7a1a)}
 .quest-reward-icon svg{width:19px;height:19px}
+
+/* Refined launcher surfaces: clearer navigation, mod workspace and admin controls */
+.page{animation:page-enter .24s ease both}
+@keyframes page-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.card,.panel,.admin-section{border-color:color-mix(in srgb,var(--line2) 78%,transparent);box-shadow:0 10px 28px #00000012}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 30%,var(--line2))}
+#page-mods .card,#page-modpacks .card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+#page-mods .card:hover,#page-modpacks .card:hover{transform:translateY(-2px);box-shadow:0 16px 36px #00000024}
+.admin-section{padding:clamp(18px,2.5vw,30px);border-radius:18px;background:linear-gradient(145deg,#1b1b20,#151519)}
+.admin-section h2{letter-spacing:-.025em}
+.admin-section .field{margin-top:16px}
+.admin-section .input{min-height:44px}
+#page-control .grid,#page-control .admin-grid{gap:16px}
+@media(max-width:760px){.launcher-mode-card{padding:24px 18px}.launcher-mode-card p{font-size:17px}.cinema-close{top:12px;right:12px}}
