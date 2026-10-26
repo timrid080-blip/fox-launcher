@@ -2,8 +2,17 @@
 (() => {
   'use strict';
   let finished = false;
-  const removeOverlay = (message = '') => {
+  const splashStartedAt = Date.now();
+  const minimumSplashMs = 6000;
+  let delayedRemoval = false;
+  const removeOverlay = (message = '', force = false) => {
     if (finished) return;
+    const remaining = minimumSplashMs - (Date.now() - splashStartedAt);
+    if (!force && remaining > 0) {
+      if (message) { const status = document.getElementById('startupStatus'); if (status) status.textContent = message; }
+      if (!delayedRemoval) { delayedRemoval = true; setTimeout(() => removeOverlay('', true), remaining); }
+      return;
+    }
     debug('removing overlay: ' + message);
     finished = true;
     const overlay = document.getElementById('startupOverlay');
@@ -18,19 +27,48 @@
     if (overlay) {
       overlay.classList.add('is-leaving');
       // Hard removal is intentional: CSS/animation failures must not block the UI.
-      setTimeout(() => overlay.remove(), 600);
+      setTimeout(() => overlay.remove(), 1000);
     }
   };
   const debug = (message) => { try { console.error('[FOX STARTUP]', message); } catch {} };
   debug('startup.js loaded');
   window.__foxFinishStartup = removeOverlay;
-  // This timer is independent of app.js initialization and API calls.
-  // Keep the splash purely visual and brief; updater and app initialization continue independently.
-  setTimeout(() => removeOverlay(''), 1100);
-  window.addEventListener('error', () => {
-    setTimeout(() => removeOverlay(''), 500);
-  });
-  window.addEventListener('unhandledrejection', () => {
-    setTimeout(() => removeOverlay(''), 500);
-  });
+  // Six-second cinematic splash, followed by a one-second fade; initialization runs in parallel.
+  const timeline = [
+    [0, 'Подготовка к большому обновлению…', 'Версия 1.0'],
+    [1400, 'Вспоминаем путь Fox Launcher', 'Версия 2.0'],
+    [3000, 'Чаты, звонки и обновлённая команда', 'Версия 3.0'],
+    [4300, 'Новые режимы, звуки, жалобы, медиа и поддержка', 'Почти готово'],
+    [5000, 'Встречайте Fox Launcher 4.0!', '4.0 · НОВАЯ ЭРА']
+  ];
+  const status = document.getElementById('startupStatus');
+  const stage = document.getElementById('startupStage');
+  const kicker = document.querySelector('.startup-kicker');
+  const heading = document.querySelector('.startup-heading');
+  const cinematic = document.getElementById('startupCinematic');
+  if (cinematic) cinematic.textContent = '1.0';
+  try { const intro = new Audio('../assets/sounds/computer-shutdown-sound.mp3'); intro.volume = 0.28; intro.loop = false; intro.play().catch(() => {}); } catch {}
+  const startedAt = splashStartedAt;
+  const tick = () => {
+    const elapsed = Date.now() - startedAt;
+    let current = timeline[0];
+    for (const item of timeline) if (elapsed >= item[0]) current = item;
+    if (status) status.textContent = current[1];
+    if (stage) stage.textContent = current[2];
+    if (cinematic) {
+      const n = Math.min(4, 1 + Math.floor(elapsed / 2000));
+      cinematic.textContent = elapsed > 5000 ? '4.0' : n.toFixed(1);
+      cinematic.classList.toggle('is-final', elapsed > 4900);
+    }
+    const fill = document.getElementById('startupProgressFill');
+    const percent = document.getElementById('startupPercent');
+    const pct = Math.min(100, Math.round(elapsed / 6000 * 100));
+    if (fill) fill.style.width = pct + '%';
+    if (percent) percent.textContent = pct + '%';
+  };
+  tick();
+  const ticker = setInterval(tick, 80);
+  setTimeout(() => { clearInterval(ticker); removeOverlay('', true); }, 6000);
+  window.addEventListener('error', () => { if (status) status.textContent = 'Завершаем подготовку интерфейса…'; });
+  window.addEventListener('unhandledrejection', () => { if (status) status.textContent = 'Завершаем подготовку интерфейса…'; });
 })();

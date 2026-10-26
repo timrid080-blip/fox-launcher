@@ -30,3 +30,28 @@ test('1.6 migration: exact ruble balance is owner-only, audited and not the paid
   await db.exec('reset role');
  } finally {await db.close();}
 });
+
+
+test('2.8 owner balance migration permits owner self-credit in rubles and stores kopeks',async()=>{
+ const db=new PGlite();
+ try{
+  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,raw_user_meta_data jsonb);create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;`);
+  await db.exec(read('backend/supabase.sql'));
+  await db.exec(read('backend/migrate-1.5.sql'));
+  await db.exec(read('backend/migrate-1.6.sql'));
+  await db.exec(read('backend/migrate-2.8-owner-ruble-balance.sql'));
+  const owner='00000000-0000-0000-0000-000000000011';
+  await db.query('insert into auth.users values($1,$2)',[owner,{nickname:'Owner'}]);
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)",[owner]);
+  await db.query('select public.fox_action($1,$2)', ['state',{}]);
+  await db.query('insert into public.fox_admins values($1)',[owner]);
+  await db.exec('set role authenticated');
+  const result=(await db.query('select public.fox_owner_set_rubles($1,$2,$3) v',[owner,125,'Проверка своего баланса'])).rows[0].v;
+  await db.exec('reset role');
+  assert.equal(result.new_amount_kopeks,12500);
+  const wallet=(await db.query('select rubles from public.fox_wallets where id=$1',[owner])).rows[0];
+  assert.equal(wallet.rubles,12500);
+  const audit=(await db.query("select count(*)::int n from public.fox_staff_audit where action='admin_set_rubles'")).rows[0].n;
+  assert.equal(audit,1);
+ } finally {await db.close();}
+});
