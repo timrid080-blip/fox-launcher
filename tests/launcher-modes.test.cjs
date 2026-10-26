@@ -13,7 +13,7 @@ test('global launcher modes are server-authoritative and admin-gated', () => {
   for (const mode of ['alarm', 'ceremony', 'maintenance', 'warning', 'celebration', 'info']) {
     assert.ok(sql.includes("'" + mode + "'"), 'migration supports mode ' + mode);
   }
-  assert.match(sql, /exists\s*\(select 1 from public\.fox_admins where id=u\)/i);
+  assert.match(sql, /not exists\s*\(select 1 from public\.fox_admins where id=actor\)/i);
   assert.match(sql, /if not adm then raise exception/i);
   assert.match(sql, /ends_at\s*<=\s*now\(\)/i);
   assert.match(sql, /'blocked',\s*\(r\.mode='maintenance' and not adm\)/i);
