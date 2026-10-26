@@ -662,3 +662,9 @@ input,textarea{user-select:text}
 #page-support .support-clear{min-height:30px;padding:5px 10px;font-size:12px;border-radius:8px}
 #page-support .support-clear[hidden]{display:none}
 @media(max-width:600px){#page-support .support-list-meta{align-items:flex-start}}
+
+/* Server-controlled launcher modes */
+.launcher-mode-overlay{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:24px;background:rgba(4,5,8,.88);backdrop-filter:blur(12px)}
+.launcher-mode-overlay[hidden]{display:none}
+.launcher-mode-card{width:min(620px,100%);padding:36px;border:1px solid #ffffff24;border-radius:22px;background:#17181d;box-shadow:0 24px 100px #000b;text-align:center}
+.launcher-mode-icon{font-size:54px}.launcher-mode-card h1{margin:14px 0;font-size:28px}.launcher-mode-card p{white-space:pre-wrap;line-height:1.6;color:#e7e7ea}.launcher-mode-card small{display:block;color:#b8b8c2;margin:16px 0}.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{border-color:#ff3434;box-shadow:0 0 70px #ff161633}.launcher-mode-overlay[data-mode="alarm"] h1{color:#ff4545}.launcher-mode-overlay[data-mode="ceremony"] .launcher-mode-card{border-color:#e9bf52;background:linear-gradient(145deg,#2c2412,#17181d)}.launcher-mode-overlay[data-mode="ceremony"] h1{color:#f4d16b}.launcher-mode-overlay[data-mode="maintenance"] .launcher-mode-card{border-color:#ff9a45}.launcher-mode-overlay[data-mode="warning"] h1{color:#ffb54a}.launcher-mode-overlay[data-mode="celebration"] h1{color:#ff9b52}
