@@ -25,6 +25,15 @@ test('friends expose chat and call actions, and renderer RPCs are allowed', () =
   assert.match(cloud, /fox_call_signal/);
 });
 
+test('friends can send a game-build invitation through the existing private chat', () => {
+  const app = read('renderer/app.js');
+  assert.match(app, /data-friend-invite=/);
+  assert.match(app, /async function inviteFriendToGame/);
+  assert.match(app, /Minecraft: '\+instance\.mc/);
+  assert.match(app, /cloudAction','friend_chat',\{op:'send',payload:\{friend:friend\.public_key,body\}\}/);
+  assert.match(app, /Сначала создай сборку для приглашения/);
+});
+
 test('achievement and quest cards display icons and reward symbols', () => {
   const app = read('renderer/app.js');
   const css = read('renderer/styles.css');
