@@ -536,9 +536,9 @@ const api = {
     if ((await services.get()).supabase.url) {
       try {
         const mode = await cloud.action('launcher_mode', { op: 'get' });
-        if (mode.blocked) throw new Error(mode.message || 'Fox Launcher временно закрыт на технические работы.');
+        if (mode.blocked) { const blocked = new Error(mode.message || 'Fox Launcher временно закрыт на технические работы.'); blocked.code = 'LAUNCHER_MAINTENANCE'; throw blocked; }
       } catch (error) {
-        if (/технические работы|временно закрыт/.test(error.message || '')) throw error;
+        if (error.code === 'LAUNCHER_MAINTENANCE') throw error;
         startupLog('Launcher mode RPC unavailable; continuing normal launch', error);
       }
     }
