@@ -789,3 +789,5 @@ input,textarea{user-select:text}
 .fox-verified{width:18px;height:18px;flex:0 0 18px;margin-left:4px;background:#1689f8;color:white;box-shadow:0 0 0 3px #1689f822,0 0 16px #1689f855}
 @media(max-width:900px){#page-mods .mods-top{grid-template-columns:1fr 1fr}#page-mods .mods-top .search{grid-column:1/-1}#page-home .stat-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){#page-mods .mods-top{grid-template-columns:1fr}#page-mods .mods-top .search{grid-column:auto}#page-mods .mod{align-items:flex-start;flex-wrap:wrap}#page-mods .mod .mid{flex-basis:calc(100% - 88px)}#page-mods .mod .col{width:100%;display:flex;flex-direction:row;flex-wrap:wrap}#page-home .hero .logo{right:14px;top:18px;transform:none;width:100px;opacity:.28}#page-home .hero .content{padding:24px}#page-home .hero h2{font-size:34px}}
+
+.ticket-row-wrap{display:flex;align-items:stretch;gap:8px;margin:8px 0}.ticket-row-wrap .ticket-row{flex:1;min-width:0;margin:0}.ticket-row-wrap>[data-ticket-delete]{align-self:center;flex:none}@media(max-width:520px){.ticket-row-wrap{gap:4px}.ticket-row-wrap>[data-ticket-delete]{padding:7px;font-size:11px}}
