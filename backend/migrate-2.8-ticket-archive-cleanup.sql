@@ -11,6 +11,8 @@ create index if not exists fox_tickets_archive_due
   on public.fox_tickets(archived_at, closed_at)
   where status='closed';
 
+update public.fox_tickets set closed_at=coalesce(closed_at,updated_at),appeal_until=coalesce(appeal_until,updated_at+interval '1 day'),archived_at=coalesce(archived_at,updated_at+interval '1 minute') where status='closed';
+
 create or replace function public.fox_ticket_lifecycle()
 returns trigger language plpgsql security definer set search_path=''
 as $$
@@ -39,10 +41,8 @@ for each row execute function public.fox_ticket_lifecycle();
 create or replace function public.fox_support_cleanup()
 returns jsonb language plpgsql security definer set search_path=''
 as $$
-declare u uuid:=auth.uid(); closed_count integer:=0; deleted_count integer:=0; chat_count integer:=0;
+declare closed_count integer:=0; deleted_count integer:=0; chat_count integer:=0;
 begin
-  if u is null then raise exception 'Войди в Fox ID'; end if;
-
   update public.fox_tickets
     set status='closed',closed_at=created_at+interval '2 days',
         appeal_until=created_at+interval '3 days',
@@ -112,4 +112,14 @@ revoke all on function public.fox_support_delete(uuid) from public,anon;
 grant execute on function public.fox_support_cleanup() to authenticated;
 grant execute on function public.fox_support_archive_list() to authenticated;
 grant execute on function public.fox_support_delete(uuid) to authenticated;
+
+-- Supabase projects with pg_cron enabled also run retention cleanup automatically.
+do $ begin
+  if exists(select 1 from pg_extension where extname='pg_cron') then
+    begin
+      execute $job$ select cron.schedule('fox-support-retention-every-30-minutes','*/30 * * * *','select public.fox_support_cleanup()') $job$;
+    exception when others then null;
+    end;
+  end if;
+end $;
 commit;
