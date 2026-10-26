@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const pkg = require('../package.json');
 
 test('3.1.0 has GitHub publish metadata for the Fox Launcher updater', () => {
-  assert.equal(pkg.version, '3.1.0');
+  assert.equal(pkg.version, '4.0.0');
   assert.equal(pkg.repository.url, 'https://github.com/timrid080-blip/fox-launcher.git');
   assert.ok(Array.isArray(pkg.build.publish));
   assert.ok(pkg.build.publish.some(p => p.provider === 'github' && p.owner === 'timrid080-blip' && p.repo === 'fox-launcher' && p.releaseType === 'release'));
