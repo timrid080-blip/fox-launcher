@@ -689,3 +689,21 @@ input,textarea{user-select:text}
 .admin-section .input{min-height:44px}
 #page-control .grid,#page-control .admin-grid{gap:16px}
 @media(max-width:760px){.launcher-mode-card{padding:24px 18px}.launcher-mode-card p{font-size:17px}.cinema-close{top:12px;right:12px}}
+
+.launcher-mode-overlay{padding:0;background:rgba(3,4,8,.97);backdrop-filter:blur(20px)}
+.launcher-mode-card{width:100%;height:100%;min-height:100%;border:0!important;border-radius:0;padding:clamp(24px,6vw,88px);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:none!important;background:radial-gradient(ellipse at 50% 20%,#332018 0,#15151a 55%,#08090d 100%)}
+.launcher-mode-card h1{font-size:clamp(30px,5vw,58px);letter-spacing:.04em}.launcher-mode-card p{max-width:850px;font-size:clamp(17px,2vw,24px)}.launcher-mode-icon{font-size:clamp(58px,9vw,110px)}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{background:radial-gradient(ellipse at 50% 30%,#491313 0,#170b10 55%,#08090d 100%);animation:alarm-pulse 1.5s ease-in-out infinite alternate}
+@keyframes alarm-pulse{from{box-shadow:inset 0 0 30px #ff202018!important}to{box-shadow:inset 0 0 110px #ff202066!important}}
+.version-cinema[hidden]{display:none}.version-cinema{position:fixed;inset:0;z-index:5000;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;background:radial-gradient(ellipse at 50% 45%,#352015 0,#111217 48%,#050608 100%);color:#fff}
+.cinema-glow{position:absolute;width:70vmin;height:70vmin;border-radius:50%;background:#ff791b20;filter:blur(40px);animation:cinema-glow 5s ease-in-out infinite alternate}
+.cinema-avatar{position:relative;width:clamp(90px,15vmin,170px);height:clamp(90px,15vmin,170px);object-fit:contain;border-radius:28px;box-shadow:0 0 80px #ff7a1a38;animation:cinema-avatar 2s ease both}
+.cinema-status{position:relative;margin-top:28px;color:#ffb47e;text-transform:uppercase;letter-spacing:.24em;font-size:12px}.cinema-version-number{position:relative;font-size:clamp(90px,20vw,240px);font-weight:900;line-height:1.05;letter-spacing:-.08em;background:linear-gradient(180deg,#fff,#ffb16e 70%,#ff7517);background-clip:text;color:transparent}
+.cinema-version-label{position:relative;font-size:clamp(15px,2.4vw,28px);font-weight:800;letter-spacing:.1em}.cinema-description{position:relative;color:#b9bbc4;max-width:700px;line-height:1.7}.cinema-close{position:absolute;right:24px;top:24px}
+.cinema-run .cinema-version-number{animation:cinema-number 1.3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes cinema-number{0%{opacity:0;transform:translateY(80px) scale(.72);filter:blur(18px)}65%{opacity:1;transform:translateY(-8px) scale(1.04);filter:blur(0)}100%{transform:translateY(0) scale(1)}}
+@keyframes cinema-avatar{0%{opacity:0;transform:scale(.65) rotate(-8deg)}100%{opacity:1;transform:scale(1) rotate(0)}}@keyframes cinema-glow{from{transform:scale(.8);opacity:.45}to{transform:scale(1.2);opacity:1}}
+.page{animation:page-enter .24s ease both}@keyframes page-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+#page-mods .card,#page-modpacks .card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}#page-mods .card:hover,#page-modpacks .card:hover{transform:translateY(-2px);box-shadow:0 16px 36px #00000024}
+.admin-section{padding:clamp(18px,2.5vw,30px);border-radius:18px;background:linear-gradient(145deg,#1b1b20,#151519)}.admin-section h2{letter-spacing:-.025em}.admin-section .field{margin-top:16px}.admin-section .input{min-height:44px}
+@media(prefers-reduced-motion:reduce){.cinema-glow,.cinema-avatar,.cinema-run .cinema-version-number,.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none}}
