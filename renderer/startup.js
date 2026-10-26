@@ -2,8 +2,17 @@
 (() => {
   'use strict';
   let finished = false;
-  const removeOverlay = (message = '') => {
+  const splashStartedAt = Date.now();
+  const minimumSplashMs = 7000;
+  let delayedRemoval = false;
+  const removeOverlay = (message = '', force = false) => {
     if (finished) return;
+    const remaining = minimumSplashMs - (Date.now() - splashStartedAt);
+    if (!force && remaining > 0) {
+      if (message) { const status = document.getElementById('startupStatus'); if (status) status.textContent = message; }
+      if (!delayedRemoval) { delayedRemoval = true; setTimeout(() => removeOverlay('', true), remaining); }
+      return;
+    }
     debug('removing overlay: ' + message);
     finished = true;
     const overlay = document.getElementById('startupOverlay');
@@ -39,7 +48,7 @@
   const cinematic = document.getElementById('startupCinematic');
   if (cinematic) cinematic.textContent = '1.0';
   try { const intro = new Audio('../assets/sounds/computer-shutdown-sound.mp3'); intro.volume = 0.28; intro.loop = false; intro.play().catch(() => {}); } catch {}
-  const startedAt = Date.now();
+  const startedAt = splashStartedAt;
   const tick = () => {
     const elapsed = Date.now() - startedAt;
     let current = timeline[0];
@@ -59,7 +68,7 @@
   };
   tick();
   const ticker = setInterval(tick, 80);
-  setTimeout(() => { clearInterval(ticker); removeOverlay(''); }, 7000);
+  setTimeout(() => { clearInterval(ticker); removeOverlay('', true); }, 7000);
   window.addEventListener('error', () => { if (status) status.textContent = 'Завершаем подготовку интерфейса…'; });
   window.addEventListener('unhandledrejection', () => { if (status) status.textContent = 'Завершаем подготовку интерфейса…'; });
 })();
