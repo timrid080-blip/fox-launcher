@@ -694,3 +694,20 @@ input,textarea{user-select:text}
 .toast{animation:fox-toast-in .28s cubic-bezier(.16,1,.3,1) both;transition:opacity .32s ease,transform .32s ease}.toast.is-leaving{opacity:0;transform:translateY(-8px) scale(.98)}@keyframes fox-toast-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 .verified-name{display:inline-flex;align-items:center;gap:7px}.verified-check{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#3198ff;color:#fff;font-size:13px;font-weight:900;box-shadow:0 0 0 2px #3198ff22;vertical-align:middle}
+
+
+/* Full-screen global modes: every announcement owns the entire launcher surface. */
+.launcher-mode-overlay{padding:0;background:radial-gradient(ellipse at 50% 30%,#25262d 0%,#08090c 72%);backdrop-filter:blur(18px)}
+.launcher-mode-card{width:100%;height:100%;min-height:100%;max-width:none;border:0;border-radius:0;box-shadow:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.5vh,28px);padding:clamp(24px,7vw,100px);text-align:center}
+.launcher-mode-icon{font-size:clamp(64px,10vw,124px);line-height:1;filter:drop-shadow(0 8px 28px #0008)}
+.launcher-mode-card h1{margin:0;max-width:1100px;font-size:clamp(32px,6vw,76px);line-height:1.08;letter-spacing:-.035em;font-weight:900}
+.launcher-mode-card p{max-width:920px;font-size:clamp(18px,2.1vw,28px);line-height:1.6;color:#f2f2f5}
+.launcher-mode-card small{margin:0;font-size:clamp(13px,1.2vw,16px)}
+.launcher-mode-card .btn{min-width:180px;min-height:52px;font-size:16px}
+.launcher-mode-overlay[data-mode="alarm"]{background:radial-gradient(ellipse at 50% 35%,#5b1018 0%,#16070a 58%,#070608 100%)}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{background:radial-gradient(ellipse at center,#ff24241a,transparent 65%);animation:fox-alarm-pulse 1.8s ease-in-out infinite alternate}
+.launcher-mode-overlay[data-mode="ceremony"]{background:radial-gradient(ellipse at 50% 35%,#59451a 0%,#1c170e 58%,#070608 100%)}
+.launcher-mode-overlay[data-mode="celebration"]{background:radial-gradient(ellipse at 50% 35%,#512b13 0%,#20120b 58%,#070608 100%)}
+.launcher-mode-overlay[data-mode="maintenance"]{background:radial-gradient(ellipse at 50% 35%,#3b2a19 0%,#17120d 58%,#070608 100%)}
+@keyframes fox-alarm-pulse{from{filter:brightness(.88)}to{filter:brightness(1.18)}}
+@media(max-width:600px){.launcher-mode-card{padding:24px 18px}.launcher-mode-card p{font-size:18px}.launcher-mode-card h1{font-size:34px}}
