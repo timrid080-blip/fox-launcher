@@ -37,6 +37,24 @@ public final class FoxCosmeticModel {
         wings.addChild("right", ModelPartBuilder.create()
                 .uv(32, 32).cuboid(5.0F, -1.0F, 2.0F, 7.0F, 10.0F, 1.0F),
                 ModelTransform.NONE);
+        root.addChild("crown", ModelPartBuilder.create()
+                .uv(0, 40).cuboid(-4.0F, -9.0F, -4.0F, 8.0F, 2.0F, 8.0F)
+                .uv(16, 40).cuboid(-3.0F, -12.0F, -3.0F, 2.0F, 3.0F, 2.0F)
+                .uv(24, 40).cuboid(-1.0F, -13.0F, -1.0F, 2.0F, 4.0F, 2.0F)
+                .uv(32, 40).cuboid(1.0F, -12.0F, 1.0F, 2.0F, 3.0F, 2.0F),
+                ModelTransform.NONE);
+        root.addChild("backpack", ModelPartBuilder.create()
+                .uv(0, 48).cuboid(-4.0F, 0.0F, 2.5F, 8.0F, 9.0F, 3.0F),
+                ModelTransform.NONE);
+        ModelPartData halo = root.addChild("halo", ModelPartBuilder.create(), ModelTransform.NONE);
+        halo.addChild("front", ModelPartBuilder.create().uv(32, 48)
+                .cuboid(-3.0F, -10.0F, -4.5F, 6.0F, 1.0F, 1.0F), ModelTransform.NONE);
+        halo.addChild("back", ModelPartBuilder.create().uv(32, 50)
+                .cuboid(-3.0F, -10.0F, 3.5F, 6.0F, 1.0F, 1.0F), ModelTransform.NONE);
+        halo.addChild("left", ModelPartBuilder.create().uv(32, 52)
+                .cuboid(-4.5F, -10.0F, -3.0F, 1.0F, 1.0F, 6.0F), ModelTransform.NONE);
+        halo.addChild("right", ModelPartBuilder.create().uv(40, 48)
+                .cuboid(3.5F, -10.0F, -3.0F, 1.0F, 1.0F, 6.0F), ModelTransform.NONE);
         return TexturedModelData.of(data, 64, 64);
     }
 }
