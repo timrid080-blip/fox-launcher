@@ -43,8 +43,8 @@ public final class FoxClient implements ClientModInitializer {
         LivingEntityFeatureRendererRegistrationCallback.EVENT.register(
                 (entityType, entityRenderer, registrationHelper, context) -> {
                     if (entityRenderer instanceof PlayerEntityRenderer) {
-                        PlayerEntityModel model = context.getPart(FoxCosmeticModel.LAYER);
-                        registrationHelper.register(new FoxCosmeticFeatureRenderer(entityRenderer, model.getRoot()));
+                        registrationHelper.register(new FoxCosmeticFeatureRenderer(
+                                entityRenderer, context.getPart(FoxCosmeticModel.LAYER)));
                     }
                 });
 
