@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
+import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.InputUtil;
@@ -44,7 +45,7 @@ public final class FoxClient implements ClientModInitializer {
                 (entityType, entityRenderer, registrationHelper, context) -> {
                     if (entityRenderer instanceof PlayerEntityRenderer) {
                         registrationHelper.register(new FoxCosmeticFeatureRenderer(
-                                entityRenderer, context.getPart(FoxCosmeticModel.LAYER)));
+                                playerRendererContext(entityRenderer), context.getPart(FoxCosmeticModel.LAYER)));
                     }
                 });
 
@@ -79,6 +80,14 @@ public final class FoxClient implements ClientModInitializer {
                         + (fovBoostEnabled ? "§aвключён" : "§cвыключен"));
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> playerRendererContext(
+            PlayerEntityRenderer renderer) {
+        // PlayerEntityRenderer is the concrete renderer for PlayerEntityRenderState in 1.21.4;
+        // the callback exposes it through a wildcarded LivingEntityRenderer type.
+        return (FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel>) (Object) renderer;
     }
 
     private static void notifyPlayer(net.minecraft.client.MinecraftClient client, String message) {
