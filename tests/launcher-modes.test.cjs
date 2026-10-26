@@ -56,7 +56,7 @@ test('scheduled modes expose exact dates and alarm is non-dismissible', () => {
   assert.match(renderer, /id="launcherModeEnds" type="datetime-local"/);
   assert.match(renderer, /mode==='alarm'\|\|!!state\.blocked/);
   assert.match(renderer, /setTimeout\(\(\)=>\{stopAlarmTimers\(\);call\('winClose'\)/);
-  assert.match(startup, /7000\)/);
+  assert.match(startup, /6000\)/);
   assert.match(html, /id="startupCinematic"/);
 });
 
