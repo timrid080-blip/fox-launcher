@@ -196,7 +196,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .console pre .e{color:#ff7b7b}.console pre .w{color:#ffcb6b}.console pre .f{color:var(--accent2)}
 
 /* ---------- toasts ---------- */
-.toasts{position:fixed;right:20px;top:68px;bottom:auto;display:flex;flex-direction:column;gap:8px;z-index:4000;max-height:calc(100vh - 100px);overflow:visible;pointer-events:none}.toasts .toast{pointer-events:auto}
+.toasts{position:fixed;right:20px;top:auto;bottom:20px;display:flex;flex-direction:column-reverse;gap:8px;z-index:4000;max-height:calc(100vh - 100px);overflow:visible;pointer-events:none}.toasts .toast{pointer-events:auto}
 .toast{background:#1d1d22;border:1px solid var(--line2);border-left:3px solid var(--accent);padding:11px 16px;border-radius:10px;box-shadow:var(--shadow);max-width:380px;animation:pop .2s;font-size:13px}
 .toast.err{border-left-color:var(--err)}.toast.ok{border-left-color:var(--ok)}
 
