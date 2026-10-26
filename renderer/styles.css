@@ -601,3 +601,13 @@ input,textarea{user-select:text}
 .ticket-transfer-field .input{margin-top:7px;min-height:40px}
 .support-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:600px){.support-stats{grid-template-columns:1fr 1fr}.ticket-transfer-field{padding:10px}}
+
+/* Single support workspace: keep personal tickets and staff queue in one page. */
+.support-mode-switch{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding:5px;width:max-content;max-width:100%;border:1px solid var(--line);border-radius:12px;background:var(--panel,rgba(255,255,255,.025))}
+.support-mode-switch .btn{min-height:36px}
+#nav button[data-page="support"]{position:relative}
+.ticket-row{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;padding:14px 16px}
+.ticket-row-main{min-width:0;flex:1}
+.ticket-row-main b{display:block;overflow-wrap:anywhere}
+.ticket-row-main p{margin:5px 0 0}
+@media(max-width:600px){.support-mode-switch{width:100%}.support-mode-switch .btn{flex:1}.ticket-row{padding:12px}}
