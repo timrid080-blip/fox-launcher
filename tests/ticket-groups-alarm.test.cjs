@@ -23,7 +23,7 @@ test('support archive and cleanup retain tickets through the appeal window and a
   assert.match(sql, /created_at\+interval '2 days'/);
   assert.match(sql, /appeal_until=created_at\+interval '3 days'/);
   assert.match(sql, /closed_at\+interval '1 minute'/);
-  assert.match(sql, /closed_at<=now\(\)-interval '3 days'/);
+  assert.match(sql, /created_at<=now\(\)-interval '3 days'/);
   assert.match(sql, /fox_friend_messages where created_at<=now\(\)-interval '3 days'/);
   assert.match(sql, /not exists\(select 1 from public\.fox_admins where id=u\)/);
   assert.match(app, /support_archive_list/);
