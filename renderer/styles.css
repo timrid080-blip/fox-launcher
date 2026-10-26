@@ -655,3 +655,10 @@ input,textarea{user-select:text}
   #page-support .support-stat strong{font-size:22px}
   .modal:has(.ticket-thread) .ticket-thread{max-height:38vh}
 }
+
+/* Support stage 1: filter feedback and reset controls. */
+#page-support .support-list-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:30px;margin:-5px 0 8px}
+#page-support .support-list-meta .dim{font-size:12px;font-variant-numeric:tabular-nums}
+#page-support .support-clear{min-height:30px;padding:5px 10px;font-size:12px;border-radius:8px}
+#page-support .support-clear[hidden]{display:none}
+@media(max-width:600px){#page-support .support-list-meta{align-items:flex-start}}
