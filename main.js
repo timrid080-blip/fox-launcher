@@ -532,6 +532,16 @@ const api = {
   stop: id => { const r = running.get(id); if (r) r.kill(); },
   async launch(instanceId) {
     idle(instanceId);
+    // Enforce maintenance mode in the privileged main process as well as the renderer.
+    if ((await services.get()).supabase.url) {
+      try {
+        const mode = await cloud.action('launcher_mode', { op: 'get' });
+        if (mode.blocked) throw new Error(mode.message || 'Fox Launcher временно закрыт на технические работы.');
+      } catch (error) {
+        if (/технические работы|временно закрыт/.test(error.message || '')) throw error;
+        startupLog('Launcher mode RPC unavailable; continuing normal launch', error);
+      }
+    }
     if (launching.size) throw new Error('Дождитесь окончания загрузки другой сборки');
     launching.add(instanceId);
     try {
