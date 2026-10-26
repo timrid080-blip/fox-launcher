@@ -293,7 +293,7 @@
   const currencyName={foxes:'Фоксы 🦊',pumpkins:'тыквы 🎃',rubles:'учётные ₽'};
   const holidays={halloween:'Хеллоуин 🎃',newyear:'Новый год 🎄',winter:'Зимний фестиваль ❄',spring:'Праздник весны 🌷',summer:'Летний фестиваль ☀',birthday:'День рождения Fox 🎂',valentine:'День дружбы ♥'};
   let audio=null;
-  function sound(kind='click'){if(S.settings.sounds===false||!S.settings.soundVolume)return;try{audio||=new AudioContext();audio.resume().catch(()=>{});const patterns={click:[{f:520,d:.045}],achievement:[{f:660,d:.10},{f:880,d:.13},{f:1100,d:.18}],error:[{f:220,d:.10},{f:165,d:.13}],launch:[{f:440,d:.08},{f:660,d:.12}],success:[{f:660,d:.08},{f:880,d:.12}]};let at=audio.currentTime;const vol=Math.min(.12,(+S.settings.soundVolume||.25)*.12);for(const note of (patterns[kind]||patterns.click)){const o=audio.createOscillator(),g=audio.createGain();o.type=kind==='achievement'?'triangle':'sine';o.frequency.setValueAtTime(note.f,at);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(vol,at+.012);g.gain.setTargetAtTime(.0001,at+note.d*.68,.025);o.connect(g).connect(audio.destination);o.start(at);o.stop(at+note.d);at+=note.d+.025;}}catch{}}
+  function sound(kind='click'){if(S.settings.sounds===false||!S.settings.soundVolume)return;try{audio||=new AudioContext();audio.resume().catch(()=>{});const patterns={click:[{f:520,d:.045}],alarm:[{f:740,d:.18},{f:520,d:.18},{f:740,d:.18},{f:520,d:.18},{f:740,d:.18}],ceremony:[{f:523,d:.12},{f:659,d:.12},{f:784,d:.2},{f:1047,d:.28}],warning:[{f:660,d:.12},{f:440,d:.18}],celebration:[{f:659,d:.1},{f:784,d:.1},{f:988,d:.14},{f:1318,d:.22}],info:[{f:660,d:.09},{f:880,d:.14}],achievement:[{f:660,d:.10},{f:880,d:.13},{f:1100,d:.18}],error:[{f:220,d:.10},{f:165,d:.13}],launch:[{f:440,d:.08},{f:660,d:.12}],success:[{f:660,d:.08},{f:880,d:.12}]};let at=audio.currentTime;const vol=Math.min(.12,(+S.settings.soundVolume||.25)*.12);for(const note of (patterns[kind]||patterns.click)){const o=audio.createOscillator(),g=audio.createGain();o.type=kind==='achievement'?'triangle':'sine';o.frequency.setValueAtTime(note.f,at);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(vol,at+.012);g.gain.setTargetAtTime(.0001,at+note.d*.68,.025);o.connect(g).connect(audio.destination);o.start(at);o.stop(at+note.d);at+=note.d+.025;}}catch{}}
   document.addEventListener('click',ev=>{if(ev.target.closest('button'))sound();});
   function activeEvent(){return S.cloud?.events?.filter(e=>e.enabled&&Date.parse(e.starts_at)<=Date.now()&&Date.parse(e.ends_at)>Date.now()).sort((a,b)=>Date.parse(b.starts_at)-Date.parse(a.starts_at))[0];}
   function applyAppearance(){const a=/^#[\da-f]{6}$/i.test(S.settings.accent)?S.settings.accent:'#ff7a1a',style=document.documentElement.style;style.setProperty('--accent',a);style.setProperty('--accent2',a);style.setProperty('--accent3',a);style.setProperty('--accent-soft',a+'24');document.body.dataset.holiday=S.settings.eventTheme===false?'':activeEvent()?.theme||'';const badge=$('#eventBadge');if(badge){const e=activeEvent();badge.textContent=e?holidays[e.theme]||e.title:'';badge.title=e?'До '+new Date(e.ends_at).toLocaleString('ru-RU'):'';}}
@@ -446,6 +446,30 @@
   window.fox.on((type,p)=>{if(type==='achievement'){sound('achievement');toast('Достижение: '+(p.code==='gamer'?'Геймер':'Игроман'),'ok');}if(type==='started')sound('launch');if(type==='cloud'){S.cloud={configured:true,...p};applyAppearance();refreshNotifications().catch(()=>{});}if(type==='cloud-warning')console.warn(p);if(type==='update'){S.launcherUpdate=p;updateBell();const status=document.querySelector('#updateStatus'),install=document.querySelector('#updateInstall');if(status){const labels={unconfigured:'Проверка обновлений пока недоступна',checking:'Проверка…',current:'Установлена последняя версия',downloading:'Загрузка '+(p.version||'')+(Number.isFinite(p.percent)?' · '+Math.round(p.percent)+'%':''),ready:'Обновление '+(p.version||'')+' загружено и готово к установке',available:'Доступна версия '+(p.version||''), 'no-release':p.reason||'В GitHub пока нет опубликованного релиза',error:'Не удалось проверить обновление: '+(p.message||'неизвестная ошибка')};status.textContent=labels[p.state]||p.state;}if(install)install.hidden=p.state!=='ready';}if(type==='update'&&p.state==='available'){toast('Доступен Fox Launcher '+p.version+'. Открой колокольчик.','ok');updateBell();}if(type==='update'&&p.state==='ready')toast('Обновление '+p.version+' загружено. Установить можно в настройках.','ok');});
   setInterval(()=>{loadNews().catch(()=>{});clubRefresh().catch(()=>{});},300000);
   setInterval(()=>{applyAppearance();},30000);
+  // Global announcement/mode state comes from the authenticated server RPC, not local settings.
+  let lastLauncherModeKey='',dismissedLauncherModeKey='';
+  async function refreshLauncherMode(){
+    if(!S.cloud?.profile)return;
+    try{
+      const state=await call('cloudAction','launcher_mode',{op:'get'});
+      const overlay=$('#launcherModeOverlay');
+      if(!overlay)return;
+      const mode=state.mode||'',key=mode+'|'+(state.ends_at||'')+'|'+(state.message||'');
+      if(!mode||(mode==='maintenance'&&state.is_admin)){overlay.hidden=true;lastLauncherModeKey=key;return;}
+      const names={alarm:['🚨','РЕЖИМ ТРЕВОГИ','alarm'],ceremony:['🏆','ТОРЖЕСТВЕННЫЙ РЕЖИМ','ceremony'],maintenance:['🛠','ТЕХНИЧЕСКИЕ РАБОТЫ','maintenance'],warning:['⚠️','ПРЕДУПРЕЖДЕНИЕ','warning'],celebration:['🎉','ПРАЗДНИЧНЫЙ СИГНАЛ','celebration'],info:['ℹ️','ИНФОРМАЦИОННОЕ ОБЪЯВЛЕНИЕ','info']};
+      const meta=names[mode]||names.info;
+      if(key!==lastLauncherModeKey){lastLauncherModeKey=key;dismissedLauncherModeKey='';sound(meta[2]);}
+      if(key===dismissedLauncherModeKey&&!state.blocked){overlay.hidden=true;return;}
+      overlay.dataset.mode=mode;$('#launcherModeIcon').textContent=meta[0];$('#launcherModeTitle').textContent=meta[1];$('#launcherModeBody').textContent=state.message||'Администратор Fox Launcher включил режим.';
+      const btn=$('#launcherModeAcknowledge');btn.hidden=!!state.blocked;btn.textContent=state.blocked?'': 'Понятно';
+      $('#launcherModeCountdown').textContent=state.ends_at?'Окончание: '+new Date(state.ends_at).toLocaleString('ru-RU'):'';
+      overlay.hidden=false;
+      if(!btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',()=>{dismissedLauncherModeKey=lastLauncherModeKey;overlay.hidden=true;});}
+    }catch(err){/* Service may not be configured; keep normal offline play available. */}
+  }
+  setInterval(()=>refreshLauncherMode().catch(()=>{}),10000);
+  setTimeout(()=>refreshLauncherMode().catch(()=>{}),1500);
+
 
   // ---------- Fox Social 1.4 ----------
   const roleLabels={owner:'Владелец',support:'Агент поддержки',support_lead:'Старший поддержки',developer:'Разработчик',media:'Медиа',media_manager:'Медиа-менеджер',moderator:'Модератор'};
