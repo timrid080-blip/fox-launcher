@@ -692,3 +692,5 @@ input,textarea{user-select:text}
 @keyframes fox-mode-card-appear{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 .toast{animation:fox-toast-in .28s cubic-bezier(.16,1,.3,1) both;transition:opacity .32s ease,transform .32s ease}.toast.is-leaving{opacity:0;transform:translateY(-8px) scale(.98)}@keyframes fox-toast-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.verified-name{display:inline-flex;align-items:center;gap:7px}.verified-check{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#3198ff;color:#fff;font-size:13px;font-weight:900;box-shadow:0 0 0 2px #3198ff22;vertical-align:middle}
