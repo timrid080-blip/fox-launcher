@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRe
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
@@ -34,7 +35,7 @@ public final class FoxClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_RIGHT_SHIFT, "category.foxclient"));
         toggleFovBoost = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.toggle_fov", InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_F8, "category.foxclient"));
+                GLFW.GLFW_KEY_C, "category.foxclient"));
         toggleCoordinates = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.toggle_coordinates", InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_F7, "category.foxclient"));
@@ -108,7 +109,7 @@ public final class FoxClient implements ClientModInitializer {
         }
         if (hintsEnabled) {
             context.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Fox Client  |  F7: HUD  F8: FOV+  F9: аксессуары"),
+                    Text.literal("Fox Client  |  F7: координаты  C: FOV+  F9: аксессуары"),
                     8, y, 0xFFE8E8E8);
         }
     }
