@@ -9,6 +9,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 test('global launcher modes are server-authoritative and admin-gated', () => {
   const sql = read('backend/migrate-2.6-launcher-modes.sql');
+  const scheduled = read('backend/migrate-2.7-launcher-schedule.sql');
   for (const mode of ['alarm', 'ceremony', 'maintenance', 'warning', 'celebration', 'info']) {
     assert.ok(sql.includes("'" + mode + "'"), 'migration supports mode ' + mode);
   }
@@ -16,6 +17,10 @@ test('global launcher modes are server-authoritative and admin-gated', () => {
   assert.match(sql, /if not adm then raise exception/i);
   assert.match(sql, /ends_at\s*<=\s*now\(\)/i);
   assert.match(sql, /'blocked',\s*\(r\.mode='maintenance' and not adm\)/i);
+  assert.match(scheduled, /p_data->>'starts_at'/i);
+  assert.match(scheduled, /p_data->>'ends_at'/i);
+  assert.match(scheduled, /'active'/i);
+  assert.match(scheduled, /ВНИМАНИЕ, РЕЖИМ ТРЕВОГИ/i);
   assert.match(sql, /grant execute on function public\.fox_launcher_mode\(text,jsonb\) to anon, authenticated/i);
 });
 
