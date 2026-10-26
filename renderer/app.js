@@ -8,6 +8,78 @@
   let activeCall=null, callPollBusy=false, incomingPromptId=null;
   const callSeenIce={caller:0,callee:0};
   const callSignal=(op,payload={})=>call('cloudAction','call_signal',{op,payload});
+  let activeGroupCall=null;
+  const groupCallSignal=(op,payload={})=>call('cloudAction','group_call',{op,payload});
+  async function groupVoiceCall(id,name,join=false){
+    if(activeCall||activeGroupCall)throw new Error('Сначала заверши текущий звонок');
+    const me=S.cloud?.profile?.id;if(!me)throw new Error('Войди в Fox ID');
+    if(join)await groupCallSignal('join',{id});
+    const g={id,name,me,stream:null,peers:new Map(),since:0,timer:null,busy:false,ending:false,modal:null};
+    activeGroupCall=g;
+    try{
+      try{g.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});}
+      catch{try{g.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});toast('Камера недоступна — групповой звонок будет только с голосом','ok');}catch{throw new Error('Нет доступа к микрофону. Разреши микрофон в Windows и повтори звонок.');}}
+      const body='<div class="group-call-local"><video id="groupCallLocal" autoplay muted playsinline></video><span>Вы</span></div><div class="group-call-remotes" id="groupCallRemotes"></div><p class="dim" id="groupCallStatus">Подключаем участников…</p><small class="dim">Групповой звонок поддерживает до 6 участников. Медиа передаётся напрямую между устройствами.</small>';
+      g.modal=modal('Групповой звонок · '+name,body,[{text:'Выйти из звонка',danger:true,run:async m=>{await endGroupVoiceCall(true);m.close();}}],true);
+      const local=g.modal.q('#groupCallLocal');if(local){local.srcObject=g.stream;local.play().catch(()=>{});}
+      const close=g.modal.close.bind(g.modal);g.modal.close=()=>{if(!g.ending)endGroupVoiceCall(true).catch(()=>{});close();};
+      function peerFor(p){
+        let peer=g.peers.get(p.id);if(peer)return peer;
+        const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
+        peer={id:p.id,nickname:p.nickname||'Участник',pc,offered:false,remoteSet:false,iceQueue:[],video:null,hangup:false};g.peers.set(p.id,peer);
+        g.stream.getTracks().forEach(t=>pc.addTrack(t,g.stream));
+        const wrap=document.createElement('div');wrap.className='group-call-remote';wrap.innerHTML='<video autoplay playsinline></video><span></span>';wrap.querySelector('span').textContent=peer.nickname;peer.video=wrap.querySelector('video');g.modal.q('#groupCallRemotes')?.append(wrap);
+        pc.ontrack=ev=>{if(peer.video){peer.video.srcObject=ev.streams[0];peer.video.play().catch(()=>{});}};
+        pc.onicecandidate=ev=>{if(ev.candidate&&!g.ending)groupCallSignal('signal',{id:g.id,recipient:p.id,kind:'ice',payload:ev.candidate.toJSON()}).catch(()=>{});};
+        pc.onconnectionstatechange=()=>{if(peer.video)peer.video.parentElement?.classList.toggle('disconnected',['failed','disconnected','closed'].includes(pc.connectionState));};
+        return peer;
+      }
+      async function processSignals(signals){
+        for(const s of signals||[]){
+          const peer=g.peers.get(s.sender);if(!peer||peer.hangup)continue;
+          try{
+            if(s.kind==='offer'){
+              await peer.pc.setRemoteDescription(s.payload);peer.remoteSet=true;
+              for(const ice of peer.iceQueue.splice(0))await peer.pc.addIceCandidate(ice).catch(()=>{});
+              const answer=await peer.pc.createAnswer();await peer.pc.setLocalDescription(answer);
+              await groupCallSignal('signal',{id:g.id,recipient:peer.id,kind:'answer',payload:peer.pc.localDescription.toJSON()});
+            }else if(s.kind==='answer'){
+              if(!peer.pc.currentRemoteDescription){await peer.pc.setRemoteDescription(s.payload);peer.remoteSet=true;for(const ice of peer.iceQueue.splice(0))await peer.pc.addIceCandidate(ice).catch(()=>{});}
+            }else if(s.kind==='ice'){
+              const candidate=new RTCIceCandidate(s.payload);
+              if(peer.pc.remoteDescription)await peer.pc.addIceCandidate(candidate).catch(()=>{});else peer.iceQueue.push(candidate);
+            }else if(s.kind==='hangup'){
+              peer.hangup=true;peer.pc.close();peer.video?.parentElement?.remove();g.peers.delete(peer.id);
+            }
+          }catch(err){console.warn('Group call signaling failed',err);}
+        }
+      }
+      async function poll(){
+        if(g.ending||g.busy||!g.modal?.root.isConnected)return;g.busy=true;
+        try{
+          const data=await groupCallSignal('poll',{id:g.id,since_id:g.since});
+          if(data.status!=='active'){g.modal.q('#groupCallStatus').textContent='Звонок завершён';await endGroupVoiceCall(false);return;}
+          g.since=Number(data.last_id||g.since);
+          const participants=data.participants||[];
+          if(g.modal?.root.isConnected)g.modal.q('#groupCallStatus').textContent='Участников в звонке: '+participants.length+' / 6';
+          for(const p of participants){if(p.id===g.me)continue;const peer=peerFor(p);peer.nickname=p.nickname||peer.nickname;const label=peer.video?.parentElement?.querySelector('span');if(label)label.textContent=peer.nickname;
+            if(g.me.localeCompare(p.id)<0&&!peer.offered){peer.offered=true;try{const offer=await peer.pc.createOffer();await peer.pc.setLocalDescription(offer);await groupCallSignal('signal',{id:g.id,recipient:p.id,kind:'offer',payload:peer.pc.localDescription.toJSON()});}catch(err){peer.offered=false;console.warn('Group call offer failed',err);}}
+          }
+          await processSignals(data.signals);
+        }catch(err){if(g.modal?.root.isConnected)g.modal.q('#groupCallStatus').textContent='Переподключение…';}
+        finally{g.busy=false;}
+      }
+      await poll();g.timer=setInterval(()=>poll().catch(()=>{}),900);
+      toast('Групповой звонок запущен','ok');
+    }catch(err){await endGroupVoiceCall(false);throw err;}
+  }
+  async function endGroupVoiceCall(notify=true){
+    const g=activeGroupCall;if(!g||g.ending)return;g.ending=true;activeGroupCall=null;if(g.timer)clearInterval(g.timer);
+    try{if(notify)await groupCallSignal('leave',{id:g.id});}catch{}
+    for(const p of g.peers.values()){try{p.pc.close();}catch{}try{p.video?.parentElement?.remove();}catch{}}
+    g.peers.clear();g.stream?.getTracks().forEach(t=>t.stop());
+    const m=g.modal;g.modal=null;if(m?.root?.isConnected){const close=m.close;/* avoid recursive close handler */m.close=()=>{};m.root.remove();}
+  }
   async function callPeer(friend){
     if(activeCall)throw new Error('Сначала заверши текущий звонок');
     const row=await callSignal('start',{friend:friend.public_key});
