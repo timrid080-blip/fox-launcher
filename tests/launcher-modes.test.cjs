@@ -84,6 +84,6 @@ test('updated sound brief is wired, test popup removed, and ten achievement icon
   assert.match(html, /id="launcherModeOverlay"/);
   for (const id of ['firstLaunch','threeHours','fiftyHours','marathon','worlds5','worlds10','xp1000','xp5000','achievements5','achievements10']) {
     assert.match(renderer, new RegExp(id));
-    assert.ok(require('fs').existsSync(require('path').join(ROOT, 'assets', 'achievements', id + '.svg')), 'missing icon for ' + id);
+    assert.ok(require('fs').existsSync(path.join(root, 'assets', 'achievements', id + '.svg')), 'missing icon for ' + id);
   }
 });
