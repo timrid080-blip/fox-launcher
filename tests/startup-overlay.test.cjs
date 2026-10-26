@@ -8,7 +8,7 @@ test('startup watchdog is loaded before app.js and owns a hard timeout', () => {
   const html = fs.readFileSync(path.join(root, 'renderer/index.html'), 'utf8');
   assert.ok(html.indexOf('src="startup.js"') < html.indexOf('src="app.js"'));
   const startup = fs.readFileSync(path.join(root, 'renderer/startup.js'), 'utf8');
-  assert.match(startup, /setTimeout\(\(\) => removeOverlay\(''\), 1100\)/);
+  assert.match(startup, /setTimeout\(\(\) => \{ clearInterval\(ticker\); removeOverlay\('', true\); \}, 7000\)/);
   assert.match(startup, /setTimeout\(\(\) => overlay\.remove\(\), 600\)/);
 });
 
