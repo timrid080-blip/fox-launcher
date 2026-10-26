@@ -212,7 +212,14 @@ function makeLogParser(onLine) {
 }
 
 // ---------- API для интерфейса ----------
+async function getLauncherModeState() {
+  try { if (await cloud.restore()) return await cloud.action('launcher_mode', { op: 'get' }); }
+  catch (error) { startupLog('Authenticated launcher mode read failed; trying public read', error); }
+  return cloud.publicLauncherMode();
+}
+
 const api = {
+  getLauncherMode: getLauncherModeState,
   async createDesktopShortcut() {
     if (process.platform !== 'win32') throw new Error('Ярлык рабочего стола доступен в Windows');
     const target = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
@@ -535,7 +542,7 @@ const api = {
     // Enforce maintenance mode in the privileged main process as well as the renderer.
     if ((await services.get()).supabase.url) {
       try {
-        const mode = await cloud.action('launcher_mode', { op: 'get' });
+        const mode = await getLauncherModeState();
         if (mode.blocked) { const blocked = new Error(mode.message || 'Fox Launcher временно закрыт на технические работы.'); blocked.code = 'LAUNCHER_MAINTENANCE'; throw blocked; }
       } catch (error) {
         if (error.code === 'LAUNCHER_MAINTENANCE') throw error;
