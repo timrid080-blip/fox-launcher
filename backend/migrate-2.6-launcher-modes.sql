@@ -29,8 +29,8 @@ declare
   msg text;
   duration integer;
 begin
-  if u is null then raise exception 'Требуется вход в аккаунт Fox'; end if;
-  select exists(select 1 from public.fox_admins where id=u) into adm;
+  if u is null and p_op <> 'get' then raise exception 'Требуется вход в аккаунт Fox'; end if;
+  if u is not null then select exists(select 1 from public.fox_admins where id=u) into adm; end if;
   insert into public.fox_launcher_mode_state(id) values (1) on conflict(id) do nothing;
 
   if p_op = 'set' then
@@ -69,5 +69,5 @@ begin
   );
 end $$;
 revoke all on function public.fox_launcher_mode(text,jsonb) from public, anon;
-grant execute on function public.fox_launcher_mode(text,jsonb) to authenticated;
+grant execute on function public.fox_launcher_mode(text,jsonb) to anon, authenticated;
 commit;
