@@ -107,7 +107,7 @@
   async function loadHeads() { for(const a of S.accounts){try{const b=await call('getSkin',a.id);if(b)S.heads.set(a.id,Skin.headDataUrl(await Skin.toCanvas64(b)));}catch{}}renderAccountCard();if(S.page==='accounts')renderAccounts(); }
   const modalStack=[];
   function modal(title,content,actions=[],wide=false) {
-    const opener=document.activeElement,bg=document.createElement('div');bg.className='modal-bg';$('#toasts').replaceChildren();
+    const opener=document.activeElement,bg=document.createElement('div');bg.className='modal-bg';
     bg.innerHTML=`<div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true"><div class="mh"><h3>${esc(title)}</h3><button class="btn icon ghost x" aria-label="Закрыть">${icon('close')}</button></div><div class="mb">${content}</div><div class="mf"></div></div>`;
     document.body.append(bg);const m={root:bg,body:$('.mb',bg),q:s=>$(s,bg),close:()=>{bg.remove();modalStack.splice(modalStack.indexOf(m),1);opener?.focus();}};
     modalStack.push(m);bind('.x',m.close,bg);bg.addEventListener('mousedown',e=>{if(e.target===bg)m.close();});
