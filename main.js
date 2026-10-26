@@ -661,7 +661,12 @@ else {
     try { tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png'))); tray.setToolTip('Fox Launcher'); tray.setContextMenu(Menu.buildFromTemplate([{label:'Открыть Fox Launcher',click:()=>{if(win){win.show();win.focus();}}},{type:'separator'},{label:'Выйти',click:()=>{forceQuit=true;app.quit();}}])); tray.on('double-click',()=>{if(win){win.show();win.focus();}}); } catch(e) { console.warn('Tray unavailable:',e.message); }
     
     updates.init().catch(e=>send('update',{state:'error',message:e.message}));
-    if(process.platform==='win32'&&app.isPackaged){const st=await getSettings();if(!st.desktopShortcutCreated){try{await api.createDesktopShortcut();await saveSettings({desktopShortcutCreated:true});}catch{}}}
+    if(process.platform==='win32'&&app.isPackaged){
+      // Register the packaged launcher to start with Windows for installed and portable builds.
+      try { app.setLoginItemSettings({ openAtLogin: true, path: process.execPath, args: [] }); startupLog('Windows autostart enabled'); }
+      catch (e) { startupLog('Windows autostart setup failed', e); }
+      const st=await getSettings();if(!st.desktopShortcutCreated){try{await api.createDesktopShortcut();await saveSettings({desktopShortcutCreated:true});}catch{}}
+    }
   }).catch(e => startupLog('app.whenReady promise rejected', e));
   app.on('window-all-closed', () => { if (forceQuit || !tray) app.quit(); });
   app.on('before-quit', () => { forceQuit = true; if (tray) { tray.destroy(); tray = null; } });
