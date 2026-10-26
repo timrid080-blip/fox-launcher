@@ -3,7 +3,8 @@
   "package": "ru.foxlauncher.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "PlayerListHudMixin"
+    "PlayerListHudMixin",
+    "PlayerEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
