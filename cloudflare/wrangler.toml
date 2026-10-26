@@ -1,0 +1,7 @@
+name = "fox-launcher-sounds"
+main = "sounds-worker.js"
+compatibility_date = "2026-10-26"
+
+[[r2_buckets]]
+binding = "SOUND_BUCKET"
+bucket_name = "fox-launcher-sounds"
