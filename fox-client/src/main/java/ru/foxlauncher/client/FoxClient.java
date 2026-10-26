@@ -23,6 +23,7 @@ public final class FoxClient implements ClientModInitializer {
     private static KeyBinding toggleFovBoost;
     private static KeyBinding toggleCoordinates;
     private static KeyBinding cycleCosmetic;
+    private static KeyBinding openCosmetics;
     private static boolean zoomKeyDown = false;
     private static double zoomMultiplier = 4.0;
     private static double smoothZoom = 1.0;
@@ -38,6 +39,9 @@ public final class FoxClient implements ClientModInitializer {
         cycleCosmetic = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.foxclient.cycle_cosmetic", InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_F9, "category.foxclient"));
+        openCosmetics = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.foxclient.open_cosmetics", InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_F10, "category.foxclient"));
 
         EntityModelLayerRegistry.registerModelLayer(
                 FoxCosmeticModel.LAYER, FoxCosmeticModel::getTexturedModelData);
@@ -56,6 +60,9 @@ public final class FoxClient implements ClientModInitializer {
                 FoxClientConfig.setCoordinatesEnabled(!FoxClientConfig.areCoordinatesEnabled());
                 notifyPlayer(client, "§6Fox Client §7· координаты: "
                         + (FoxClientConfig.areCoordinatesEnabled() ? "§aвключены" : "§cвыключены"));
+            }
+            while (openCosmetics.wasPressed()) {
+                if (client.player != null) client.setScreen(new FoxCosmeticsScreen());
             }
             while (cycleCosmetic.wasPressed()) {
                 String cosmetic = FoxClientConfig.cycleCosmetic();
