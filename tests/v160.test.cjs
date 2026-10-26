@@ -43,9 +43,9 @@ test('2.8 owner balance migration permits owner self-credit in rubles and stores
   const owner='00000000-0000-0000-0000-000000000011';
   await db.query('insert into auth.users values($1,$2)',[owner,{nickname:'Owner'}]);
   await db.query("select set_config('request.jwt.claim.sub',$1,false)",[owner]);
-  await db.exec('set role authenticated');
   await db.query('select public.fox_action($1,$2)', ['state',{}]);
   await db.query('insert into public.fox_admins values($1)',[owner]);
+  await db.exec('set role authenticated');
   const result=(await db.query('select public.fox_owner_set_rubles($1,$2,$3) v',[owner,125,'Проверка своего баланса'])).rows[0].v;
   await db.exec('reset role');
   assert.equal(result.new_amount_kopeks,12500);
