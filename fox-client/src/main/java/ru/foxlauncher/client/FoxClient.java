@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRe
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
@@ -90,7 +89,7 @@ public final class FoxClient implements ClientModInitializer {
 
     @SuppressWarnings("unchecked")
     private static FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> playerRendererContext(
-            PlayerEntityRenderer renderer) {
+            Object renderer) {
         // PlayerEntityRenderer is the concrete renderer for PlayerEntityRenderState in 1.21.4;
         // the callback exposes it through a wildcarded LivingEntityRenderer type.
         return (FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel>) (Object) renderer;
