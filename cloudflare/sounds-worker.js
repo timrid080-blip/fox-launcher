@@ -50,7 +50,7 @@ async function listManifest(env) {
       const valid = safeFilename(name);
       if (!valid) continue;
       items.push({
-        name, url: env.SOUND_CDN_BASE_URL.replace(/\/$/, "") + "/" + name.split("/").map(encodeURIComponent).join("/"),
+        name, url: env.SOUND_CDN_BASE_URL.replace(/\/$/, "") + "/sounds/" + name.split("/").map(encodeURIComponent).join("/"),
         size: object.size, etag: object.etag, updatedAt: object.uploaded?.toISOString?.() || null,
       });
     }
