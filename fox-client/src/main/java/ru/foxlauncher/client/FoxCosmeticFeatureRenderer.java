@@ -7,19 +7,16 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 
-/**
- * Renders equipped Fox cosmetics as actual model geometry.
- * Cosmetics are intentionally local-only until a safe, authenticated sync protocol exists.
- */
-public final class FoxCosmeticFeatureRenderer extends FeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> {
+/** Renders actual 3D cosmetic geometry on the local player. */
+public final class FoxCosmeticFeatureRenderer extends FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> {
     private final ModelPart cosmeticRoot;
 
     public FoxCosmeticFeatureRenderer(
-            FeatureRendererContext<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> context,
+            FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> context,
             ModelPart cosmeticRoot) {
         super(context);
         this.cosmeticRoot = cosmeticRoot;
@@ -27,9 +24,10 @@ public final class FoxCosmeticFeatureRenderer extends FeatureRenderer<AbstractCl
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
-                       AbstractClientPlayerEntity player, float limbAngle, float limbDistance,
-                       float tickDelta, float animationProgress, float headYaw, float headPitch) {
-        if (player != MinecraftClient.getInstance().player) return;
+                       PlayerEntityRenderState state, float limbAngle, float limbDistance) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null || state.name == null
+                || !state.name.equals(client.player.getGameProfile().getName())) return;
 
         String equipped = FoxClientConfig.getEquippedCosmetic();
         if ("none".equals(equipped)) return;
@@ -40,7 +38,6 @@ public final class FoxCosmeticFeatureRenderer extends FeatureRenderer<AbstractCl
         } else {
             getContextModel().head.copyTransform(part);
         }
-
         part.render(matrices,
                 vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(FoxCosmeticModel.TEXTURE)),
                 light, OverlayTexture.DEFAULT_UV);
