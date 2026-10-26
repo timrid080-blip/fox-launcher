@@ -668,3 +668,10 @@ input,textarea{user-select:text}
 .launcher-mode-overlay[hidden]{display:none}
 .launcher-mode-card{width:min(620px,100%);padding:36px;border:1px solid #ffffff24;border-radius:22px;background:#17181d;box-shadow:0 24px 100px #000b;text-align:center}
 .launcher-mode-icon{font-size:54px}.launcher-mode-card h1{margin:14px 0;font-size:28px}.launcher-mode-card p{white-space:pre-wrap;line-height:1.6;color:#e7e7ea}.launcher-mode-card small{display:block;color:#b8b8c2;margin:16px 0}.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{border-color:#ff3434;box-shadow:0 0 70px #ff161633}.launcher-mode-overlay[data-mode="alarm"] h1{color:#ff4545}.launcher-mode-overlay[data-mode="ceremony"] .launcher-mode-card{border-color:#e9bf52;background:linear-gradient(145deg,#2c2412,#17181d)}.launcher-mode-overlay[data-mode="ceremony"] h1{color:#f4d16b}.launcher-mode-overlay[data-mode="maintenance"] .launcher-mode-card{border-color:#ff9a45}.launcher-mode-overlay[data-mode="warning"] h1{color:#ffb54a}.launcher-mode-overlay[data-mode="celebration"] h1{color:#ff9b52}
+
+.quest-card-heading{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
+.quest-card-heading h2{margin:0;min-width:0}
+.quest-card-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;border-radius:12px;background:rgba(255,122,26,.12);color:var(--accent,#ff7a1a)}
+.quest-card-icon svg{width:25px;height:25px}
+.quest-reward-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--accent,#ff7a1a)}
+.quest-reward-icon svg{width:19px;height:19px}
