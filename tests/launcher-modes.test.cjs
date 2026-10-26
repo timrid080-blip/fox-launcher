@@ -30,6 +30,13 @@ test('launcher UI uses server modes and maintenance launch gate', () => {
   assert.match(renderer, /if\(mode\.blocked\)/);
   assert.match(renderer, /launcherModeAdminPanel/);
   assert.match(html, /id="launcherModeOverlay"/);
+  assert.doesNotMatch(renderer, /if\(!S\.cloud\?\.configured\)return;/, 'mode checks must run even before account login');
+  assert.match(renderer, /launcherModeAcknowledge/);
+  assert.match(renderer, /mode\.blocked/);
+  assert.match(renderer, /function toast\(text,kind=''\) \{ const e=document\.createElement\('div'\);e\.className='toast '\+kind/);
+  assert.match(renderer, /sound\('success'\);toast\('Установлено: '/);
+  assert.match(renderer, /sound\('success'\);toast\('Сборка установлена\./);
+  assert.match(renderer, /id="playVersionCinema"/);
 });
 
 test('Windows autostart defaults on and user preference is preserved', () => {
