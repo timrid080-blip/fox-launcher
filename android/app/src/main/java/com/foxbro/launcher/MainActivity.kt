@@ -27,6 +27,7 @@ class MainActivity : Activity() {
     private lateinit var root: LinearLayout
     private var page = "Главная"
     private var busy = false
+    private var secureSessionStore = true
 
     private fun prefs() = EncryptedSharedPreferences.create(
         this, "fox-secure-session",
@@ -37,7 +38,10 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prefs = try { prefs() } catch (_: Exception) { getSharedPreferences("fox-session", MODE_PRIVATE) }
+        prefs = try { prefs() } catch (_: Exception) {
+            secureSessionStore = false
+            getSharedPreferences("fox-settings", MODE_PRIVATE)
+        }
         showWelcome()
     }
 
@@ -146,6 +150,7 @@ class MainActivity : Activity() {
                 if (nickname != null) body.put("data", JSONObject().put("nickname", nickname))
                 val result = request(base + path, key, null, body)
                 if (result.has("access_token")) {
+                    if (!secureSessionStore) throw IllegalStateException("Не удалось открыть защищённое хранилище сессии. Перезапусти приложение и попробуй снова.")
                     prefs.edit().putString("access_token", result.optString("access_token"))
                         .putString("refresh_token", result.optString("refresh_token"))
                         .putLong("expires_at", System.currentTimeMillis() + result.optLong("expires_in", 3600) * 1000).apply()
