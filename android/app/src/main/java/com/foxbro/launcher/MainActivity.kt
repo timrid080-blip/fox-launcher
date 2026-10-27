@@ -176,7 +176,10 @@ class MainActivity : Activity() {
         val stream = if (code in 200..299) conn.inputStream else conn.errorStream
         val text = stream.bufferedReader().use { it.readText() }
         conn.disconnect()
-        val json = try { JSONObject(text) } catch (_: Exception) { JSONObject().put("message", text) }
+        val json = try { JSONObject(text) } catch (_: Exception) {
+            if (text.trimStart().startsWith("[")) JSONObject().put("data", org.json.JSONArray(text))
+            else JSONObject().put("message", text)
+        }
         if (code !in 200..299) throw IllegalStateException(json.optString("msg", json.optString("message", "Ошибка Fox ID ($code)")))
         return json
     }
@@ -231,12 +234,13 @@ class MainActivity : Activity() {
                 val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
                 if (state.optBoolean("is_admin")) runOnUiThread {
                     val note = TextView(this).apply { text = "Владелец · расширенные инструменты доступны"; setTextColor(orange); textSize = 12f }
-                    val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as? ViewGroup
-                    rootView?.let { parent ->
-                        if (parent !is ScrollView) parent.addView(note)
+                    val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+                    val parent = if (rootView is ScrollView) rootView.getChildAt(0) as? ViewGroup else rootView as? ViewGroup
+                    parent?.let {
+                        it.addView(note)
                         val ownerButton = button("Инструменты владельца  ›") { showOwnerTools() }
                         ownerButton.tag = "owner-tools"
-                        if (parent !is ScrollView) parent.addView(ownerButton)
+                        it.addView(ownerButton)
                     }
                 }
             } catch (_: Exception) { }
