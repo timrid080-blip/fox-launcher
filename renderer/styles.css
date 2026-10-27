@@ -941,3 +941,13 @@ input,select,textarea{max-width:100%}
 .launcher-mode-overlay[data-mode="info"] h1{color:#9adfff}
 @media(max-width:620px){.launcher-mode-overlay{padding:14px}.launcher-mode-card{width:100%;padding:22px 18px}.launcher-mode-icon{width:60px;height:60px;border-radius:18px;font-size:40px}.launcher-mode-card small{letter-spacing:.02em}.launcher-mode-card .fox-auth-mark{margin-bottom:18px}}
 @media(prefers-reduced-motion:reduce){.launcher-mode-overlay,.launcher-mode-card{transition:none}}
+
+/* Optional user-supplied 15.6s cinematic intro clip, before the version counter. */
+.cinema-intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;z-index:0;pointer-events:none;transition:opacity .9s ease}
+.version-cinema.cinema-run{isolation:isolate}
+.version-cinema.cinema-run>*:not(.cinema-intro-video){position:relative;z-index:1}
+.version-cinema.cinema-intro .cinema-intro-video{opacity:1}
+.version-cinema.cinema-intro .cinema-glow{opacity:.18}
+.version-cinema.cinema-intro .cinema-stars{opacity:.12}
+.version-cinema.cinema-intro .cinema-avatar,.version-cinema.cinema-intro .cinema-status,.version-cinema.cinema-intro .cinema-description,.version-cinema.cinema-intro .cinema-timeline{opacity:0;visibility:hidden}
+@media(prefers-reduced-motion:reduce){.cinema-intro-video{transition:none}}
