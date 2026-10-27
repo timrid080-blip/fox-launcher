@@ -538,6 +538,66 @@
   window.fox.on((type,p)=>{if(type==='achievement'){sound('achievement');toast('Достижение: '+(p.code==='gamer'?'Геймер':'Игроман'),'ok');}if(type==='started')sound('launch');if(type==='cloud'){S.cloud={configured:true,...p};applyAppearance();refreshNotifications().catch(()=>{});}if(type==='cloud-warning')console.warn(p);if(type==='update'){S.launcherUpdate=p;updateBell();const status=document.querySelector('#updateStatus'),install=document.querySelector('#updateInstall');if(status){const labels={unconfigured:'Проверка обновлений пока недоступна',checking:'Проверка…',current:'Установлена последняя версия',downloading:'Загрузка '+(p.version||'')+(Number.isFinite(p.percent)?' · '+Math.round(p.percent)+'%':''),ready:'Обновление '+(p.version||'')+' загружено и готово к установке',available:'Доступна версия '+(p.version||''), 'no-release':p.reason||'В GitHub пока нет опубликованного релиза',error:'Не удалось проверить обновление: '+(p.message||'неизвестная ошибка')};status.textContent=labels[p.state]||p.state;}if(install)install.hidden=p.state!=='ready';}if(type==='update'&&p.state==='available'){toast('Доступен Fox Launcher '+p.version+'. Открой колокольчик.','ok');updateBell();}if(type==='update'&&p.state==='ready')toast('Обновление '+p.version+' загружено. Установить можно в настройках.','ok');});
   setInterval(()=>{loadNews().catch(()=>{});clubRefresh().catch(()=>{});},300000);
   setInterval(()=>{applyAppearance();},30000);
+  // Fox Launcher 5.0 premiere. Only one number node is rendered, preventing stacked digits.
+  let cinemaRunId=0,cinemaTimers=[];
+  const clearCinemaTimers=()=>{cinemaTimers.forEach(clearTimeout);cinemaTimers=[];};
+  function runVersionCinema(){
+    const c=$('#versionCinema');if(!c)return;
+    clearCinemaTimers();stopCinemaMusic();const runId=++cinemaRunId;
+    c.hidden=false;c.classList.remove('cinema-run','cinema-finale','cinema-leaving','cinema-intro','cinema-story-mode');
+    void c.offsetWidth;c.classList.add('cinema-run','cinema-intro');
+    const number=$('#cinemaVersionNumber'),frame=$('.cinema-number-frame',c),label=$('#cinemaVersionLabel'),status=$('#cinemaStatus'),story=$('#cinemaStory'),description=$('.cinema-description',c);
+    const chapters=[
+      ['Глава I · Первый сигнал','Когда-то Fox Launcher был небольшой дверью в мир Minecraft. Он должен был делать одну вещь хорошо: помогать игрокам быстрее попадать в любимые миры. Но у этой двери постепенно появлялись новые пути.'],
+      ['Глава II · Мир становится ближе','Появились профили, новости и удобное управление сборками. Лаунчер перестал быть просто кнопкой запуска — он стал местом, где игрок готовится к приключению ещё до загрузки мира.'],
+      ['Глава III · Свои люди','Друзья получили возможность находить друг друга, переписываться и созваниваться. Игровые приглашения и общие активности сделали путь к совместной игре короче.'],
+      ['Глава IV · Творчество без границ','Моды и сборки помогают каждому настроить свой Minecraft. Файлы, аккаунты и инструменты собраны рядом, чтобы меньше времени уходило на поиски и больше — на игру.'],
+      ['Глава V · Голос каждого игрока','Задания и достижения отмечают маленькие победы. Поддержка помогает разобраться с проблемами, а новости сообщают, что происходит в мире Fox.'],
+      ['Глава VI · Мир меняется','Праздничные события, предупреждения и технические режимы помогают сообщать важное всем подключённым игрокам. Интерфейс становится яснее, а настройки — удобнее.'],
+      ['Глава VII · Fox в кармане','Версия 5.0 открывает следующий этап: мобильное направление Fox Launcher. Мы адаптируем знакомые возможности под телефон, его экран и привычный способ управления.'],
+      ['Глава VIII · Дальше — вместе','Пять-ноль — не финальная точка, а обещание продолжать улучшать лаунчер вместе с сообществом. Спасибо каждому, кто тестирует, сообщает об ошибках и помогает Fox становиться лучше. История продолжается — запускай Minecraft и создавай свою.']
+    ];
+    number.textContent='1.0';number.classList.remove('cinema-number-exit','cinema-number-roll','cinema-number-enter');
+    label.textContent='НАЧАЛО ИСТОРИИ FOX';status.textContent='СИГНАЛ ИЗ БУДУЩЕГО';description.textContent='Одна идея. Тысячи миров. Новая глава начинается сейчас.';
+    if(story){story.hidden=true;story.innerHTML='';}
+    sound('trailer',{loop:true,channel:'cinema'});
+    const afterIntro=setTimeout(()=>{
+      if(runId!==cinemaRunId)return;
+      c.classList.remove('cinema-intro');if(frame)frame.hidden=false;label.hidden=false;
+      let value=10;
+      const reveal=()=>{
+        if(runId!==cinemaRunId)return;
+        number.classList.remove('cinema-number-enter');void number.offsetWidth;
+        value=Math.min(50,value+1);number.textContent=(value/10).toFixed(1);number.classList.add('cinema-number-enter');
+        const phase=value<20?0:value<30?1:value<40?2:3;
+        label.textContent=['НАЧАЛО ИСТОРИИ FOX','БОЛЬШЕ ВОЗМОЖНОСТЕЙ','ДРУЗЬЯ · ЧАТЫ · РЕЖИМЫ','FOX LAUNCHER 5.0 — НОВАЯ ЭРА'][phase];
+        status.textContent=['ИНИЦИАЛИЗАЦИЯ FOX','СБОРКА НОВОГО МИРА','СИСТЕМЫ ВЫХОДЯТ НА ПОЛНУЮ МОЩНОСТЬ','ГОТОВНОСТЬ К НОВОЙ ГЛАВЕ'][phase];
+        if(value>=50){
+          c.classList.add('cinema-finale');stopCinemaMusic();sound('celebration',{channel:'cinema'});
+          status.textContent='FOX LAUNCHER 5.0 · ANDROID · НОВАЯ ЭРА';label.textContent='ВСТРЕЧАЙ FOX LAUNCHER 5.0';
+          const showStory=setTimeout(()=>{
+            if(runId!==cinemaRunId)return;
+            c.classList.add('cinema-story-mode');if(story)story.hidden=false;if(frame)frame.hidden=true;label.hidden=true;
+            let idx=0;
+            const present=()=>{
+              if(runId!==cinemaRunId||!story)return;
+              const [title,body]=chapters[idx];
+              story.innerHTML='<div class="cinema-story-count">ИСТОРИЯ FOX · '+String(idx+1).padStart(2,'0')+' / 08</div><h2>'+esc(title)+'</h2><p>'+esc(body)+'</p>';
+              if(description)description.textContent='FOX LAUNCHER 5.0 · ANDROID · ЧАТЫ · ЗВОНКИ · МОДЫ · ДОСТИЖЕНИЯ';
+              idx++;
+              if(idx<chapters.length){const t=setTimeout(present,7500);cinemaTimers.push(t);}
+              else {const finish=setTimeout(()=>{if(runId===cinemaRunId){c.classList.add('cinema-leaving');const hide=setTimeout(()=>{if(runId===cinemaRunId){c.hidden=true;c.classList.remove('cinema-run','cinema-finale','cinema-leaving','cinema-story-mode','cinema-intro');}},1300);cinemaTimers.push(hide);}},7500);cinemaTimers.push(finish);}
+            };present();
+          },2200);cinemaTimers.push(showStory);return;
+        }
+        const progress=(value-10)/40,delay=Math.round(850-650*Math.pow(progress,1.25));
+        const t=setTimeout(reveal,delay);cinemaTimers.push(t);
+      };const first=setTimeout(reveal,450);cinemaTimers.push(first);
+    },2700);cinemaTimers.push(afterIntro);
+  }
+  window.foxLaunchVersionCinema=runVersionCinema;
+  document.addEventListener('DOMContentLoaded',()=>$('#cinemaLaunchLocal')?.addEventListener('click',runVersionCinema),{once:true});
+
   // Global announcement/mode state comes from the authenticated server RPC, not local settings.
   let lastLauncherModeKey='',dismissedLauncherModeKey='',alarmCloseTimer=null,modeCountdownTimer=null;
   function showModeCountdown(endsAt){
@@ -554,6 +614,8 @@
       const overlay=$('#launcherModeOverlay');
       if(!overlay)return;
       const mode=state.mode||'',key=mode+'|'+(state.ends_at||'')+'|'+(state.message||'');
+      const cinemaBroadcast=mode==='celebration'&&String(state.message||'').startsWith('FOX_CINEMA_5::');
+      if(cinemaBroadcast){if(key!==lastLauncherModeKey){lastLauncherModeKey=key;window.foxLaunchVersionCinema?.();}overlay.hidden=true;showModeCountdown(null);return;}
       if(!mode||(mode==='maintenance'&&state.is_admin)){overlay.hidden=true;stopAlarmSound();stopMusic();showModeCountdown(null);if(alarmCloseTimer){clearTimeout(alarmCloseTimer);alarmCloseTimer=null;}lastLauncherModeKey=key;return;}
       const names={alarm:['🚨','РЕЖИМ ТРЕВОГИ','alarm'],ceremony:['🏆','ТОРЖЕСТВЕННЫЙ РЕЖИМ','ceremony'],maintenance:['🛠','ТЕХНИЧЕСКИЕ РАБОТЫ','maintenance'],warning:['⚠️','ПРЕДУПРЕЖДЕНИЕ','warning'],celebration:['🎉','ПРАЗДНИЧНЫЙ СИГНАЛ','celebration'],info:['ℹ️','ИНФОРМАЦИОННОЕ ОБЪЯВЛЕНИЕ','info']};
       const meta=names[mode]||names.info;
@@ -727,51 +789,12 @@
   }
   async function launcherModeAdminPanel(e){
     const box=document.createElement('section');box.className='card admin-section launcher-mode-admin';box.style.marginTop='24px';
-    box.innerHTML='<span class="tag accent">ГЛОБАЛЬНО ДЛЯ FOX ID</span><h2>Режимы и объявления лаунчера</h2><p class="muted">Состояние хранится на сервере, а не на компьютере администратора. Требуется применить миграцию backend/migrate-2.6-launcher-modes.sql.</p><label class="field">Режим<select class="input" id="launcherModeSelect"><option value="alarm">🚨 Тревога</option><option value="ceremony">🏆 Торжественный режим</option><option value="maintenance">🛠 Технические работы</option><option value="warning">⚠ Предупреждение</option><option value="celebration">🎉 Праздничный сигнал</option><option value="info">ℹ Информационное объявление</option></select></label><label class="field">Длительность<select class="input" id="launcherModeDuration"><option value="15">15 секунд</option><option value="30">30 секунд</option><option value="60" selected>1 минута</option><option value="180">3 минуты</option><option value="300">5 минут</option><option value="600">10 минут</option><option value="1800">30 минут</option></select></label><label class="field">Текст сообщения<input class="input" id="launcherModeMessage" maxlength="240" placeholder="Оставь пустым для стандартного текста"></label><div class="row wrap"><button class="btn primary" id="launcherModeActivate">Включить режим</button><button class="btn danger" id="launcherModeClear">Выключить режим</button><button class="btn" id="launcherModeRefresh">Обновить статус</button><button class="btn ghost" id="playVersionCinema">▶ Запустить кат-сцену</button></div><div id="launcherModeStatus" class="notice" style="margin-top:14px">Проверяем серверное состояние…</div>';
+    box.innerHTML='<span class="tag accent">ГЛОБАЛЬНО ДЛЯ FOX ID</span><h2>Режимы и объявления лаунчера</h2><p class="muted">Состояние хранится на сервере, а не на компьютере администратора. Требуется применить миграцию backend/migrate-2.6-launcher-modes.sql.</p><label class="field">Режим<select class="input" id="launcherModeSelect"><option value="alarm">🚨 Тревога</option><option value="ceremony">🏆 Торжественный режим</option><option value="maintenance">🛠 Технические работы</option><option value="warning">⚠ Предупреждение</option><option value="celebration">🎉 Праздничный сигнал</option><option value="info">ℹ Информационное объявление</option></select></label><label class="field">Длительность<select class="input" id="launcherModeDuration"><option value="15">15 секунд</option><option value="30">30 секунд</option><option value="60" selected>1 минута</option><option value="180">3 минуты</option><option value="300">5 минут</option><option value="600">10 минут</option><option value="1800">30 минут</option></select></label><label class="field">Текст сообщения<input class="input" id="launcherModeMessage" maxlength="240" placeholder="Оставь пустым для стандартного текста"></label><div class="row wrap"><button class="btn primary" id="launcherModeActivate">Включить режим</button><button class="btn danger" id="launcherModeClear">Выключить режим</button><button class="btn" id="launcherModeRefresh">Обновить статус</button><button class="btn ghost" id="playVersionCinema">▶ Запустить кат-сцену</button><button class="btn" id="playVersionCinemaAll">✦ Премьера всем игрокам</button></div><div id="launcherModeStatus" class="notice" style="margin-top:14px">Проверяем серверное состояние…</div>';
     e.append(box);
     const defaults={alarm:'Администратор лаунчера включил режим тревоги!',ceremony:'Администратор лаунчера включил торжественный режим!',maintenance:'В Fox Launcher проводятся технические работы. Попробуйте позже.',warning:'Предупреждение от администрации Fox Launcher.',celebration:'Fox Launcher объявляет праздничный сигнал!',info:'Информационное объявление Fox Launcher.'};
     async function refresh(){const r=await call('getLauncherMode');const st=$('#launcherModeStatus',box);st.textContent=r.mode?('Активен режим «'+r.mode+'» до '+(r.ends_at?new Date(r.ends_at).toLocaleString('ru-RU'):'неограниченно')+'. '+(r.message||'')):'Активного режима нет.';return r;}
-    let cinemaRunId=0,cinemaTimers=[];
-    const clearCinemaTimers=()=>{cinemaTimers.forEach(clearTimeout);cinemaTimers=[];};
-    bind('#playVersionCinema',()=>{
-      const c=$('#versionCinema');if(!c)return;
-      clearCinemaTimers();stopCinemaMusic();const runId=++cinemaRunId;
-      c.hidden=false;c.classList.remove('cinema-run','cinema-finale','cinema-leaving');void c.offsetWidth;c.classList.add('cinema-run');
-      const number=$('#cinemaVersionNumber'),label=$('#cinemaVersionLabel'),status=$('#cinemaStatus');
-      const captions=['ИНИЦИАЛИЗАЦИЯ FOX','СБОРКА НОВОГО МИРА','СИСТЕМЫ ВЫХОДЯТ НА ПОЛНУЮ МОЩНОСТЬ','FOX LAUNCHER — НОВАЯ ЭРА'];
-      let value=10,step=0,currentDisplay='1.0';
-      number.innerHTML='<span class="cinema-roll-track"><span class="cinema-roll-current">1.0</span></span>';label.textContent='НАЧАЛО ИСТОРИИ FOX';status.textContent=captions[0];
-      sound('trailer',{loop:true,channel:'cinema'});
-      const reveal=()=>{
-        if(runId!==cinemaRunId)return;
-        number.classList.remove('cinema-number-roll');number.classList.add('cinema-number-exit');label.classList.add('cinema-label-exit');
-        const t=setTimeout(()=>{
-          if(runId!==cinemaRunId)return;
-          const previous=currentDisplay;
-          value=Math.min(40,value+1);step++;
-          currentDisplay=(value/10).toFixed(1);
-          number.classList.remove('cinema-number-exit','cinema-number-roll');number.innerHTML='<span class="cinema-roll-track"><span class="cinema-roll-old">'+esc(previous)+'</span><span class="cinema-roll-new">'+esc(currentDisplay)+'</span></span>';
-          void number.offsetWidth;number.classList.add('cinema-number-roll');
-          const phase=value<20?0:value<30?1:value<40?2:3;
-          label.textContent=['НАЧАЛО ИСТОРИИ FOX','БОЛЬШЕ ВОЗМОЖНОСТЕЙ','ДРУЗЬЯ · ЧАТЫ · РЕЖИМЫ','FOX LAUNCHER — НОВАЯ ЭРА'][phase];
-          status.textContent=captions[phase];
-          label.classList.remove('cinema-label-exit');
-          if(value>=40){
-            c.classList.add('cinema-finale');stopCinemaMusic();sound('celebration',{channel:'cinema'});
-            status.textContent='ЧАТЫ · ЗВОНКИ · ДОСТИЖЕНИЯ · НОВАЯ ЭРА';
-            label.textContent='FOX LAUNCHER 4.0 — ВРЕМЯ ПОБЕЖДАТЬ';
-            // Let the victory track finish naturally even after the visual scene fades away.
-            const finish=setTimeout(()=>{if(runId===cinemaRunId){c.classList.add('cinema-leaving');const hide=setTimeout(()=>{if(runId===cinemaRunId){c.hidden=true;c.classList.remove('cinema-run','cinema-finale','cinema-leaving');}},1200);cinemaTimers.push(hide);}},6500);
-            cinemaTimers.push(finish);return;
-          }
-          // Accelerating ramp: 1.1, 1.2 … 3.9, 4.0, with progressively shorter pauses.
-          const progress=(value-10)/30;const delay=Math.round(920-820*Math.pow(progress,1.35));
-          const next=setTimeout(reveal,delay);cinemaTimers.push(next);
-        },step===0?700:Math.max(90,260-150*Math.min(1,(value-10)/30)));
-        cinemaTimers.push(t);
-      };
-      const first=setTimeout(reveal,1100);cinemaTimers.push(first);
-    },box);
+    bind('#playVersionCinema',()=>window.foxLaunchVersionCinema?.(),box);
+    bind('#playVersionCinemaAll',async ev=>busy(ev.currentTarget,async()=>{const duration=1800;await call('cloudAction','launcher_mode',{op:'set',payload:{mode:'celebration',duration_seconds:duration,message:'FOX_CINEMA_5::История Fox Launcher 5.0'}});toast('Премьера 5.0 отправлена всем подключённым игрокам','ok');await refresh();}),box);
     bind('#launcherModeActivate',async ev=>busy(ev.currentTarget,async()=>{const mode=$('#launcherModeSelect',box).value,duration=Number($('#launcherModeDuration',box).value),message=$('#launcherModeMessage',box).value.trim()||defaults[mode];await call('cloudAction','launcher_mode',{op:'set',payload:{mode,duration_seconds:duration,message}});toast('Глобальный режим включён','ok');await refresh();}),box);
     bind('#launcherModeClear',()=>confirm('Выключить глобальный режим?','Это сразу уберёт уведомление у подключённых пользователей.',async()=>{await call('cloudAction','launcher_mode',{op:'clear'});await refresh();toast('Режим выключен','ok');}),box);
     bind('#launcherModeRefresh',refresh,box);try{await refresh();}catch(err){$('#launcherModeStatus',box).textContent='Серверный режим недоступен: '+err.message;}
