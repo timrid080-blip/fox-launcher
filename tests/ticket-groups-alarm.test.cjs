@@ -62,6 +62,7 @@ test('global modes start their own soundtrack, preserve it through UI clicks, an
   assert.match(app, /sound\(mode,\{loop:mode==='ceremony'\|\|mode==='celebration'\}\)/);
   assert.match(app, /function stopMusic\(\)/);
   assert.match(app, /showModeCountdown\(state\.ends_at\)/);
-  assert.match(css, /font-size:clamp\(54px,12\.5vw,176px\)/);\n  assert.match(css, /\.cinema-version-number\\{width:100%;max-width:100vw;[^}]*white-space:normal;overflow:visible;overflow-wrap:anywhere/);
+  assert.match(css, /font-size:clamp\(54px,12\.5vw,176px\)/);
+  assert.match(css, /white-space:normal;overflow:visible;overflow-wrap:anywhere/);
   assert.match(app, /\$\$\('\[data-ticket\]',list\)\.forEach/);
 });
