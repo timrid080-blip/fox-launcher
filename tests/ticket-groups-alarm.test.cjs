@@ -89,3 +89,14 @@ test('cinema audio uses a separate channel from global modes so mode refresh can
   assert.match(app, /sound\('trailer',\{loop:true,channel:'cinema'\}\)/);
   assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
 });
+
+
+test('Ctrl+Shift+A restores the legacy news admin and the cinematic counter rolls upward', () => {
+  const app = read('renderer/app.js');
+  const css = read('renderer/styles.css');
+  assert.match(app, /ev\.ctrlKey&&ev\.shiftKey&&ev\.code==='KeyA'\)\{ev\.preventDefault\(\);nav\('admin'\);/);
+  assert.match(app, /cinema-roll-old/);
+  assert.match(app, /cinema-roll-new/);
+  assert.match(css, /@keyframes cinema-roll-up/);
+  assert.match(css, /@keyframes cinema-roll-in/);
+});
