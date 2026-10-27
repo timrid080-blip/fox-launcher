@@ -951,3 +951,15 @@ input,select,textarea{max-width:100%}
 .version-cinema.cinema-intro .cinema-stars{opacity:.12}
 .version-cinema.cinema-intro .cinema-avatar,.version-cinema.cinema-intro .cinema-status,.version-cinema.cinema-intro .cinema-description,.version-cinema.cinema-intro .cinema-timeline{opacity:0;visibility:hidden}
 @media(prefers-reduced-motion:reduce){.cinema-intro-video{transition:none}}
+
+
+/* Fox 5.0 visual fix: keep the version fully inside its frame and story text on-screen. */
+.cinema-number-frame{min-height:clamp(150px,22vh,240px);height:auto;padding:clamp(16px,2.5vh,28px) clamp(34px,6vw,76px);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cinema-version-number{display:flex;align-items:center;justify-content:center;width:100%;min-height:0;height:auto;font-size:clamp(52px,10vw,132px);line-height:1;padding:.08em 0 .14em;overflow:hidden;text-align:center}
+.cinema-story{box-sizing:border-box;width:min(880px,92vw);max-height:min(42vh,440px);min-height:0;overflow-y:auto;overflow-wrap:anywhere;margin:clamp(12px,2vh,20px) auto 0;padding:clamp(16px,3vh,32px) clamp(18px,3vw,36px)}
+.cinema-story h2{overflow-wrap:anywhere;margin-top:0}.cinema-story p{overflow-wrap:anywhere;margin-bottom:0}
+.version-cinema.cinema-story-mode{box-sizing:border-box;overflow-y:auto;justify-content:flex-start;padding-top:clamp(14px,3vh,30px);padding-bottom:clamp(18px,4vh,36px)}
+.version-cinema.cinema-story-mode .cinema-description{max-width:min(880px,92vw);margin:10px auto 0;line-height:1.5;text-align:center;overflow-wrap:anywhere}
+.cinema-launch-local{display:none!important}
+@media(max-height:760px){.cinema-number-frame{min-height:clamp(112px,19vh,170px);padding:12px 34px}.cinema-version-number{font-size:clamp(48px,9vw,100px)}.cinema-story{max-height:38vh;padding:16px 20px}.cinema-story h2{font-size:clamp(20px,3vw,30px);margin-bottom:10px}.cinema-story p{font-size:clamp(14px,1.5vw,17px);line-height:1.55}}
+@media(prefers-reduced-motion:reduce){.cinema-number-enter{animation:none}}
