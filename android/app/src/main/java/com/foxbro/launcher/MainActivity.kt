@@ -231,10 +231,38 @@ class MainActivity : Activity() {
                 val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
                 if (state.optBoolean("is_admin")) runOnUiThread {
                     val note = TextView(this).apply { text = "Владелец · расширенные инструменты доступны"; setTextColor(orange); textSize = 12f }
-                    (window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as? ViewGroup)?.let { it.addView(note) }
+                    val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as? ViewGroup
+                    rootView?.let { parent ->
+                        if (parent !is ScrollView) parent.addView(note)
+                        val ownerButton = button("Инструменты владельца  ›") { showOwnerTools() }
+                        ownerButton.tag = "owner-tools"
+                        if (parent !is ScrollView) parent.addView(ownerButton)
+                    }
                 }
             } catch (_: Exception) { }
         }
+    }
+
+
+    private fun showOwnerTools() {
+        val box = base("Инструменты владельца", "Этот раздел доступен только аккаунту владельца Fox.")
+        val title = field("Заголовок объявления")
+        val body = field("Текст объявления")
+        box.addView(title); gap(box); box.addView(body); gap(box)
+        box.addView(button("Опубликовать объявление", true) {
+            thread {
+                try {
+                    val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
+                    if (!state.optBoolean("is_admin")) throw IllegalStateException("Нет прав владельца.")
+                    api("/rest/v1/rpc/fox_owner_broadcast", JSONObject().put("p_title", title.text.toString()).put("p_body", body.text.toString()))
+                    runOnUiThread { Toast.makeText(this, "Объявление отправлено", Toast.LENGTH_LONG).show() }
+                } catch (e: Exception) {
+                    runOnUiThread { Toast.makeText(this, e.message ?: "Не удалось опубликовать", Toast.LENGTH_LONG).show() }
+                }
+            }
+        })
+        gap(box); box.addView(button("Назад") { showDashboard() })
+        setContentView(scroll(box))
     }
 
     private fun showSection(label: String, route: String) {
