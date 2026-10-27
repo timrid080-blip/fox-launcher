@@ -799,7 +799,7 @@ input,textarea{user-select:text}
 
 /* 4.0.0 cinematic polish: longer transitions, no clipping, no dismiss control. */
 .version-cinema{opacity:1;transition:opacity 1s ease,filter 1s ease}.version-cinema.cinema-leaving{opacity:0;filter:blur(14px)}
-.cinema-version-number{width:100%;max-width:100%;padding:0 .18em;font-size:clamp(58px,12vw,170px);line-height:1.22;letter-spacing:-.035em;white-space:nowrap;overflow:visible;text-shadow:0 10px 45px #ff7a1a26}
+.cinema-version-number{width:100%;max-width:100vw;padding:0 .12em;font-size:clamp(54px,12.5vw,176px);line-height:1.08;letter-spacing:-.04em;white-space:normal;overflow:visible;overflow-wrap:anywhere;text-shadow:0 10px 45px #ff7a1a26}
 .cinema-version-number.cinema-number-exit{opacity:0;transform:translateY(-30px) scale(.92);filter:blur(12px);transition:opacity .42s ease,transform .42s ease,filter .42s ease}
 .cinema-version-label{transition:opacity .4s ease,transform .4s ease}.cinema-version-label.cinema-label-exit{opacity:0;transform:translateY(12px)}
 .cinema-run .cinema-avatar{animation:cinema-avatar 1.7s cubic-bezier(.16,1,.3,1) both,cinema-float 4s ease-in-out 1.7s infinite alternate}
