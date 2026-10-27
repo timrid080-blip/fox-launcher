@@ -66,3 +66,17 @@ test('global modes start their own soundtrack, preserve it through UI clicks, an
   assert.match(css, /white-space:normal;overflow:visible;overflow-wrap:anywhere/);
   assert.match(app, /\$\$\('\[data-ticket\]',list\)\.forEach/);
 });
+
+
+test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio finish after the scene', () => {
+  const app = read('renderer/app.js');
+  const html = read('renderer/index.html');
+  const css = read('renderer/styles.css');
+  assert.match(app, /value=Math\.min\(40,value\+1\)/);
+  assert.match(app, /Math\.pow\(progress,1\.35\)/);
+  assert.match(app, /sound\('celebration'\)/);
+  assert.match(app, /Let the victory track finish naturally even after the visual scene fades away/);
+  assert.match(app, /nav\('control'\)/);
+  assert.match(html, /cinema-callout-left/);
+  assert.match(css, /cinema-super-impact/);
+});
