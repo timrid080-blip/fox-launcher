@@ -830,3 +830,74 @@ input,textarea{user-select:text}
 @keyframes cinema-super-impact{0%{opacity:0;transform:scale(.42);filter:blur(25px)}55%{opacity:1;transform:scale(1.12);filter:blur(0)}72%{transform:scale(.96)}100%{transform:scale(1);filter:drop-shadow(0 0 25px #ff7a1a55)}}
 .cinema-stars{opacity:.5}
 @media(max-width:600px){.cinema-number-frame{width:calc(100% - 16px);padding:22px 8px;margin:22px auto}.cinema-callout{font-size:7px;letter-spacing:.12em;padding:5px 7px}.cinema-callout-left{left:6px}.cinema-callout-right{right:6px}.cinema-version-number{font-size:clamp(44px,14vw,84px)}}
+
+
+/* UI consistency pass: prevent flex/grid overflow and keep pages usable at common window sizes. */
+.page{min-width:0;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
+.page-head{min-width:0;align-items:flex-start}
+.page-head .page-heading{min-width:0;flex:1}
+.page-head .right{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.card,.admin-section,.notice,.account-grid>*{min-width:0}
+.account-grid,.admin-grid,.grid-2,.grid-3,.wallet-row,.club-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.row,.mods-top,.fm-bar{min-width:0;flex-wrap:wrap}
+.field,.field .input,.field select,.field textarea{min-width:0;max-width:100%;width:100%}
+input,select,textarea{max-width:100%}
+.table-wrap,.table-responsive{max-width:100%;overflow-x:auto}
+.btn{max-width:100%;min-width:0}
+.btn span{min-width:0}
+.admin-section h2,.card h2,.card h3{line-height:1.3}
+.admin-grid{align-items:start;gap:16px}
+.admin-grid .card{height:100%}
+#page-control .account-grid{align-items:start}
+#page-control .admin-section .row{align-items:stretch}
+#page-control .admin-section .row .btn{flex:1 1 auto}
+@media(max-width:900px){
+ .sidebar{width:190px;padding:10px 8px}
+ .page{padding:18px}
+ .page-head{gap:10px}
+ .page-head .right{width:100%;justify-content:flex-start;margin-left:0}
+ .stat-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .playbar .inst-pick{min-width:0;max-width:36%;flex:0 1 36%}
+ .play{min-width:130px}
+ .wallet-row,.club-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+ .sidebar{width:62px;padding:10px 6px}
+ .nav button{justify-content:center;padding:11px 6px}
+ .nav button .nav-label{display:none}
+ .nav button svg{width:20px;height:20px}
+ .acc-card{justify-content:center;padding:7px}
+ .acc-card .meta,.acc-card>svg{display:none}
+ .page{padding:14px}
+ .page-head h1{font-size:21px}
+ .hero{padding:22px;min-height:250px}
+ .hero .logo{width:90px;right:16px;top:22px;transform:none}
+ .hero h2{font-size:27px}
+ .stat-row,.wallet-row,.club-grid{grid-template-columns:minmax(0,1fr)}
+ .playbar{height:auto;min-height:78px;padding:10px;gap:8px}
+ .playbar .inst-pick{display:none}
+ .playbar .prog{flex:1}
+ .play{min-width:112px;height:46px;font-size:14px}
+ .console{bottom:78px}
+ .modal{width:calc(100vw - 20px);max-height:92vh}
+ .modal .mh{padding:14px 14px 8px}
+ .modal .mb{padding:10px 14px 14px}
+ .modal .mf{padding:12px 14px;flex-wrap:wrap}
+ .mod{align-items:flex-start;flex-wrap:wrap}
+ .mod .mid{flex-basis:calc(100% - 72px)}
+ .mod .acts{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .page,.page.active,.btn,.nav button,.cinema-roll-old,.cinema-roll-new{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+/* True odometer roll: previous version travels up while the next value rises from below. */
+.cinema-version-number{overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:1.12em;line-height:1.12}
+.cinema-roll-track{display:grid;grid-template-areas:"stack";width:100%;justify-items:center;align-items:center;overflow:hidden}
+.cinema-roll-current,.cinema-roll-old,.cinema-roll-new{grid-area:stack;display:block;white-space:nowrap;will-change:transform,opacity,filter}
+.cinema-roll-old{transform:translateY(0);opacity:1}
+.cinema-roll-new{transform:translateY(115%);opacity:0}
+.cinema-number-roll .cinema-roll-old{animation:cinema-roll-up .48s cubic-bezier(.2,.75,.25,1) both}
+.cinema-number-roll .cinema-roll-new{animation:cinema-roll-in .48s cubic-bezier(.2,.75,.25,1) both}
+@keyframes cinema-roll-up{0%{transform:translateY(0);opacity:1;filter:blur(0)}100%{transform:translateY(-115%);opacity:0;filter:blur(5px)}}
+@keyframes cinema-roll-in{0%{transform:translateY(115%);opacity:0;filter:blur(5px)}75%{opacity:1;filter:blur(0)}100%{transform:translateY(0);opacity:1;filter:blur(0)}}
