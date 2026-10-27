@@ -561,8 +561,12 @@
     label.textContent='НАЧАЛО ИСТОРИИ FOX';status.textContent='СИГНАЛ ИЗ БУДУЩЕГО';description.textContent='Одна идея. Тысячи миров. Новая глава начинается сейчас.';
     if(story){story.hidden=true;story.innerHTML='';}
     sound('trailer',{loop:true,channel:'cinema'});
-    const afterIntro=setTimeout(()=>{
-      if(runId!==cinemaRunId)return;
+    const introVideo=$('#cinemaIntroVideo');
+    let introFinished=false,introFallback=null;
+    const beginReveal=()=>{
+      if(introFinished||runId!==cinemaRunId)return;
+      introFinished=true;if(introFallback)clearTimeout(introFallback);
+      if(introVideo){introVideo.pause();introVideo.currentTime=0;}
       c.classList.remove('cinema-intro');if(frame)frame.hidden=false;label.hidden=false;
       let value=10;
       const reveal=()=>{
@@ -593,7 +597,14 @@
         const progress=(value-10)/40,delay=Math.round(850-650*Math.pow(progress,1.25));
         const t=setTimeout(reveal,delay);cinemaTimers.push(t);
       };const first=setTimeout(reveal,450);cinemaTimers.push(first);
-    },2700);cinemaTimers.push(afterIntro);
+    };
+    if(introVideo){
+      introVideo.onended=beginReveal;
+      introVideo.onerror=()=>{introFallback=setTimeout(beginReveal,700);cinemaTimers.push(introFallback);};
+      try{introVideo.currentTime=0;const playback=introVideo.play();if(playback&&typeof playback.catch==='function')playback.catch(()=>{introFallback=setTimeout(beginReveal,700);cinemaTimers.push(introFallback);});}
+      catch(_){introFallback=setTimeout(beginReveal,700);cinemaTimers.push(introFallback);}
+      introFallback=setTimeout(beginReveal,22000);cinemaTimers.push(introFallback);
+    }else{introFallback=setTimeout(beginReveal,2700);cinemaTimers.push(introFallback);}
   }
   window.foxLaunchVersionCinema=runVersionCinema;
   document.addEventListener('DOMContentLoaded',()=>$('#cinemaLaunchLocal')?.addEventListener('click',runVersionCinema),{once:true});
