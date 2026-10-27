@@ -1,4 +1,4 @@
-# Fox Launcher 4.0.3 — PC Edition
+# Fox Launcher 5.0.0 — PC + Android direction
 
 Независимый Minecraft Java Launcher для Windows 10/11 x64. Проект использует Electron и Supabase. Не является продуктом Mojang или Microsoft.
 
