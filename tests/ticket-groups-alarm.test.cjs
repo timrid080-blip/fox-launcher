@@ -54,3 +54,14 @@ test('test notification action is available from the notification bell dialog', 
   assert.match(app, /Тест уведомления/);
   assert.match(app, /bind\('#notificationBell'/);
 });
+
+
+test('global modes start their own soundtrack, preserve it through UI clicks, and show a readable countdown', () => {
+  const app = read('renderer/app.js');
+  const css = read('renderer/styles.css');
+  assert.match(app, /sound\(mode,\{loop:mode==='ceremony'\|\|mode==='celebration'\}\)/);
+  assert.match(app, /function stopMusic\(\)/);
+  assert.match(app, /showModeCountdown\(state\.ends_at\)/);
+  assert.match(css, /font-size:clamp\(54px,12\.5vw,176px\)/);
+  assert.match(app, /\$\$\('\[data-ticket\]',list\)\.forEach/);
+});
