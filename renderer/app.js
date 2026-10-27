@@ -170,7 +170,7 @@
   const account = () => S.accounts.find(a=>a.id===S.settings.selectedAccount)||S.accounts[0];
   const defaultHead = () => Skin.headDataUrl(Skin.defaultSkin());
   const avatar = a => S.heads.get(a?.id)||defaultHead();
-  function toast(text,kind='') { const e=document.createElement('div');e.className='toast '+kind;e.setAttribute('role',kind==='err'?'alert':'status');e.setAttribute('aria-live',kind==='err'?'assertive':'polite');e.textContent=text;$('#toasts').append(e);setTimeout(()=>{if(e.isConnected){e.classList.add('removing');setTimeout(()=>e.remove(),240);}},6500); }
+  function toast(text,kind='') { const e=document.createElement('div');e.className='toast '+kind;e.setAttribute('role',kind==='err'?'alert':'status');e.setAttribute('aria-live',kind==='err'?'assertive':'polite');e.textContent=text;$('#toasts').append(e);setTimeout(()=>{if(e.isConnected){e.classList.add('removing');setTimeout(()=>e.remove(),240);}},5000); }
   function bind(selector,fn,root=document,event='click') { const e=$(selector,root);if(e)e.addEventListener(event,async ev=>{try { await fn(ev); }catch(e){toast(e.message||String(e),'err');}}); }
   async function busy(el,fn,text='Подождите…') { const old=el.innerHTML;el.disabled=true;el.textContent=text;try{return await fn();}finally{if(el.isConnected){el.disabled=false;el.innerHTML=old;}} }
   async function settings(patch) { S.settings=await call('saveSettings',patch);applyAppearance();renderBar();renderAccountCard(); }
@@ -365,15 +365,22 @@
   const currencyName={foxes:'Фоксы 🦊',pumpkins:'тыквы 🎃',rubles:'учётные ₽'};
   const holidays={halloween:'Хеллоуин 🎃',newyear:'Новый год 🎄',winter:'Зимний фестиваль ❄',spring:'Праздник весны 🌷',summer:'Летний фестиваль ☀',birthday:'День рождения Fox 🎂',valentine:'День дружбы ♥'};
   const soundFiles={click:'c8fd8d10309e3e0.mp3',back:'8bb9a29014590e5.mp3',achievement:'fc31ca320b0edd3.mp3',reward:'3923cb8ada7ca47.mp3',alarm:'03.11.2026.MP3',warning:'Сигнал об ошибке Error Tone № 22.wav',maintenance:'Сигнал об ошибке Error Tone № 23.wav',info:'Сигнал об ошибке Error Tone № 27.wav',ceremony:'e7e89aa39e8cef2.mp3',celebration:'e7e89aa39e8cef2.mp3',trailer:'e8500c03a9df88b.mp3',halloween:'a7cfbd79c161ba3.mp3',launch:'computer-shutdown-sound.mp3',success:'3923cb8ada7ca47.mp3',error:'Сигнал об ошибке Error Tone № 22.wav'};
-  let activeAudio=null, alarmAudio=null;
+  let alarmAudio=null;
+  const audioChannels={ui:null,music:null,effects:new Set()};
   function stopAlarmSound(){if(alarmAudio){alarmAudio.pause();alarmAudio.currentTime=0;alarmAudio=null;}}
   function sound(kind='click'){
-    if(S.settings.sounds===false||!S.settings.soundVolume){if(kind==='alarm')stopAlarmSound();return;}
+    const volume=S.settings.soundVolume==null?.25:Number(S.settings.soundVolume);
+    if(S.settings.sounds===false||volume<=0){if(kind==='alarm')stopAlarmSound();return;}
     const file=soundFiles[kind];if(!file)return;
     try{
-      if(kind==='alarm'){if(alarmAudio&&!alarmAudio.paused)return;stopAlarmSound();alarmAudio=new Audio('../assets/sounds/'+encodeURIComponent(file));alarmAudio.loop=true;alarmAudio.volume=Math.max(0,Math.min(1,(+S.settings.soundVolume||.25)));alarmAudio.play().catch(()=>{});return;}
-      if(activeAudio){activeAudio.pause();activeAudio=null;}
-      const player=new Audio('../assets/sounds/'+encodeURIComponent(file));activeAudio=player;player.loop=false;player.volume=Math.max(0,Math.min(1,(+S.settings.soundVolume||.25)));player.addEventListener('ended',()=>{if(activeAudio===player)activeAudio=null;},{once:true});player.play().catch(()=>{});
+      if(kind==='alarm'){if(alarmAudio&&!alarmAudio.paused)return;stopAlarmSound();alarmAudio=new Audio('../assets/sounds/'+encodeURIComponent(file));alarmAudio.loop=true;alarmAudio.volume=Math.max(0,Math.min(1,volume));alarmAudio.play().catch(()=>{});return;}
+      const channel=['click','back'].includes(kind)?'ui':['trailer','ceremony','celebration','halloween','launch'].includes(kind)?'music':'effects';
+      if(channel==='ui'&&audioChannels.ui){audioChannels.ui.pause();audioChannels.ui=null;}
+      if(channel==='music'&&audioChannels.music&&!audioChannels.music.paused)return;
+      const player=new Audio('../assets/sounds/'+encodeURIComponent(file));player.loop=false;player.volume=Math.max(0,Math.min(1,volume));
+      if(channel==='ui')audioChannels.ui=player;else if(channel==='music')audioChannels.music=player;else audioChannels.effects.add(player);
+      player.addEventListener('ended',()=>{if(channel==='ui'&&audioChannels.ui===player)audioChannels.ui=null;if(channel==='music'&&audioChannels.music===player)audioChannels.music=null;if(channel==='effects')audioChannels.effects.delete(player);},{once:true});
+      player.play().catch(()=>{});
     }catch{}
   }
   document.addEventListener('click',ev=>{if(ev.target.closest('button'))sound();});
@@ -720,7 +727,8 @@
     e.append(box);
     const defaults={alarm:'Администратор лаунчера включил режим тревоги!',ceremony:'Администратор лаунчера включил торжественный режим!',maintenance:'В Fox Launcher проводятся технические работы. Попробуйте позже.',warning:'Предупреждение от администрации Fox Launcher.',celebration:'Fox Launcher объявляет праздничный сигнал!',info:'Информационное объявление Fox Launcher.'};
     async function refresh(){const r=await call('getLauncherMode');const st=$('#launcherModeStatus',box);st.textContent=r.mode?('Активен режим «'+r.mode+'» до '+(r.ends_at?new Date(r.ends_at).toLocaleString('ru-RU'):'неограниченно')+'. '+(r.message||'')):'Активного режима нет.';return r;}
-    bind('#playVersionCinema',()=>{const c=$('#versionCinema');if(!c)return;const close=$('#cinemaClose');if(close&&!close.dataset.bound){close.dataset.bound='1';close.addEventListener('click',()=>{c.hidden=true;c.classList.remove('cinema-run');});}c.hidden=false;c.classList.remove('cinema-run');void c.offsetWidth;c.classList.add('cinema-run');const number=$('#cinemaVersionNumber'),label=$('#cinemaVersionLabel'),status=$('#cinemaStatus');const stages=[['1.0','ПЕРВЫЙ ЗАПУСК FOX LAUNCHER'],['2.0','НОВЫЕ ВОЗМОЖНОСТИ'],['3.0','СОЦИАЛЬНЫЕ ФУНКЦИИ И РЕЖИМЫ'],['4.0.1','FOX LAUNCHER ОБНОВЛЁН!']];let i=0;number.textContent=stages[0][0];label.textContent=stages[0][1];status.textContent='История развития';const tick=()=>{i++;if(i>=stages.length){number.textContent='4.0.1';label.textContent=stages[3][1];status.textContent='Добавлены новые звуки, режимы, чаты, звонки, достижения и обновлённая система поддержки.';sound('ceremony');setTimeout(()=>{c.hidden=true;c.classList.remove('cinema-run');},5000);return;}number.textContent=stages[i][0];label.textContent=stages[i][1];sound('click');setTimeout(tick,1600);};setTimeout(tick,1600);},box);
+    let cinemaRunId=0;
+    bind('#playVersionCinema',()=>{const c=$('#versionCinema');if(!c)return;const runId=++cinemaRunId;c.hidden=false;c.classList.remove('cinema-run','cinema-finale');void c.offsetWidth;c.classList.add('cinema-run');const number=$('#cinemaVersionNumber'),label=$('#cinemaVersionLabel'),status=$('#cinemaStatus');const stages=[['1.0','НАЧАЛО ИСТОРИИ FOX'],['2.0','БОЛЬШЕ ВОЗМОЖНОСТЕЙ'],['3.0','ДРУЗЬЯ · ЧАТЫ · РЕЖИМЫ'],['4.0.0','FOX LAUNCHER — НОВАЯ ЭРА']];let i=0;const showStage=()=>{if(runId!==cinemaRunId)return;number.classList.remove('cinema-number-change');void number.offsetWidth;number.textContent=stages[i][0];label.textContent=stages[i][1];number.classList.add('cinema-number-change');status.textContent=['ПУТЕШЕСТВИЕ НАЧИНАЕТСЯ','ЛАУНЧЕР СТАНОВИТСЯ БОЛЬШЕ','СОЦИАЛЬНЫЙ МИР FOX','ПРЕДСТАВЛЯЕМ ВЕРСИЮ 4.0.0'][i];if(i===stages.length-1){setTimeout(()=>{if(runId!==cinemaRunId)return;status.textContent='Чаты, звонки, достижения, режимы и обновлённая поддержка';c.classList.add('cinema-finale');setTimeout(()=>{if(runId===cinemaRunId){c.hidden=true;c.classList.remove('cinema-run','cinema-finale');}},6500);},3200);return;}i++;setTimeout(showStage,3200);};sound('trailer');setTimeout(showStage,900);},box);
     bind('#launcherModeActivate',async ev=>busy(ev.currentTarget,async()=>{const mode=$('#launcherModeSelect',box).value,duration=Number($('#launcherModeDuration',box).value),message=$('#launcherModeMessage',box).value.trim()||defaults[mode];await call('cloudAction','launcher_mode',{op:'set',payload:{mode,duration_seconds:duration,message}});toast('Глобальный режим включён','ok');await refresh();}),box);
     bind('#launcherModeClear',()=>confirm('Выключить глобальный режим?','Это сразу уберёт уведомление у подключённых пользователей.',async()=>{await call('cloudAction','launcher_mode',{op:'clear'});await refresh();toast('Режим выключен','ok');}),box);
     bind('#launcherModeRefresh',refresh,box);try{await refresh();}catch(err){$('#launcherModeStatus',box).textContent='Серверный режим недоступен: '+err.message;}
