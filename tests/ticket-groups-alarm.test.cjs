@@ -76,7 +76,7 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   assert.match(app, /Math\.pow\(progress,1\.35\)/);
   assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
   assert.match(app, /Let the victory track finish naturally even after the visual scene fades away/);
-  assert.match(app, /nav\('control'\)/);
+  assert.match(app, /nav\('admin'\)/);
   assert.match(html, /cinema-callout-left/);
   assert.match(css, /cinema-super-impact/);
 });
