@@ -924,3 +924,20 @@ input,select,textarea{max-width:100%}
 @media(max-width:620px){.cinema-story{padding:20px;min-height:0}.cinema-story p{font-size:15px}.cinema-launch-local{font-size:11px;padding:0 8px}}
 
 .version-cinema.cinema-run .cinema-version-number.cinema-number-enter{animation:cinema-single-number .62s cubic-bezier(.18,.75,.22,1) both}
+
+/* Consistent, calmer presentation for every global mode. */
+.launcher-mode-overlay{transition:background-color .5s ease,opacity .35s ease}
+.launcher-mode-card{position:relative;overflow:hidden;backdrop-filter:blur(12px);transition:border-color .35s ease,box-shadow .35s ease,background .35s ease}
+.launcher-mode-card:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,transparent,#ffffff70,transparent);opacity:.55}
+.launcher-mode-icon{display:grid;place-items:center;width:76px;height:76px;margin:0 auto 10px;border-radius:24px;background:#ffffff08;border:1px solid #ffffff12}
+.launcher-mode-card p{max-width:52ch;margin:0 auto}
+.launcher-mode-overlay[data-mode="ceremony"]{background:radial-gradient(ellipse at 50% 0%,#59451b 0%,#171610 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="ceremony"] .launcher-mode-card{box-shadow:0 24px 90px #d2a72a14,0 0 0 1px #e9bf5220 inset}
+.launcher-mode-overlay[data-mode="maintenance"]{background:radial-gradient(ellipse at 50% 0%,#3b332b 0%,#171615 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="warning"]{background:radial-gradient(ellipse at 50% 0%,#5a3b18 0%,#1a1712 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="celebration"]{background:radial-gradient(ellipse at 50% 0%,#552b18 0%,#191316 52%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="info"]{background:radial-gradient(ellipse at 50% 0%,#1c3a4c 0%,#121619 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="info"] .launcher-mode-card{border-color:#31546a;background:linear-gradient(145deg,#14202a,#101418 72%)}
+.launcher-mode-overlay[data-mode="info"] h1{color:#9adfff}
+@media(max-width:620px){.launcher-mode-overlay{padding:14px}.launcher-mode-card{width:100%;padding:22px 18px}.launcher-mode-icon{width:60px;height:60px;border-radius:18px;font-size:40px}.launcher-mode-card small{letter-spacing:.02em}.launcher-mode-card .fox-auth-mark{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){.launcher-mode-overlay,.launcher-mode-card{transition:none}}
