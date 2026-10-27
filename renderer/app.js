@@ -534,7 +534,7 @@
     bind('#eventSave',async()=>{const title=$('#evTitle',owner).value.trim();if(!title)throw new Error('Укажи название ивента, например «День Fox»');const start=new Date($('#evStart',owner).value),end=new Date($('#evEnd',owner).value);if(!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start)throw new Error('Проверь даты начала и конца');await call('cloudAction','admin_event',{title,theme:$('#evTheme',owner).value,start:start.toISOString(),end:end.toISOString(),enabled:true});toast('Ивент запланирован','ok');renderAdmin();},owner);$('#eventList',owner).innerHTML=s.events.map(ev=>`<div class="card admin-list-row"><div class="list-copy"><b>${esc(ev.title)}</b><p class="dim">${esc(holidays[ev.theme])} · ${new Date(ev.starts_at).toLocaleString('ru-RU')} → ${new Date(ev.ends_at).toLocaleString('ru-RU')} · ${ev.enabled?'включён':'выключен'}</p></div><button class="btn sm" data-toggle-event="${esc(ev.id)}">${ev.enabled?'Отключить':'Включить'}</button></div>`).join('');$$('[data-toggle-event]',owner).forEach(b=>b.onclick=async()=>{try{const ev=s.events.find(x=>x.id===b.dataset.toggleEvent);await call('cloudAction','admin_event',{id:ev.id,title:ev.title,theme:ev.theme,start:ev.starts_at,end:ev.ends_at,enabled:!ev.enabled});renderAdmin();}catch(err){toast(err.message,'err');}});
   }
   async function adminDiscounts(e,s,refresh=renderAdmin){if(s.shop_version!==3){const notice=document.createElement('div');notice.className='notice';notice.textContent='Скидки и новые профили: выполни backend/migrate-1.3.sql поверх базы 1.2.';e.append(notice);return;}const box=document.createElement('div');box.className='set-group admin-section';box.innerHTML=`<h3>Скидки магазина</h3><p class="dim">Скидка улучшения: 0–50%, на товары: 0–90%. 0 — отключить. При апгрейде скидки применяются последовательно, цена округляется вверх. Настоящих платежей нет.</p><div class="discount-form"><select class="input" id="discountProduct"><option value="upgrade">Скидка на улучшение подписки</option>${s.catalog.map(c=>`<option value="${esc(c.id)}">${esc(c.title)} · ${Number(c.discount_percent)||0}%</option>`).join('')}</select><input class="input" id="discountPercent" aria-label="Скидка в процентах" type="number" min="0" max="50" step="1" value="${Number(s.upgrade_discount)}"><button class="btn primary" id="discountSave">Сохранить скидку</button></div>`;e.append(box);bind('#discountProduct',()=>{const id=$('#discountProduct',box).value,input=$('#discountPercent',box);input.max=id==='upgrade'?'50':'90';input.value=id==='upgrade'?s.upgrade_discount:s.catalog.find(c=>c.id===id)?.discount_percent||0;},box,'change');bind('#discountSave',ev=>busy(ev.currentTarget,async()=>{const product=$('#discountProduct',box).value,percent=Number($('#discountPercent',box).value),max=product==='upgrade'?50:90;if(!Number.isInteger(percent)||percent<0||percent>max)throw new Error('Скидка должна быть целым числом от 0 до '+max);await call('cloudAction','admin_discount',{product,percent});toast('Скидка сохранена на сервере','ok');await refresh();}),box);}
-  document.addEventListener('keydown',async ev=>{if(ev.ctrlKey&&ev.shiftKey&&ev.code==='KeyA'){ev.preventDefault();try{const s=await clubRefresh();if(!s.configured)throw new Error('Сначала войди в Fox ID владельца');if(!s.is_admin)throw new Error('Вход в панель управления доступен только владельцу');nav('control');}catch(err){toast(err.message,'err');}}});
+  document.addEventListener('keydown',async ev=>{if(ev.ctrlKey&&ev.shiftKey&&ev.code==='KeyA'){ev.preventDefault();nav('admin');}});
   window.fox.on((type,p)=>{if(type==='achievement'){sound('achievement');toast('Достижение: '+(p.code==='gamer'?'Геймер':'Игроман'),'ok');}if(type==='started')sound('launch');if(type==='cloud'){S.cloud={configured:true,...p};applyAppearance();refreshNotifications().catch(()=>{});}if(type==='cloud-warning')console.warn(p);if(type==='update'){S.launcherUpdate=p;updateBell();const status=document.querySelector('#updateStatus'),install=document.querySelector('#updateInstall');if(status){const labels={unconfigured:'Проверка обновлений пока недоступна',checking:'Проверка…',current:'Установлена последняя версия',downloading:'Загрузка '+(p.version||'')+(Number.isFinite(p.percent)?' · '+Math.round(p.percent)+'%':''),ready:'Обновление '+(p.version||'')+' загружено и готово к установке',available:'Доступна версия '+(p.version||''), 'no-release':p.reason||'В GitHub пока нет опубликованного релиза',error:'Не удалось проверить обновление: '+(p.message||'неизвестная ошибка')};status.textContent=labels[p.state]||p.state;}if(install)install.hidden=p.state!=='ready';}if(type==='update'&&p.state==='available'){toast('Доступен Fox Launcher '+p.version+'. Открой колокольчик.','ok');updateBell();}if(type==='update'&&p.state==='ready')toast('Обновление '+p.version+' загружено. Установить можно в настройках.','ok');});
   setInterval(()=>{loadNews().catch(()=>{});clubRefresh().catch(()=>{});},300000);
   setInterval(()=>{applyAppearance();},30000);
@@ -739,20 +739,23 @@
       c.hidden=false;c.classList.remove('cinema-run','cinema-finale','cinema-leaving');void c.offsetWidth;c.classList.add('cinema-run');
       const number=$('#cinemaVersionNumber'),label=$('#cinemaVersionLabel'),status=$('#cinemaStatus');
       const captions=['ИНИЦИАЛИЗАЦИЯ FOX','СБОРКА НОВОГО МИРА','СИСТЕМЫ ВЫХОДЯТ НА ПОЛНУЮ МОЩНОСТЬ','FOX LAUNCHER — НОВАЯ ЭРА'];
-      let value=10,step=0;
-      number.textContent='1.0';label.textContent='НАЧАЛО ИСТОРИИ FOX';status.textContent=captions[0];
+      let value=10,step=0,currentDisplay='1.0';
+      number.innerHTML='<span class="cinema-roll-track"><span class="cinema-roll-current">1.0</span></span>';label.textContent='НАЧАЛО ИСТОРИИ FOX';status.textContent=captions[0];
       sound('trailer',{loop:true,channel:'cinema'});
       const reveal=()=>{
         if(runId!==cinemaRunId)return;
-        number.classList.remove('cinema-number-change');number.classList.add('cinema-number-exit');label.classList.add('cinema-label-exit');
+        number.classList.remove('cinema-number-roll');number.classList.add('cinema-number-exit');label.classList.add('cinema-label-exit');
         const t=setTimeout(()=>{
           if(runId!==cinemaRunId)return;
+          const previous=currentDisplay;
           value=Math.min(40,value+1);step++;
-          number.textContent=(value/10).toFixed(1);
+          currentDisplay=(value/10).toFixed(1);
+          number.classList.remove('cinema-number-exit','cinema-number-roll');number.innerHTML='<span class="cinema-roll-track"><span class="cinema-roll-old">'+esc(previous)+'</span><span class="cinema-roll-new">'+esc(currentDisplay)+'</span></span>';
+          void number.offsetWidth;number.classList.add('cinema-number-roll');
           const phase=value<20?0:value<30?1:value<40?2:3;
           label.textContent=['НАЧАЛО ИСТОРИИ FOX','БОЛЬШЕ ВОЗМОЖНОСТЕЙ','ДРУЗЬЯ · ЧАТЫ · РЕЖИМЫ','FOX LAUNCHER — НОВАЯ ЭРА'][phase];
           status.textContent=captions[phase];
-          number.classList.remove('cinema-number-exit');label.classList.remove('cinema-label-exit');void number.offsetWidth;number.classList.add('cinema-number-change');
+          label.classList.remove('cinema-label-exit');
           if(value>=40){
             c.classList.add('cinema-finale');stopCinemaMusic();sound('celebration',{channel:'cinema'});
             status.textContent='ЧАТЫ · ЗВОНКИ · ДОСТИЖЕНИЯ · НОВАЯ ЭРА';
