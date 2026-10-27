@@ -963,3 +963,15 @@ input,select,textarea{max-width:100%}
 .cinema-launch-local{display:none!important}
 @media(max-height:760px){.cinema-number-frame{min-height:clamp(112px,19vh,170px);padding:12px 34px}.cinema-version-number{font-size:clamp(48px,9vw,100px)}.cinema-story{max-height:38vh;padding:16px 20px}.cinema-story h2{font-size:clamp(20px,3vw,30px);margin-bottom:10px}.cinema-story p{font-size:clamp(14px,1.5vw,17px);line-height:1.55}}
 @media(prefers-reduced-motion:reduce){.cinema-number-enter{animation:none}}
+
+
+/* Restore the previous compact mode dialogs; remove the unintended full-screen layout. */
+.launcher-mode-overlay{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#244832 0%,#101713 48%,#090b0a 100%);backdrop-filter:blur(14px)}
+.launcher-mode-overlay[hidden]{display:none}
+.launcher-mode-card{width:min(620px,100%);height:auto;min-height:0;padding:clamp(24px,5vw,42px);border:1px solid #34493b!important;border-radius:24px;background:linear-gradient(145deg,#17231b,#101612 72%);box-shadow:0 28px 100px #000b!important;text-align:center;display:block}
+.launcher-mode-card h1{margin:14px 0;font-size:clamp(24px,4vw,32px);letter-spacing:-.7px}
+.launcher-mode-card p{max-width:none;font-size:inherit;white-space:pre-wrap;line-height:1.7;color:#d9e8dd}
+.launcher-mode-icon{font-size:54px}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none;background:linear-gradient(145deg,#2b1719,#151113 72%);border-color:#7c3a3a!important;box-shadow:0 0 70px #ff161633!important}
+@media(max-width:520px){.launcher-mode-card{width:100%;padding:24px 18px;border-radius:18px}.launcher-mode-card h1{font-size:23px}.launcher-mode-card p{font-size:13px}}
+@media(max-width:760px){.launcher-mode-card{padding:24px 18px}}
