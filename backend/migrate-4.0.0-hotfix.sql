@@ -59,6 +59,9 @@ begin
   if actor is null or not exists(select 1 from public.fox_admins where id=actor) then
     raise exception 'Доступ только владельцу';
   end if;
+  insert into public.fox_wallets(id)
+    select p.id from public.fox_profiles p
+    on conflict(id) do nothing;
   return (
     select coalesce(jsonb_agg(to_jsonb(q) order by q.created_at desc),'[]'::jsonb)
     from (

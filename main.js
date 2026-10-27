@@ -5,6 +5,8 @@ const fs = require('fs');
 const fsp = fs.promises;
 const os = require('os');
 const crypto = require('crypto');
+// Allow server-triggered mode audio to start before the user clicks the window.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 // Startup diagnostics: write main/renderer failures to a stable temp log.
 const STARTUP_LOG = path.join(os.tmpdir(), 'fox-launcher-startup.log');
