@@ -115,7 +115,8 @@ grant execute on function public.fox_support_archive_list() to authenticated;
 grant execute on function public.fox_support_delete(uuid) to authenticated;
 
 -- Supabase projects with pg_cron enabled also run retention cleanup automatically.
-do $ begin
+do $
+begin
   if exists(select 1 from pg_extension where extname='pg_cron') then
     begin
       execute $job$ select cron.schedule('fox-support-retention-every-30-minutes','*/30 * * * *','select public.fox_support_cleanup()') $job$;
