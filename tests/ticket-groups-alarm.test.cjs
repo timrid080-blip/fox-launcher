@@ -74,7 +74,7 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   const css = read('renderer/styles.css');
   assert.match(app, /value=Math\.min\(40,value\+1\)/);
   assert.match(app, /Math\.pow\(progress,1\.35\)/);
-  assert.match(app, /sound\('celebration'\)/);
+  assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
   assert.match(app, /Let the victory track finish naturally even after the visual scene fades away/);
   assert.match(app, /nav\('control'\)/);
   assert.match(html, /cinema-callout-left/);
