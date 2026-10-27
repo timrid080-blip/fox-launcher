@@ -901,3 +901,24 @@ input,select,textarea{max-width:100%}
 .cinema-number-roll .cinema-roll-new{animation:cinema-roll-in .48s cubic-bezier(.2,.75,.25,1) both}
 @keyframes cinema-roll-up{0%{transform:translateY(0);opacity:1;filter:blur(0)}100%{transform:translateY(-115%);opacity:0;filter:blur(5px)}}
 @keyframes cinema-roll-in{0%{transform:translateY(115%);opacity:0;filter:blur(5px)}75%{opacity:1;filter:blur(0)}100%{transform:translateY(0);opacity:1;filter:blur(0)}}
+
+/* Fox 5.0 cinematic sequence: one stable number, calm motion, readable story cards. */
+.cinema-number-frame{width:min(92vw,860px);overflow:hidden;position:relative;isolation:isolate}
+.cinema-version-number{overflow:hidden;white-space:nowrap;overflow-wrap:normal;max-width:100%;font-variant-numeric:tabular-nums;line-height:1.12;min-height:1.12em}
+.cinema-number-enter{animation:cinema-single-number .62s cubic-bezier(.18,.75,.22,1) both}
+@keyframes cinema-single-number{0%{opacity:0;transform:translateY(46px) scale(.92);filter:blur(9px)}70%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.version-cinema.cinema-intro .cinema-number-frame,.version-cinema.cinema-intro .cinema-version-label,.version-cinema.cinema-intro .cinema-timeline{opacity:0;visibility:hidden}
+.version-cinema.cinema-intro .cinema-description{max-width:760px;font-size:clamp(18px,3vw,30px);color:#f3e6dc;animation:cinema-intro-copy 1.3s ease both}
+@keyframes cinema-intro-copy{0%{opacity:0;transform:translateY(18px);letter-spacing:.02em}100%{opacity:1;transform:translateY(0);letter-spacing:0}}
+.cinema-story{position:relative;width:min(880px,92vw);min-height:245px;padding:clamp(22px,4vw,42px);margin-top:20px;border:1px solid #ff9b4a55;border-radius:24px;background:linear-gradient(140deg,#201710ef,#11131bf2);box-shadow:0 24px 90px #0008;animation:cinema-story-in .8s ease both;text-align:left}
+.cinema-story[hidden]{display:none}.cinema-story-count{font-size:11px;font-weight:800;letter-spacing:.2em;color:#ffb16e;margin-bottom:18px}
+.cinema-story h2{font-size:clamp(24px,4vw,38px);line-height:1.15;margin-bottom:16px;color:#fff}.cinema-story p{font-size:clamp(15px,2vw,20px);line-height:1.8;color:#dedee6;max-width:760px}
+@keyframes cinema-story-in{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+.version-cinema.cinema-story-mode .cinema-avatar{width:clamp(58px,8vmin,90px);height:clamp(58px,8vmin,90px)}.version-cinema.cinema-story-mode .cinema-status{margin-top:12px}.version-cinema.cinema-story-mode .cinema-description{margin-top:12px;font-size:11px;letter-spacing:.08em}
+.cinema-launch-local{margin-right:8px;white-space:nowrap}
+.launcher-mode-overlay[data-mode="alarm"]{animation:alarm-soft-glow 3.8s ease-in-out infinite}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:alarm-soft-card 3.8s ease-in-out infinite}
+@keyframes alarm-soft-glow{0%,100%{background-color:rgba(80,12,18,.14)}50%{background-color:rgba(130,20,28,.26)}}
+@keyframes alarm-soft-card{0%,100%{border-color:#7c3a3a;box-shadow:0 0 28px #ff16161c}50%{border-color:#a94b4b;box-shadow:0 0 44px #ff16162c}}
+@media(prefers-reduced-motion:reduce){.launcher-mode-overlay[data-mode="alarm"],.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none}.cinema-number-enter,.cinema-story{animation:none}}
+@media(max-width:620px){.cinema-story{padding:20px;min-height:0}.cinema-story p{font-size:15px}.cinema-launch-local{font-size:11px;padding:0 8px}}
