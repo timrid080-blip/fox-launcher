@@ -922,3 +922,5 @@ input,select,textarea{max-width:100%}
 @keyframes alarm-soft-card{0%,100%{border-color:#7c3a3a;box-shadow:0 0 28px #ff16161c}50%{border-color:#a94b4b;box-shadow:0 0 44px #ff16162c}}
 @media(prefers-reduced-motion:reduce){.launcher-mode-overlay[data-mode="alarm"],.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none}.cinema-number-enter,.cinema-story{animation:none}}
 @media(max-width:620px){.cinema-story{padding:20px;min-height:0}.cinema-story p{font-size:15px}.cinema-launch-local{font-size:11px;padding:0 8px}}
+
+.version-cinema.cinema-run .cinema-version-number.cinema-number-enter{animation:cinema-single-number .62s cubic-bezier(.18,.75,.22,1) both}
