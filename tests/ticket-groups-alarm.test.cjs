@@ -72,8 +72,8 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   const app = read('renderer/app.js');
   const html = read('renderer/index.html');
   const css = read('renderer/styles.css');
-  assert.match(app, /value=Math\.min\(40,value\+1\)/);
-  assert.match(app, /Math\.pow\(progress,1\.35\)/);
+  assert.match(app, /value=Math\.min\(50,value\+1\)/);
+  assert.match(app, /Math\.pow\(progress,1\.25\)/);
   assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
   assert.match(app, /Let the victory track finish naturally even after the visual scene fades away/);
   assert.match(app, /nav\('admin'\)/);
@@ -95,8 +95,8 @@ test('Ctrl+Shift+A restores the legacy news admin and the cinematic counter roll
   const app = read('renderer/app.js');
   const css = read('renderer/styles.css');
   assert.match(app, /ev\.ctrlKey&&ev\.shiftKey&&ev\.code==='KeyA'\)\{ev\.preventDefault\(\);nav\('admin'\);/);
-  assert.match(app, /cinema-roll-old/);
-  assert.match(app, /cinema-roll-new/);
-  assert.match(css, /@keyframes cinema-roll-up/);
-  assert.match(css, /@keyframes cinema-roll-in/);
+  assert.match(app, /number\.textContent=\(value\/10\)\.toFixed\(1\)/);
+  assert.match(app, /FOX LAUNCHER 5\.0/);
+  assert.match(css, /@keyframes cinema-single-number/);
+  assert.match(css, /\.cinema-story/);
 });
