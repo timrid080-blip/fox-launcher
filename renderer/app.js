@@ -366,21 +366,23 @@
   const holidays={halloween:'Хеллоуин 🎃',newyear:'Новый год 🎄',winter:'Зимний фестиваль ❄',spring:'Праздник весны 🌷',summer:'Летний фестиваль ☀',birthday:'День рождения Fox 🎂',valentine:'День дружбы ♥'};
   const soundFiles={click:'c8fd8d10309e3e0.mp3',back:'8bb9a29014590e5.mp3',achievement:'fc31ca320b0edd3.mp3',reward:'3923cb8ada7ca47.mp3',alarm:'03.11.2026.MP3',warning:'Сигнал об ошибке Error Tone № 22.wav',maintenance:'Сигнал об ошибке Error Tone № 23.wav',info:'Сигнал об ошибке Error Tone № 27.wav',ceremony:'e7e89aa39e8cef2.mp3',celebration:'e7e89aa39e8cef2.mp3',trailer:'e8500c03a9df88b.mp3',halloween:'a7cfbd79c161ba3.mp3',launch:'computer-shutdown-sound.mp3',success:'3923cb8ada7ca47.mp3',error:'Сигнал об ошибке Error Tone № 22.wav'};
   let alarmAudio=null;
-  const audioChannels={ui:null,music:null,musicKind:null,effects:new Set()};
+  const audioChannels={ui:null,music:null,musicKind:null,cinema:null,cinemaKind:null,effects:new Set()};
   function stopAlarmSound(){if(alarmAudio){alarmAudio.pause();alarmAudio.currentTime=0;alarmAudio=null;}}
   function stopMusic(){const player=audioChannels.music;if(player){player.pause();try{player.currentTime=0;}catch{}}audioChannels.music=null;audioChannels.musicKind=null;}
+  function stopCinemaMusic(){const player=audioChannels.cinema;if(player){player.pause();try{player.currentTime=0;}catch{}}audioChannels.cinema=null;audioChannels.cinemaKind=null;}
   function sound(kind='click',options={}){
     const volume=S.settings.soundVolume==null?.25:Number(S.settings.soundVolume);
     if(S.settings.sounds===false||volume<=0){if(kind==='alarm')stopAlarmSound();if(options.loop&&kind!=='alarm')stopMusic();return;}
     const file=soundFiles[kind];if(!file)return;
     try{
       if(kind==='alarm'){if(alarmAudio&&!alarmAudio.paused)return;stopAlarmSound();alarmAudio=new Audio(new URL('../assets/sounds/'+file,document.baseURI).href);alarmAudio.loop=true;alarmAudio.volume=Math.max(0,Math.min(1,volume));alarmAudio.play().catch(()=>{});return;}
-      const channel=['click','back'].includes(kind)?'ui':['trailer','ceremony','celebration','halloween','launch'].includes(kind)?'music':'effects';
+      const channel=options.channel||(['click','back'].includes(kind)?'ui':['trailer','ceremony','celebration','halloween','launch'].includes(kind)?'music':'effects');
       // UI effects have independent players and must never interrupt background music.
       if(channel==='music'&&audioChannels.music&&!audioChannels.music.paused){if(audioChannels.musicKind===kind)return;stopMusic();}
-      const player=new Audio(new URL('../assets/sounds/'+encodeURIComponent(file),document.baseURI).href);player.loop=channel==='music'&&options.loop===true;player.volume=Math.max(0,Math.min(1,volume));
-      if(channel==='music'){audioChannels.music=player;audioChannels.musicKind=kind;}else audioChannels.effects.add(player);
-      player.addEventListener('ended',()=>{if(channel==='music'&&audioChannels.music===player){audioChannels.music=null;audioChannels.musicKind=null;}if(channel!=='music')audioChannels.effects.delete(player);},{once:true});
+      if(channel==='cinema'&&audioChannels.cinema&&!audioChannels.cinema.paused){if(audioChannels.cinemaKind===kind)return;stopCinemaMusic();}
+      const player=new Audio(new URL('../assets/sounds/'+encodeURIComponent(file),document.baseURI).href);player.loop=['music','cinema'].includes(channel)&&options.loop===true;player.volume=Math.max(0,Math.min(1,volume));
+      if(channel==='music'){audioChannels.music=player;audioChannels.musicKind=kind;}else if(channel==='cinema'){audioChannels.cinema=player;audioChannels.cinemaKind=kind;}else audioChannels.effects.add(player);
+      player.addEventListener('ended',()=>{if(channel==='music'&&audioChannels.music===player){audioChannels.music=null;audioChannels.musicKind=null;}if(channel==='cinema'&&audioChannels.cinema===player){audioChannels.cinema=null;audioChannels.cinemaKind=null;}if(!['music','cinema'].includes(channel))audioChannels.effects.delete(player);},{once:true});
       player.play().catch(()=>{});
     }catch{}
   }
@@ -733,13 +735,13 @@
     const clearCinemaTimers=()=>{cinemaTimers.forEach(clearTimeout);cinemaTimers=[];};
     bind('#playVersionCinema',()=>{
       const c=$('#versionCinema');if(!c)return;
-      clearCinemaTimers();const runId=++cinemaRunId;
+      clearCinemaTimers();stopCinemaMusic();const runId=++cinemaRunId;
       c.hidden=false;c.classList.remove('cinema-run','cinema-finale','cinema-leaving');void c.offsetWidth;c.classList.add('cinema-run');
       const number=$('#cinemaVersionNumber'),label=$('#cinemaVersionLabel'),status=$('#cinemaStatus');
       const captions=['ИНИЦИАЛИЗАЦИЯ FOX','СБОРКА НОВОГО МИРА','СИСТЕМЫ ВЫХОДЯТ НА ПОЛНУЮ МОЩНОСТЬ','FOX LAUNCHER — НОВАЯ ЭРА'];
       let value=10,step=0;
       number.textContent='1.0';label.textContent='НАЧАЛО ИСТОРИИ FOX';status.textContent=captions[0];
-      stopMusic();sound('trailer',{loop:true});
+      sound('trailer',{loop:true,channel:'cinema'});
       const reveal=()=>{
         if(runId!==cinemaRunId)return;
         number.classList.remove('cinema-number-change');number.classList.add('cinema-number-exit');label.classList.add('cinema-label-exit');
@@ -752,7 +754,7 @@
           status.textContent=captions[phase];
           number.classList.remove('cinema-number-exit');label.classList.remove('cinema-label-exit');void number.offsetWidth;number.classList.add('cinema-number-change');
           if(value>=40){
-            c.classList.add('cinema-finale');stopMusic();sound('celebration');
+            c.classList.add('cinema-finale');stopCinemaMusic();sound('celebration',{channel:'cinema'});
             status.textContent='ЧАТЫ · ЗВОНКИ · ДОСТИЖЕНИЯ · НОВАЯ ЭРА';
             label.textContent='FOX LAUNCHER 4.0 — ВРЕМЯ ПОБЕЖДАТЬ';
             // Let the victory track finish naturally even after the visual scene fades away.

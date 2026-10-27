@@ -80,3 +80,12 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   assert.match(html, /cinema-callout-left/);
   assert.match(css, /cinema-super-impact/);
 });
+
+
+test('cinema audio uses a separate channel from global modes so mode refresh cannot cut the victory track', () => {
+  const app = read('renderer/app.js');
+  assert.match(app, /cinema:null,cinemaKind:null/);
+  assert.match(app, /function stopCinemaMusic\(\)/);
+  assert.match(app, /sound\('trailer',\{loop:true,channel:'cinema'\}\)/);
+  assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
+});
