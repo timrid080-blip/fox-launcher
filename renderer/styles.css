@@ -984,3 +984,6 @@ input,select,textarea{max-width:100%}
 .servers-empty{padding:34px;display:flex;align-items:center;flex-direction:column;text-align:center;gap:10px}.servers-empty-icon{width:58px;height:58px;display:grid;place-items:center;border-radius:18px;background:#ff7a1a16;color:var(--accent2)}.servers-empty-icon svg{width:30px;height:30px}.servers-empty p{max-width:620px;line-height:1.65}
 @media(max-width:1000px){.servers-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.servers-hero{align-items:flex-start}.servers-hero-mark{width:54px;height:54px;flex-basis:54px;border-radius:16px}.servers-hero-mark svg{width:28px;height:28px}.servers-plans{grid-template-columns:1fr}.servers-plan{padding:18px}.servers-price{margin:10px 0 14px}}
+
+.servers-team{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 24px;margin:16px 0 22px;border-color:#3c342d;background:linear-gradient(120deg,#211b17,#17171b)}.servers-team h3{font-size:18px;margin-bottom:5px}.servers-team p{line-height:1.6}.servers-team .btn{flex-shrink:0}
+@media(max-width:620px){.servers-team{align-items:stretch;flex-direction:column}.servers-team .btn{width:100%}}
