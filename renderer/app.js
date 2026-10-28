@@ -362,10 +362,26 @@
       <div class="section-title"><h3>Тарифы размещения</h3><span class="dim">Цена за одну публикацию</span></div>
       <div class="servers-plans">${plans.map(p=>`<article class="card servers-plan"><div class="servers-plan-icon">${icon(p.id==='hour'?'clock':p.id==='day'?'calendar-clock':'calendar-days')}</div><h3>${p.label}</h3><p class="dim">${p.duration}</p><div class="servers-price">${p.price.toLocaleString('ru-RU')} <small>₽</small></div><button class="btn primary" data-server-plan="${p.id}">Подать заявку</button></article>`).join('')}</div>
       <div class="notice">Отправка заявки не списывает деньги и не гарантирует публикацию. Оплата и срок размещения подтверждаются отдельно; не переводите деньги по непроверенным ссылкам.</div>
+      <div class="servers-team card"><div><h3>Хочешь в команду Fox?</h3><p class="dim">Подай заявку на роль модератора, разработчика, дизайнера или помощника проекта.</p></div><button class="btn" id="serversJoinTeam">Поступить в команду</button></div>
       <div class="section-title"><h3>Каталог серверов</h3><button class="btn" id="serversRefresh">${icon('refresh')} Обновить</button></div>
       <div class="card servers-empty"><div class="servers-empty-icon">${icon('server')}</div><h3>Каталог готовится</h3><p class="dim">Здесь будут отображаться одобренные серверы: описание, версия Minecraft, адрес и срок спонсорского размещения. Публикации появятся после подключения серверного каталога.</p></div>`;
     $('[data-server-plan]',e).forEach(b=>b.onclick=()=>serverSponsorDialog(plans.find(p=>p.id===b.dataset.serverPlan)));
     bind('#serversRefresh',renderServers,e);
+  }
+  function serverTeamDialog(){
+    const m=modal('Заявка в команду Fox',`<label class="field">Как к тебе обращаться<input class="input" id="teamName" maxlength="80" placeholder="Имя или ник" required></label>
+      <label class="field">Желаемая роль<select class="input" id="teamRole"><option value="Модератор">Модератор</option><option value="Разработчик">Разработчик</option><option value="Дизайнер">Дизайнер</option><option value="Помощник поддержки">Помощник поддержки</option><option value="Строитель Minecraft">Строитель Minecraft</option><option value="Другое">Другое</option></select></label>
+      <label class="field">Опыт и навыки<textarea class="input" id="teamExperience" rows="4" maxlength="1200" placeholder="Расскажи о своём опыте и чем можешь помочь" required></textarea></label>
+      <label class="field">Контакт для ответа (необязательно)<input class="input" id="teamContact" maxlength="160" placeholder="Discord или Telegram"></label>
+      <p class="dim">Заявка поступит в поддержку Fox на рассмотрение. Не указывай пароль или другие секретные данные.</p>`,[
+      {text:'Отмена',run:m=>m.close()},
+      {text:'Отправить заявку',primary:true,run:async m=>{
+        const val=id=>m.q('#'+id).value.trim(),name=val('teamName'),role=val('teamRole'),experience=val('teamExperience'),contact=val('teamContact');
+        if(name.length<2)throw new Error('Укажи имя или игровой ник');
+        if(experience.length<10)throw new Error('Расскажи немного подробнее о своём опыте');
+        await call('cloudAction','support_create',{title:'Заявка в команду Fox — '+role,body:['Заявка на вступление в команду Fox Launcher','Имя/ник: '+name,'Роль: '+role,'Опыт и навыки: '+experience,'Контакт: '+(contact||'не указан'),'Статус: ожидает рассмотрения'].join('\\n')});
+        m.close();toast('Заявка отправлена в поддержку Fox','ok');
+      }}],true);
   }
   function serverSponsorDialog(plan){
     if(!plan)return;
