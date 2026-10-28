@@ -740,5 +740,35 @@ $$;
 revoke all on function public.fox_owner_admin_users() from public,anon;
 grant execute on function public.fox_owner_admin_users() to authenticated;
 
+-- Fox Launcher 5.0: self-service reset of gameplay progress and virtual balances.
+-- Keeps the Fox ID, purchased items/subscriptions, and paid_kopeks untouched.
+create or replace function public.fox_reset_account()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare u uuid := auth.uid();
+begin
+  if u is null then raise exception 'Сначала войди в Fox ID'; end if;
+  if not exists(select 1 from public.fox_profiles where id=u) then
+    raise exception 'Профиль Fox не найден';
+  end if;
+
+  delete from public.fox_sessions where user_id=u;
+  delete from public.fox_progress where user_id=u;
+  delete from public.fox_achievements where user_id=u;
+  delete from public.fox_daily_rewards where user_id=u;
+  delete from public.fox_daily_play where user_id=u;
+  delete from public.fox_quest_claims where user_id=u;
+  update public.fox_wallets set foxes=0, pumpkins=0 where id=u;
+  update public.fox_profiles set equipped_cosmetic=null where id=u;
+
+  return jsonb_build_object('ok',true,'reset_at',now());
+end;
+$;
+revoke all on function public.fox_reset_account() from public, anon;
+grant execute on function public.fox_reset_account() to authenticated;
+
 notify pgrst, 'reload schema';
 commit;
