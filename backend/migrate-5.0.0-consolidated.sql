@@ -747,7 +747,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $fox_reset$
 declare u uuid := auth.uid();
 begin
   if u is null then raise exception 'Сначала войди в Fox ID'; end if;
@@ -762,11 +762,10 @@ begin
   delete from public.fox_daily_play where user_id=u;
   delete from public.fox_quest_claims where user_id=u;
   update public.fox_wallets set foxes=0, pumpkins=0 where id=u;
-  update public.fox_profiles set equipped_cosmetic=null where id=u;
 
   return jsonb_build_object('ok',true,'reset_at',now());
 end;
-$;
+$fox_reset$;
 revoke all on function public.fox_reset_account() from public, anon;
 grant execute on function public.fox_reset_account() to authenticated;
 
