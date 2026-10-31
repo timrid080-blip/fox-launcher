@@ -376,7 +376,7 @@
   }
   function validMinecraftAddress(value){
     const input=String(value||'').trim();
-    if(!input||input.length>260||/[\\s<>/\\\\@?#]/.test(input))return false;
+    if(!input||input.length>260||/\\s/.test(input)||['<','>','/','\\\\','@','?','#'].some(ch=>input.includes(ch)))return false;
     let host=input,port='';
     if(input.startsWith('[')){
       const match=input.match(/^\\[([0-9a-f:.]+)\\](?::(\\d{1,5}))?$/i);
