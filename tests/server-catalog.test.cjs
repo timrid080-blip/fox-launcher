@@ -8,9 +8,9 @@ const app = fs.readFileSync(path.join(root, 'renderer/app.js'), 'utf8');
 
 test('server sponsor buttons use a plural selector and cannot call forEach on one element', () => {
   assert.match(app, /\$\$\('\[data-server-plan\]',e\)\.forEach/);
-  assert.doesNotMatch(app, /\$\('\[data-server-plan\]',e\)\.forEach/);
+  assert.doesNotMatch(app, /(?<!\$)\$\('\[data-server-plan\]',e\)\.forEach/);
   assert.match(app, /\$\$\('\[data-server-remove\]',owner\)\.forEach/);
-  assert.doesNotMatch(app, /\$\('\[data-server-remove\]',owner\)\.forEach/);
+  assert.doesNotMatch(app, /(?<!\$)\$\('\[data-server-remove\]',owner\)\.forEach/);
 });
 
 test('server catalog RPC responses are normalized before rendering', () => {
