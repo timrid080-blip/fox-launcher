@@ -237,7 +237,7 @@ const api = {
   async cloudRegister(email,password,nickname) { return cloud.register(email,password,nickname); },
   async cloudLogin(email,password) { if(running.size)throw new Error('Сначала закройте Minecraft для смены Fox ID'); const state=await cloud.login(email,password); if(state.profile) { const acc=auth.offline(state.profile.nickname); await upsertAccount(acc); } return state; },
   cloudLogout: () => { if(running.size)throw new Error('Сначала закройте Minecraft для выхода из Fox ID'); return cloud.logout(); },
-  async cloudAction(action,data) { if (!['launcher_mode','presence','notifications','notification_read','friend_chat','call_signal','group_chat','group_call','support_cleanup','support_archive_list','support_delete','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_broadcast','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
+  async cloudAction(action,data) { if (!['launcher_mode','presence','notifications','notification_read','friend_chat','call_signal','group_chat','group_call','support_cleanup','support_archive_list','support_delete','admin_moderate','moderation_users','profile_settings','friends','friend_request','friend_accept','friend_remove','admin_role','staff_users','support_create','support_list','support_get','support_reply','support_close','support_assign','admin_ruble_price','admin_broadcast','admin_payments','payment_status','players','player_profile','admin_discount','state','buy','daily_claim','quest_claim','leaderboard','profile_visibility','equip','admin_users','admin_grant','admin_set_rubles','admin_event','admin_codes','admin_servers','servers_list'].includes(action)) throw new Error('Операция не разрешена'); return cloud.action(action,data); },
   async createPayment(amount,requestId){if(!Number.isInteger(amount)||amount<100||amount>15000||typeof requestId!=='string')throw new Error('Сумма пополнения: 100–15000 рублей');const r=await cloud.payment({op:'create',amount,request_id:requestId});if(r.id){const uid=(await cloud.restore())?.user?.id;if(uid){const pending=await readJson(path.join(ROOT,'pending-payments.json'),{});pending[uid]={id:r.id};await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}if(r.confirmation_url){const url=new URL(r.confirmation_url);if(url.protocol!=='https:')throw new Error('Небезопасная ссылка оплаты');await shell.openExternal(url.href);}return r;},
   async getPendingPayment(){const uid=(await cloud.restore())?.user?.id;return uid?(await readJson(path.join(ROOT,'pending-payments.json'),{}))[uid]||null:null;},
   async checkPayment(id){const result=await cloud.payment({op:'status',id});if(['succeeded','canceled'].includes(result.status)){const uid=(await cloud.restore())?.user?.id,pending=await readJson(path.join(ROOT,'pending-payments.json'),{});if(uid&&pending[uid]?.id===id){delete pending[uid];await writeJson(path.join(ROOT,'pending-payments.json'),pending);}}return result;},
@@ -357,6 +357,24 @@ const api = {
   // сборки
   scanModCompatibility: async id => { const inst=(await getInstances()).find(x=>x.id===id); if(!inst)throw new Error('Сборка не найдена'); return compatibility.scanMods(instDir(id),{loader:inst.loader,mc:inst.mc}); },
   async installOptiFine(id) { idle(id); const inst=(await getInstances()).find(x=>x.id===id);if(!inst)throw new Error('Сборка не найдена');const r=await dialog.showOpenDialog(win,{title:'Выбери OptiFine JAR',properties:['openFile'],filters:[{name:'Java archive',extensions:['jar']}]});if(r.canceled)return false;const info=await optifine.inspect(r.filePaths[0],inst.mc,inst.loader);const confirm=await dialog.showMessageBox(win,{type:'warning',title:'Установка OptiFine',message:`Minecraft ${info.version} · ${Math.ceil(info.bytes/1024)} КБ`,detail:'JAR-моды исполняют код внутри Minecraft. Продолжай только если файл получен из доверенного источника. OptiFine на Forge совместим не со всеми версиями и модами.',buttons:['Отмена','Установить'],defaultId:0,cancelId:0});if(confirm.response!==1)return false;await optifine.install(r.filePaths[0],path.join(instDir(id),'mods'),inst.mc,inst.loader);return true; },
+  async downloadAndInstallOptiFine(id) {
+    idle(id);
+    const inst = (await getInstances()).find(x => x.id === id);
+    if (!inst) throw new Error('Сборка не найдена');
+    if (String(inst.loader).toLowerCase() !== 'forge') throw new Error('OptiFine как мод поддерживается только в сборках Forge. Для NeoForge, Fabric и Quilt выбери другой графический мод.');
+    const release = await optifine.findOfficialRelease(inst.mc);
+    const confirm = await dialog.showMessageBox(win, {
+      type: 'warning', title: 'Официальный OptiFine',
+      message: `Найден ${release.fileName}`,
+      detail: 'Файл будет загружен с официального сайта OptiFine и помещён в mods выбранной сборки. JAR-моды исполняют код внутри Minecraft. Продолжить?',
+      buttons: ['Отмена', 'Скачать и установить'], defaultId: 0, cancelId: 0
+    });
+    if (confirm.response !== 1) return false;
+    const file = await optifine.downloadOfficial(release, path.join(ROOT, 'cache', 'optifine'));
+    const info = optifine.inspect(file, inst.mc, inst.loader);
+    await optifine.install(file, path.join(instDir(id), 'mods'), inst.mc, inst.loader);
+    return { installed: true, version: info.version, file: release.fileName };
+  },
   getInstances,
   async createInstance(data) {
     validateInstance(data);

@@ -901,3 +901,89 @@ input,select,textarea{max-width:100%}
 .cinema-number-roll .cinema-roll-new{animation:cinema-roll-in .48s cubic-bezier(.2,.75,.25,1) both}
 @keyframes cinema-roll-up{0%{transform:translateY(0);opacity:1;filter:blur(0)}100%{transform:translateY(-115%);opacity:0;filter:blur(5px)}}
 @keyframes cinema-roll-in{0%{transform:translateY(115%);opacity:0;filter:blur(5px)}75%{opacity:1;filter:blur(0)}100%{transform:translateY(0);opacity:1;filter:blur(0)}}
+
+/* Fox 5.0 cinematic sequence: one stable number, calm motion, readable story cards. */
+.cinema-number-frame{width:min(92vw,860px);overflow:hidden;position:relative;isolation:isolate}
+.cinema-version-number{overflow:hidden;white-space:nowrap;overflow-wrap:normal;max-width:100%;font-variant-numeric:tabular-nums;line-height:1.12;min-height:1.12em}
+.cinema-number-enter{animation:cinema-single-number .62s cubic-bezier(.18,.75,.22,1) both}
+@keyframes cinema-single-number{0%{opacity:0;transform:translateY(46px) scale(.92);filter:blur(9px)}70%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.version-cinema.cinema-intro .cinema-number-frame,.version-cinema.cinema-intro .cinema-version-label,.version-cinema.cinema-intro .cinema-timeline{opacity:0;visibility:hidden}
+.version-cinema.cinema-intro .cinema-description{max-width:760px;font-size:clamp(18px,3vw,30px);color:#f3e6dc;animation:cinema-intro-copy 1.3s ease both}
+@keyframes cinema-intro-copy{0%{opacity:0;transform:translateY(18px);letter-spacing:.02em}100%{opacity:1;transform:translateY(0);letter-spacing:0}}
+.cinema-story{position:relative;width:min(880px,92vw);min-height:245px;padding:clamp(22px,4vw,42px);margin-top:20px;border:1px solid #ff9b4a55;border-radius:24px;background:linear-gradient(140deg,#201710ef,#11131bf2);box-shadow:0 24px 90px #0008;animation:cinema-story-in .8s ease both;text-align:left}
+.cinema-story[hidden]{display:none}.cinema-story-count{font-size:11px;font-weight:800;letter-spacing:.2em;color:#ffb16e;margin-bottom:18px}
+.cinema-story h2{font-size:clamp(24px,4vw,38px);line-height:1.15;margin-bottom:16px;color:#fff}.cinema-story p{font-size:clamp(15px,2vw,20px);line-height:1.8;color:#dedee6;max-width:760px}
+@keyframes cinema-story-in{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+.version-cinema.cinema-story-mode .cinema-avatar{width:clamp(58px,8vmin,90px);height:clamp(58px,8vmin,90px)}.version-cinema.cinema-story-mode .cinema-status{margin-top:12px}.version-cinema.cinema-story-mode .cinema-description{margin-top:12px;font-size:11px;letter-spacing:.08em}
+.cinema-launch-local{margin-right:8px;white-space:nowrap}
+.launcher-mode-overlay[data-mode="alarm"]{animation:alarm-soft-glow 3.8s ease-in-out infinite}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:alarm-soft-card 3.8s ease-in-out infinite}
+@keyframes alarm-soft-glow{0%,100%{background-color:rgba(80,12,18,.14)}50%{background-color:rgba(130,20,28,.26)}}
+@keyframes alarm-soft-card{0%,100%{border-color:#7c3a3a;box-shadow:0 0 28px #ff16161c}50%{border-color:#a94b4b;box-shadow:0 0 44px #ff16162c}}
+@media(prefers-reduced-motion:reduce){.launcher-mode-overlay[data-mode="alarm"],.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none}.cinema-number-enter,.cinema-story{animation:none}}
+@media(max-width:620px){.cinema-story{padding:20px;min-height:0}.cinema-story p{font-size:15px}.cinema-launch-local{font-size:11px;padding:0 8px}}
+
+.version-cinema.cinema-run .cinema-version-number.cinema-number-enter{animation:cinema-single-number .62s cubic-bezier(.18,.75,.22,1) both}
+
+/* Consistent, calmer presentation for every global mode. */
+.launcher-mode-overlay{transition:background-color .5s ease,opacity .35s ease}
+.launcher-mode-card{position:relative;overflow:hidden;backdrop-filter:blur(12px);transition:border-color .35s ease,box-shadow .35s ease,background .35s ease}
+.launcher-mode-card:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,transparent,#ffffff70,transparent);opacity:.55}
+.launcher-mode-icon{display:grid;place-items:center;width:76px;height:76px;margin:0 auto 10px;border-radius:24px;background:#ffffff08;border:1px solid #ffffff12}
+.launcher-mode-card p{max-width:52ch;margin:0 auto}
+.launcher-mode-overlay[data-mode="ceremony"]{background:radial-gradient(ellipse at 50% 0%,#59451b 0%,#171610 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="ceremony"] .launcher-mode-card{box-shadow:0 24px 90px #d2a72a14,0 0 0 1px #e9bf5220 inset}
+.launcher-mode-overlay[data-mode="maintenance"]{background:radial-gradient(ellipse at 50% 0%,#3b332b 0%,#171615 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="warning"]{background:radial-gradient(ellipse at 50% 0%,#5a3b18 0%,#1a1712 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="celebration"]{background:radial-gradient(ellipse at 50% 0%,#552b18 0%,#191316 52%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="info"]{background:radial-gradient(ellipse at 50% 0%,#1c3a4c 0%,#121619 50%,#090a0b 100%)}
+.launcher-mode-overlay[data-mode="info"] .launcher-mode-card{border-color:#31546a;background:linear-gradient(145deg,#14202a,#101418 72%)}
+.launcher-mode-overlay[data-mode="info"] h1{color:#9adfff}
+@media(max-width:620px){.launcher-mode-overlay{padding:14px}.launcher-mode-card{width:100%;padding:22px 18px}.launcher-mode-icon{width:60px;height:60px;border-radius:18px;font-size:40px}.launcher-mode-card small{letter-spacing:.02em}.launcher-mode-card .fox-auth-mark{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){.launcher-mode-overlay,.launcher-mode-card{transition:none}}
+
+/* Optional user-supplied 15.6s cinematic intro clip, before the version counter. */
+.cinema-intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;z-index:0;pointer-events:none;transition:opacity .9s ease}
+.version-cinema.cinema-run{isolation:isolate}
+.version-cinema.cinema-run>*:not(.cinema-intro-video){position:relative;z-index:1}
+.version-cinema.cinema-intro .cinema-intro-video{opacity:1}
+.version-cinema.cinema-intro .cinema-glow{opacity:.18}
+.version-cinema.cinema-intro .cinema-stars{opacity:.12}
+.version-cinema.cinema-intro .cinema-avatar,.version-cinema.cinema-intro .cinema-status,.version-cinema.cinema-intro .cinema-description,.version-cinema.cinema-intro .cinema-timeline{opacity:0;visibility:hidden}
+@media(prefers-reduced-motion:reduce){.cinema-intro-video{transition:none}}
+
+
+/* Fox 5.0 visual fix: keep the version fully inside its frame and story text on-screen. */
+.cinema-number-frame{min-height:clamp(150px,22vh,240px);height:auto;padding:clamp(16px,2.5vh,28px) clamp(34px,6vw,76px);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cinema-version-number{display:flex;align-items:center;justify-content:center;width:100%;min-height:0;height:auto;font-size:clamp(52px,10vw,132px);line-height:1;padding:.08em 0 .14em;overflow:hidden;text-align:center}
+.cinema-story{box-sizing:border-box;width:min(880px,92vw);max-height:min(42vh,440px);min-height:0;overflow-y:auto;overflow-wrap:anywhere;margin:clamp(12px,2vh,20px) auto 0;padding:clamp(16px,3vh,32px) clamp(18px,3vw,36px)}
+.cinema-story h2{overflow-wrap:anywhere;margin-top:0}.cinema-story p{overflow-wrap:anywhere;margin-bottom:0}
+.version-cinema.cinema-story-mode{box-sizing:border-box;overflow-y:auto;justify-content:flex-start;padding-top:clamp(14px,3vh,30px);padding-bottom:clamp(18px,4vh,36px)}
+.version-cinema.cinema-story-mode .cinema-description{max-width:min(880px,92vw);margin:10px auto 0;line-height:1.5;text-align:center;overflow-wrap:anywhere}
+.cinema-launch-local{display:none!important}
+@media(max-height:760px){.cinema-number-frame{min-height:clamp(112px,19vh,170px);padding:12px 34px}.cinema-version-number{font-size:clamp(48px,9vw,100px)}.cinema-story{max-height:38vh;padding:16px 20px}.cinema-story h2{font-size:clamp(20px,3vw,30px);margin-bottom:10px}.cinema-story p{font-size:clamp(14px,1.5vw,17px);line-height:1.55}}
+@media(prefers-reduced-motion:reduce){.cinema-number-enter{animation:none}}
+
+
+/* Restore the previous compact mode dialogs; remove the unintended full-screen layout. */
+.launcher-mode-overlay{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#244832 0%,#101713 48%,#090b0a 100%);backdrop-filter:blur(14px)}
+.launcher-mode-overlay[hidden]{display:none}
+.launcher-mode-card{width:min(620px,100%);height:auto;min-height:0;padding:clamp(24px,5vw,42px);border:1px solid #34493b!important;border-radius:24px;background:linear-gradient(145deg,#17231b,#101612 72%);box-shadow:0 28px 100px #000b!important;text-align:center;display:block}
+.launcher-mode-card h1{margin:14px 0;font-size:clamp(24px,4vw,32px);letter-spacing:-.7px}
+.launcher-mode-card p{max-width:none;font-size:inherit;white-space:pre-wrap;line-height:1.7;color:#d9e8dd}
+.launcher-mode-icon{font-size:54px}
+.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none;background:linear-gradient(145deg,#2b1719,#151113 72%);border-color:#7c3a3a!important;box-shadow:0 0 70px #ff161633!important}
+@media(max-width:520px){.launcher-mode-card{width:100%;padding:24px 18px;border-radius:18px}.launcher-mode-card h1{font-size:23px}.launcher-mode-card p{font-size:13px}}
+@media(max-width:760px){.launcher-mode-card{padding:24px 18px}}
+
+
+/* Sponsored Minecraft servers page */
+.servers-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:clamp(22px,4vw,38px);background:radial-gradient(ellipse at 85% 10%,#3b2417 0,transparent 48%),linear-gradient(135deg,#211914,#17171b 70%);border-color:#5b3924}
+.servers-hero-copy{max-width:760px}.servers-hero .kicker{font-size:11px;letter-spacing:.16em;color:var(--accent2);font-weight:800}.servers-hero h2{font-size:clamp(25px,3vw,38px);line-height:1.14;margin:12px 0}.servers-hero p{max-width:700px;color:var(--muted);line-height:1.7}.servers-hero-mark{width:86px;height:86px;flex:0 0 86px;display:grid;place-items:center;border:1px solid #704323;border-radius:24px;background:#ff7a1a15;color:var(--accent2)}.servers-hero-mark svg{width:44px;height:44px}
+.servers-plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:14px 0 20px}.servers-plan{padding:20px;display:flex;flex-direction:column;align-items:flex-start;min-width:0;background:linear-gradient(150deg,#1d1d22,#151519)}.servers-plan-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#ff7a1a18;color:var(--accent2);margin-bottom:14px}.servers-plan h3{font-size:19px}.servers-plan .dim{margin-top:3px}.servers-price{font-size:30px;font-weight:850;letter-spacing:-.04em;margin:18px 0 16px}.servers-price small{font-size:15px;color:var(--muted);font-weight:650}.servers-plan .btn{width:100%;margin-top:auto}
+.servers-empty{padding:34px;display:flex;align-items:center;flex-direction:column;text-align:center;gap:10px}.servers-empty-icon{width:58px;height:58px;display:grid;place-items:center;border-radius:18px;background:#ff7a1a16;color:var(--accent2)}.servers-empty-icon svg{width:30px;height:30px}.servers-empty p{max-width:620px;line-height:1.65}
+@media(max-width:1000px){.servers-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.servers-hero{align-items:flex-start}.servers-hero-mark{width:54px;height:54px;flex-basis:54px;border-radius:16px}.servers-hero-mark svg{width:28px;height:28px}.servers-plans{grid-template-columns:1fr}.servers-plan{padding:18px}.servers-price{margin:10px 0 14px}}
+
+.servers-team{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 24px;margin:16px 0 22px;border-color:#3c342d;background:linear-gradient(120deg,#211b17,#17171b)}.servers-team h3{font-size:18px;margin-bottom:5px}.servers-team p{line-height:1.6}.servers-team .btn{flex-shrink:0}
+@media(max-width:620px){.servers-team{align-items:stretch;flex-direction:column}.servers-team .btn{width:100%}}
