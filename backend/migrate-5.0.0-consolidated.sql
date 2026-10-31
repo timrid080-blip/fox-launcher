@@ -804,7 +804,7 @@ begin
  end if;
  if p_op='add' then
    hours:=nullif(p_data->>'duration_hours','')::integer;
-   if hours not in (1,24,72,168,720) then raise exception 'Выбери срок: 1, 24, 72, 168 или 720 часов'; end if;
+   if hours is null or hours not in (1,24,72,168,720) then raise exception 'Выбери срок: 1, 24, 72, 168 или 720 часов'; end if;
    if length(trim(coalesce(p_data->>'name','')))<2 or length(trim(coalesce(p_data->>'address','')))<3 then raise exception 'Укажи название и адрес сервера'; end if;
    if length(coalesce(p_data->>'description',''))>1000 or length(coalesce(p_data->>'website',''))>240 then raise exception 'Описание или ссылка слишком длинные'; end if;
    insert into public.fox_server_catalog(name,address,version,description,website,created_by,starts_at,ends_at)
