@@ -103,20 +103,19 @@ test('Ctrl+Shift+A restores the legacy news admin and the cinematic counter roll
 });
 
 
-test('Fox Launcher 5.0 Android project provides Fox ID auth and owner-only server checks', () => {
+test('Fox Launcher 5.0 Android project provides the account-only mobile cabinet', () => {
   const android = read('android/app/src/main/java/com/foxbro/launcher/MainActivity.kt');
   const manifest = read('android/app/src/main/AndroidManifest.xml');
   const gradle = read('android/app/build.gradle.kts');
   const workflow = read('.github/workflows/android.yml');
-  assert.match(android, /auth\/v1\/signup/);
-  assert.match(android, /auth\/v1\/token\?grant_type=password/);
-  assert.match(android, /state\.optBoolean\("is_admin"\)/);
+  assert.match(android, /auth\\/v1\\/signup/);
+  assert.match(android, /auth\\/v1\\/token\\?grant_type=password/);
+  assert.match(android, /state\\.optBoolean\\("is_admin"\\)/);
   assert.match(android, /fox_owner_broadcast/);
-  assert.match(android, /Новости/);
-  assert.match(android, /Друзья и чаты/);
-  assert.match(android, /Звонки/);
-  assert.match(android, /Файлы/);
-  assert.match(manifest, /android\.permission\.INTERNET/);
-  assert.match(gradle, /versionName = "5\.0\.0"/);
+  assert.match(android, /Мобильная версия — кабинет аккаунта/);
+  assert.match(android, /paid_kopeks/);
+  assert.match(manifest, /android\\.permission\\.INTERNET/);
+  assert.match(gradle, /versionName = "5\\.0\\.0"/);
   assert.match(workflow, /assembleDebug/);
+  assert.match(android, /private fun loadAccountSummary/);
 });
