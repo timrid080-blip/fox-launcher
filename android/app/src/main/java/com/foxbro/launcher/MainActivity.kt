@@ -208,115 +208,53 @@ class MainActivity : Activity() {
         api("/rest/v1/rpc/$name", JSONObject().put("p_op", "get").put("p_data", data))
 
     private fun showDashboard() {
-        val outer = base("Добро пожаловать в Fox", "Версия 5.0 · мобильный клиент")
+        val outer = base("Fox ID", "Мобильный кабинет Fox Launcher 5.0")
         val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        val actions = listOf(
-            "Новости" to "news", "Моды и сборки" to "mods", "Друзья и чаты" to "chats",
-            "Звонки" to "calls", "Поддержка" to "support", "Задания и достижения" to "quests",
-            "Аккаунты" to "accounts", "Настройки" to "settings", "Файлы" to "files"
-        )
-        val intro = TextView(this).apply {
-            text = "Fox Launcher выходит за пределы ПК. Выбери раздел ниже. Доступные функции подключаются через Fox ID."
-            textSize = 14f; setTextColor(muted); setPadding(0, dp(8), 0, dp(16))
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(18), dp(18), dp(18))
+            background = shape(panel, 16)
         }
-        content.addView(intro)
-        actions.forEach { (label, route) ->
-            content.addView(button(label + "   ›") { showSection(label, route) })
-            gap(content, 8)
-        }
+        val nickname = TextView(this).apply { text = "Загружаем профиль…"; textSize = 22f; setTextColor(white); typeface = Typeface.DEFAULT_BOLD }
+        val email = TextView(this).apply { textSize = 13f; setTextColor(muted) }
+        val balance = TextView(this).apply { textSize = 14f; setTextColor(white) }
+        card.addView(nickname); gap(card, 5); card.addView(email); gap(card, 14); card.addView(balance)
+        content.addView(card); gap(content, 14)
+        message(content, "Мобильная версия — кабинет аккаунта: профиль Fox ID и балансы. Запуск Minecraft, моды и игровые инструменты остаются в версии для ПК.")
+        val status = TextView(this).apply { textSize = 13f; setTextColor(muted) }
+        content.addView(status); gap(content, 8)
+        content.addView(button("Обновить данные", true) { loadAccountSummary(nickname, email, balance, status) })
+        gap(content, 8)
         content.addView(button("Выйти из аккаунта") {
             prefs.edit().remove("access_token").remove("refresh_token").remove("expires_at").apply()
             showWelcome()
         })
         outer.addView(scroll(content), LinearLayout.LayoutParams(-1, 0, 1f))
         setContentView(outer)
-        loadProfileCheck()
+        loadAccountSummary(nickname, email, balance, status)
     }
 
-    private fun loadProfileCheck() {
+    private fun loadAccountSummary(nickname: TextView, email: TextView, balance: TextView, status: TextView) {
+        if (busy) return
+        busy = true; status.text = "Обновляем данные Fox ID…"
         thread {
             try {
                 val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
-                if (state.optBoolean("is_admin")) runOnUiThread {
-                    val note = TextView(this).apply { text = "Владелец · расширенные инструменты доступны"; setTextColor(orange); textSize = 12f }
-                    val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
-                    val parent = if (rootView is ScrollView) rootView.getChildAt(0) as? ViewGroup else rootView as? ViewGroup
-                    parent?.let {
-                        it.addView(note)
-                        val ownerButton = button("Инструменты владельца  ›") { showOwnerTools() }
-                        ownerButton.tag = "owner-tools"
-                        it.addView(ownerButton)
-                    }
+                val profile = state.optJSONObject("profile") ?: JSONObject()
+                val wallet = state.optJSONObject("wallet") ?: JSONObject()
+                val nick = profile.optString("nickname", "Игрок Fox")
+                val mail = profile.optString("email", "")
+                val foxes = wallet.optLong("foxes", 0)
+                val pumpkins = wallet.optLong("pumpkins", 0)
+                val rubles = wallet.optLong("paid_kopeks", 0) / 100.0
+                runOnUiThread {
+                    nickname.text = nick
+                    email.text = if (mail.isBlank()) "Fox ID подключён" else mail
+                    balance.text = "🦊 Фоксы: $foxes    🎃 Тыквы: $pumpkins\nУчётный баланс: $rubles ₽"
+                    status.text = if (state.optBoolean("is_admin")) "Статус: владелец Fox" else "Статус: аккаунт подключён"
+                    busy = false
                 }
-            } catch (_: Exception) { }
-        }
-    }
-
-
-    private fun showOwnerTools() {
-        val box = base("Инструменты владельца", "Этот раздел доступен только аккаунту владельца Fox.")
-        val title = field("Заголовок объявления")
-        val body = field("Текст объявления")
-        box.addView(title); gap(box); box.addView(body); gap(box)
-        box.addView(button("Опубликовать объявление", true) {
-            thread {
-                try {
-                    val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
-                    if (!state.optBoolean("is_admin")) throw IllegalStateException("Нет прав владельца.")
-                    api("/rest/v1/rpc/fox_owner_broadcast", JSONObject().put("p_title", title.text.toString()).put("p_body", body.text.toString()))
-                    runOnUiThread { Toast.makeText(this, "Объявление отправлено", Toast.LENGTH_LONG).show() }
-                } catch (e: Exception) {
-                    runOnUiThread { Toast.makeText(this, e.message ?: "Не удалось опубликовать", Toast.LENGTH_LONG).show() }
-                }
+            } catch (e: Exception) {
+                runOnUiThread { status.text = e.message ?: "Не удалось обновить профиль"; busy = false }
             }
-        })
-        gap(box); box.addView(button("Назад") { showDashboard() })
-        setContentView(scroll(box))
-    }
-
-    private fun showSection(label: String, route: String) {
-        page = label
-        val box = base(label, "Fox Launcher 5.0 · мобильный раздел")
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = shape(panel, 16)
         }
-        val info = when (route) {
-            "news" -> "Новости Fox Launcher будут загружаться из подключённой ленты."
-            "mods" -> "Моды и сборки: каталог, версии Minecraft и совместимость."
-            "chats" -> "Друзья, личные сообщения и группы."
-            "calls" -> "Голосовые и видеозвонки. На Android потребуются разрешения микрофона и камеры."
-            "support" -> "Создание обращения и переписка с поддержкой."
-            "quests" -> "Задания, награды и достижения."
-            "accounts" -> "Профиль Fox ID и подключённые игровые аккаунты."
-            "settings" -> "Настройки приложения и уведомлений."
-            else -> "Файлы и доступные загрузки."
-        }
-        message(card, info)
-        val result = TextView(this).apply { textSize = 13f; setTextColor(white) }
-        card.addView(result)
-        box.addView(card)
-        box.addView(button("Обновить раздел", true) {
-            thread {
-                try {
-                    val action = when (route) {
-                        "chats" -> "friend_chat"
-                        "support" -> "support_list"
-                        else -> route
-                    }
-                    val response = if (action == "friend_chat") {
-                        api("/rest/v1/rpc/fox_friend_chat", JSONObject().put("p_op", "list").put("p_data", JSONObject()))
-                    } else {
-                        api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", action).put("p_data", JSONObject()))
-                    }
-                    runOnUiThread { result.text = response.toString(2).take(5000) }
-                } catch (e: Exception) {
-                    runOnUiThread { result.text = e.message ?: "Сервис временно недоступен" }
-                }
-            }
-        })
-        gap(box)
-        box.addView(button("Назад") { showDashboard() })
-        setContentView(scroll(box))
     }
-}
