@@ -231,6 +231,44 @@ class MainActivity : Activity() {
         outer.addView(scroll(content), LinearLayout.LayoutParams(-1, 0, 1f))
         setContentView(outer)
         loadAccountSummary(nickname, email, balance, status)
+        loadProfileCheck()
+    }
+
+    private fun loadProfileCheck() {
+        thread {
+            try {
+                val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
+                if (state.optBoolean("is_admin")) runOnUiThread {
+                    val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+                    val parent = if (rootView is ScrollView) rootView.getChildAt(0) as? ViewGroup else rootView as? ViewGroup
+                    parent?.let {
+                        val ownerButton = button("Инструменты владельца  ›") { showOwnerTools() }
+                        it.addView(ownerButton)
+                    }
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun showOwnerTools() {
+        val box = base("Инструменты владельца", "Только для владельца Fox ID.")
+        val title = field("Заголовок объявления")
+        val body = field("Текст объявления")
+        box.addView(title); gap(box); box.addView(body); gap(box)
+        box.addView(button("Опубликовать объявление", true) {
+            thread {
+                try {
+                    val state = api("/rest/v1/rpc/fox_action", JSONObject().put("p_action", "state").put("p_data", JSONObject()))
+                    if (!state.optBoolean("is_admin")) throw IllegalStateException("Нет прав владельца.")
+                    api("/rest/v1/rpc/fox_owner_broadcast", JSONObject().put("p_title", title.text.toString()).put("p_body", body.text.toString()))
+                    runOnUiThread { Toast.makeText(this, "Объявление отправлено", Toast.LENGTH_LONG).show() }
+                } catch (e: Exception) {
+                    runOnUiThread { Toast.makeText(this, e.message ?: "Не удалось опубликовать", Toast.LENGTH_LONG).show() }
+                }
+            }
+        })
+        gap(box); box.addView(button("Назад") { showDashboard() })
+        setContentView(scroll(box))
     }
 
     private fun loadAccountSummary(nickname: TextView, email: TextView, balance: TextView, status: TextView) {
