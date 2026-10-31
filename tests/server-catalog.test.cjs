@@ -21,3 +21,14 @@ test('OptiFine action points to the official catalog and warns for non-Forge ins
   assert.match(app, /https:\/\/optifine\.net\/downloads/);
   assert.match(app, /if\(i\.loader!=='forge'\)throw new Error\('Для этой сборки OptiFine не подходит/);
 });
+
+test('OptiFine can be discovered and downloaded from the official catalog', () => {
+  const optifine = fs.readFileSync(path.join(root, 'core/optifine.js'), 'utf8');
+  const main = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
+  assert.match(optifine, /https:\/\/optifine\.net\/downloads/);
+  assert.match(optifine, /pathname !== '\/adloadx'/);
+  assert.match(optifine, /pathname === '\/downloadx'/);
+  assert.match(optifine, /module\.exports = \{ detectVersion, inspect, findOfficialRelease, downloadOfficial, install \}/);
+  assert.match(main, /async downloadAndInstallOptiFine\(id\)/);
+  assert.match(app, /downloadAndInstallOptiFine/);
+});
