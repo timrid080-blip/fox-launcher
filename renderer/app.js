@@ -376,21 +376,21 @@
   }
   function validMinecraftAddress(value){
     const input=String(value||'').trim();
-    if(!input||input.length>260||/\\s/.test(input)||['<','>','/','\\\\','@','?','#'].some(ch=>input.includes(ch)))return false;
+    if(!input||input.length>260||/\s/.test(input)||['<','>','/','\\','@','?','#'].some(ch=>input.includes(ch)))return false;
     let host=input,port='';
     if(input.startsWith('[')){
-      const match=input.match(/^\\[([0-9a-f:.]+)\\](?::(\\d{1,5}))?$/i);
+      const match=input.match(/^\[([0-9a-f:.]+)\](?::(\d{1,5}))?$/i);
       if(!match)return false;
       try{new URL('http://['+match[1]+']');}catch{return false;}
       port=match[2]||'';
     }else{
       const colon=input.lastIndexOf(':');
-      if(colon>=0){if(input.indexOf(':')!==colon)return false;host=input.slice(0,colon);port=input.slice(colon+1);if(!/^\\d{1,5}$/.test(port))return false;}
-      if(/^\\d{1,3}(?:\\.\\d{1,3}){3}$/.test(host)){
+      if(colon>=0){if(input.indexOf(':')!==colon)return false;host=input.slice(0,colon);port=input.slice(colon+1);if(!/^\d{1,5}$/.test(port))return false;}
+      if(/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)){
         if(host.split('.').some(part=>Number(part)>255))return false;
       }else{
         if(host.length>253||!host.includes('.'))return false;
-        const labels=host.replace(/\\.$/,'').split('.');
+        const labels=host.replace(/\.$/,'').split('.');
         if(labels.some(label=>!label||label.length>63||!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(label)))return false;
       }
     }
