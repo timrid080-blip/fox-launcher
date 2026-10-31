@@ -374,26 +374,49 @@
     try{const response=await call('cloudAction','servers_list',{});const rows=Array.isArray(response)?response:Array.isArray(response?.items)?response.items:Array.isArray(response?.servers)?response.servers:[];box.innerHTML=rows.length?rows.map(s=>`<article class="card servers-entry"><div class="row wrap"><div class="list-copy"><h3>${esc(s.name)}</h3><p class="dim">${esc(s.version||'Minecraft')} · ${esc(s.address)}</p></div><span class="badge">Реклама</span></div><p>${esc(s.description||'')}</p>${s.website?`<a href="${esc(s.website)}" target="_blank" rel="noopener">Сайт / сообщество</a>`:''}<p class="dim">Размещение до ${new Date(s.ends_at).toLocaleString('ru-RU')}</p></article>`).join(''):'<div class="card servers-empty"><div class="servers-empty-icon">'+icon('server')+'</div><h3>Пока нет активных серверов</h3><p class="dim">Одобренные владельцем серверы появятся здесь.</p></div>';}
     catch(err){box.innerHTML='<div class="notice">Не удалось загрузить каталог: '+esc(err.message||'ошибка сервера')+'. Проверь применение миграции 5.0.0.</div>';}
   }
+  function validMinecraftAddress(value){
+    const input=String(value||'').trim();
+    if(!input||input.length>260||/[\\s<>/\\\\@?#]/.test(input))return false;
+    let host=input,port='';
+    if(input.startsWith('[')){
+      const match=input.match(/^\\[([0-9a-f:.]+)\\](?::(\\d{1,5}))?$/i);
+      if(!match)return false;
+      try{new URL('http://['+match[1]+']');}catch{return false;}
+      port=match[2]||'';
+    }else{
+      const colon=input.lastIndexOf(':');
+      if(colon>=0){if(input.indexOf(':')!==colon)return false;host=input.slice(0,colon);port=input.slice(colon+1);if(!/^\\d{1,5}$/.test(port))return false;}
+      if(/^\\d{1,3}(?:\\.\\d{1,3}){3}$/.test(host)){
+        if(host.split('.').some(part=>Number(part)>255))return false;
+      }else{
+        if(host.length>253||!host.includes('.'))return false;
+        const labels=host.replace(/\\.$/,'').split('.');
+        if(labels.some(label=>!label||label.length>63||!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(label)))return false;
+      }
+    }
+    return !port||(Number(port)>=1&&Number(port)<=65535);
+  }
   function serverTeamDialog(){
     const m=modal('Заявка в команду Fox',`<label class="field">Как к тебе обращаться<input class="input" id="teamName" maxlength="80" placeholder="Имя или ник" required></label>
       <label class="field">Желаемая роль<select class="input" id="teamRole"><option value="Модератор">Модератор</option><option value="Разработчик">Разработчик</option><option value="Дизайнер">Дизайнер</option><option value="Помощник поддержки">Помощник поддержки</option><option value="Строитель Minecraft">Строитель Minecraft</option><option value="Другое">Другое</option></select></label>
+      <label class="field">Готов рассмотреть другую роль?<select class="input" id="teamFlexible"><option value="Да">Да, если команда предложит</option><option value="Нет">Нет, только выбранная роль</option></select></label>
       <label class="field">Опыт и навыки<textarea class="input" id="teamExperience" rows="4" maxlength="1200" placeholder="Расскажи о своём опыте и чем можешь помочь" required></textarea></label>
       <label class="field">Контакт для ответа (необязательно)<input class="input" id="teamContact" maxlength="160" placeholder="Discord или Telegram"></label>
-      <p class="dim">Заявка поступит в поддержку Fox на рассмотрение. Не указывай пароль или другие секретные данные.</p>`,[
+      <p class="dim">Заявка поступит владельцу и команде на рассмотрение. Выбранная роль не выдаётся автоматически. Не указывай пароль или другие секретные данные.</p>`,[
       {text:'Отмена',run:m=>m.close()},
       {text:'Отправить заявку',primary:true,run:async m=>{
-        const val=id=>m.q('#'+id).value.trim(),name=val('teamName'),role=val('teamRole'),experience=val('teamExperience'),contact=val('teamContact');
+        const val=id=>m.q('#'+id).value.trim(),name=val('teamName'),role=val('teamRole'),flexible=val('teamFlexible'),experience=val('teamExperience'),contact=val('teamContact');
         if(name.length<2)throw new Error('Укажи имя или игровой ник');
         if(experience.length<10)throw new Error('Расскажи немного подробнее о своём опыте');
-        await call('cloudAction','support_create',{title:'Заявка в команду Fox — '+role,body:['Заявка на вступление в команду Fox Launcher','Имя/ник: '+name,'Роль: '+role,'Опыт и навыки: '+experience,'Контакт: '+(contact||'не указан'),'Статус: ожидает рассмотрения'].join('\\n')});
-        m.close();toast('Заявка отправлена в поддержку Fox','ok');
+        await call('cloudAction','support_create',{title:'Заявка в команду Fox — '+role,body:['Заявка на вступление в команду Fox Launcher','Имя/ник: '+name,'Запрошенная роль: '+role,'Готов рассмотреть другую роль: '+flexible,'Опыт и навыки: '+experience,'Контакт: '+(contact||'не указан'),'Статус: ожидает решения владельца'].join('\\n')});
+        m.close();toast('Заявка отправлена на рассмотрение','ok');
       }}],true);
   }
   function serverSponsorDialog(plan){
     if(!plan)return;
     const m=modal('Заявка на спонсорское размещение',`<div class="notice">Тариф: <b>${plan.label} · ${plan.price.toLocaleString('ru-RU')} ₽</b>. Это заявка, а не подтверждение оплаты.</div>
       <label class="field">Название сервера<input class="input" id="sponsorName" maxlength="80" placeholder="Например, Fox SMP" required></label>
-      <label class="field">IP или адрес подключения<input class="input" id="sponsorAddress" maxlength="180" placeholder="play.example.net" required></label>
+      <label class="field">IP или адрес подключения<input class="input" id="sponsorAddress" maxlength="260" placeholder="play.example.net:25565" required></label>
       <div class="form-grid"><label class="field">Версия Minecraft<input class="input" id="sponsorVersion" maxlength="40" placeholder="1.21.11"></label><label class="field">Сайт / Discord (необязательно)<input class="input" id="sponsorLink" maxlength="240" placeholder="https://…"></label></div>
       <label class="field">Краткое описание<textarea class="input" id="sponsorDescription" rows="4" maxlength="1000" placeholder="Режимы, особенности и правила сервера"></textarea></label>
       <label class="field">Ссылка на логотип (необязательно)<input class="input" id="sponsorLogo" maxlength="500" placeholder="https://…/logo.png"></label>
@@ -403,7 +426,7 @@
         const val=id=>m.q('#'+id).value.trim();
         const name=val('sponsorName'),address=val('sponsorAddress'),version=val('sponsorVersion'),link=val('sponsorLink'),description=val('sponsorDescription'),logo=val('sponsorLogo');
         if(name.length<2)throw new Error('Укажи название сервера');
-        if(address.length<3||/[\\s<>]/.test(address))throw new Error('Проверь адрес сервера');
+        if(!validMinecraftAddress(address))throw new Error('Укажи корректный домен, IPv4/IPv6 и необязательный порт (1–65535)');
         for(const [label,url] of [['Сайт/Discord',link],['Логотип',logo]])if(url&&!safeUrl(url))throw new Error(label+': укажи корректную HTTPS-ссылку');
         const body=['Заявка на спонсорское размещение серверов Fox Launcher','Тариф: '+plan.label+' — '+plan.price+' RUB','Сервер: '+name,'Адрес: '+address,'Версия Minecraft: '+(version||'не указана'),'Ссылка: '+(link||'не указана'),'Логотип: '+(logo||'не указан'),'Описание: '+(description||'не указано'),'Статус оплаты: НЕ ОПЛАЧЕНО — требуется ручная проверка'].join('\\n');
         await call('cloudAction','support_create',{title:'Спонсорское размещение: '+name,body});
