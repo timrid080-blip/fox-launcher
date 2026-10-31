@@ -357,6 +357,24 @@ const api = {
   // сборки
   scanModCompatibility: async id => { const inst=(await getInstances()).find(x=>x.id===id); if(!inst)throw new Error('Сборка не найдена'); return compatibility.scanMods(instDir(id),{loader:inst.loader,mc:inst.mc}); },
   async installOptiFine(id) { idle(id); const inst=(await getInstances()).find(x=>x.id===id);if(!inst)throw new Error('Сборка не найдена');const r=await dialog.showOpenDialog(win,{title:'Выбери OptiFine JAR',properties:['openFile'],filters:[{name:'Java archive',extensions:['jar']}]});if(r.canceled)return false;const info=await optifine.inspect(r.filePaths[0],inst.mc,inst.loader);const confirm=await dialog.showMessageBox(win,{type:'warning',title:'Установка OptiFine',message:`Minecraft ${info.version} · ${Math.ceil(info.bytes/1024)} КБ`,detail:'JAR-моды исполняют код внутри Minecraft. Продолжай только если файл получен из доверенного источника. OptiFine на Forge совместим не со всеми версиями и модами.',buttons:['Отмена','Установить'],defaultId:0,cancelId:0});if(confirm.response!==1)return false;await optifine.install(r.filePaths[0],path.join(instDir(id),'mods'),inst.mc,inst.loader);return true; },
+  async downloadAndInstallOptiFine(id) {
+    idle(id);
+    const inst = (await getInstances()).find(x => x.id === id);
+    if (!inst) throw new Error('Сборка не найдена');
+    if (String(inst.loader).toLowerCase() !== 'forge') throw new Error('OptiFine как мод поддерживается только в сборках Forge. Для NeoForge, Fabric и Quilt выбери другой графический мод.');
+    const release = await optifine.findOfficialRelease(inst.mc);
+    const confirm = await dialog.showMessageBox(win, {
+      type: 'warning', title: 'Официальный OptiFine',
+      message: `Найден ${release.fileName}`,
+      detail: 'Файл будет загружен с официального сайта OptiFine и помещён в mods выбранной сборки. JAR-моды исполняют код внутри Minecraft. Продолжить?',
+      buttons: ['Отмена', 'Скачать и установить'], defaultId: 0, cancelId: 0
+    });
+    if (confirm.response !== 1) return false;
+    const file = await optifine.downloadOfficial(release, path.join(ROOT, 'cache', 'optifine'));
+    const info = optifine.inspect(file, inst.mc, inst.loader);
+    await optifine.install(file, path.join(instDir(id), 'mods'), inst.mc, inst.loader);
+    return { installed: true, version: info.version, file: release.fileName };
+  },
   getInstances,
   async createInstance(data) {
     validateInstance(data);
