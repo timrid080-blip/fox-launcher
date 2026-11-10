@@ -596,7 +596,8 @@
       '<div class="fox-wait-step"><b>3</b><span><strong>Вернись в Fox Launcher</strong><small>Мы автоматически проверим статус и войдём в аккаунт.</small></span></div></div>'+
       '<div class="fox-wait-status" id="foxWaitStatus"><span class="fox-wait-spinner"></span> Ожидаем подтверждения…</div>'+
       '<button class="btn fox-wait-resend" id="foxWaitCheck">Я уже подтвердил — проверить сейчас</button>'+
-      '<small class="fox-wait-foot">Не закрывай это окно: после подтверждения вход выполнится автоматически.</small></div>';
+      '<div class="fox-wait-actions"><button class="btn" id="foxWaitChangeEmail" type="button">Изменить Email</button><button class="btn ghost" id="foxWaitCancel" type="button">Отмена</button></div>'+
+      '<small class="fox-wait-foot">После подтверждения вход выполнится автоматически. Можно изменить адрес или отменить регистрацию в этом окне.</small></div>';
     m.q('.fox-wait-email').textContent=email;
     const check=async()=>{
       if(finished||checking)return;
@@ -618,6 +619,17 @@
       }finally{checking=false;}
     };
     m.q('#foxWaitCheck')?.addEventListener('click',check);
+    m.q('#foxWaitChangeEmail')?.addEventListener('click',()=>{
+      if(finished)return;
+      finished=true;if(timer)clearInterval(timer);
+      closeOriginal();
+      foxLoginDialog(true);
+    });
+    m.q('#foxWaitCancel')?.addEventListener('click',()=>{
+      if(finished)return;
+      finished=true;if(timer)clearInterval(timer);
+      closeOriginal();
+    });
     timer=setInterval(check,20000);
   }
   async function extraSettings(e){const s=S.settings;const box=document.createElement('div');box.className='set-group';box.innerHTML=foxTabs('profile-settings')+`<h3>Твой стиль и удобство</h3><div class="set-item"><label class="field">Цвет интерфейса<input type="color" id="accentColor" value="${/^#[\da-f]{6}$/i.test(s.accent)?s.accent:'#ff7a1a'}"></label><div class="row wrap">${['#ff7a1a','#a174ff','#39c9bb','#ff5b85','#529bff'].map(c=>`<button class="color-choice" data-accent="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div></div><div class="set-item"><label class="row"><input type="checkbox" id="clubSounds" ${s.sounds!==false?'checked':''}> Звуки лаунчера</label><input type="range" id="clubVolume" min="0" max="100" value="${Math.round((s.soundVolume??.25)*100)}" aria-label="Громкость">${btn('soundTest','Послушать','','sm')}</div><div class="set-item"><label class="row"><input type="checkbox" id="clubEvents" ${s.eventTheme!==false?'checked':''}> Оформление активного праздничного ивента</label></div><div class="set-item">${btn('saveStyle','Сохранить оформление','check','primary')}${btn('desktopShortcut','Ярлык на рабочий стол','plus')}</div><div class="set-item"><div class="l"><b>Обновления лаунчера</b><small id="updateStatus">Проверка подключения…</small></div>${btn('updateCheck','Проверить','refresh','sm')}${btn('updateInstall','Установить','','sm primary')}</div><small class="dim">Обновления сохраняют твои сборки, миры и аккаунты. Для переносной версии доступна загрузка новой версии.</small>`;e.append(box);bind('#saveStyle',async()=>{await settings({accent:$('#accentColor',box).value,sounds:$('#clubSounds',box).checked,soundVolume:+$('#clubVolume',box).value/100,eventTheme:$('#clubEvents',box).checked});applyAppearance();toast('Оформление сохранено','ok');},box);$$('[data-accent]',box).forEach(b=>b.onclick=()=>{$('#accentColor',box).value=b.dataset.accent;});bind('#soundTest',()=>{const old=S.settings.soundVolume,enabled=S.settings.sounds;S.settings.soundVolume=+$('#clubVolume',box).value/100;S.settings.sounds=true;sound('achievement');S.settings.soundVolume=old;S.settings.sounds=enabled;},box);bind('#desktopShortcut',async()=>{await call('createDesktopShortcut');toast('Ярлык добавлен на рабочий стол','ok');},box);function showUpdate(u){const t={unconfigured:'Проверка обновлений пока недоступна',manual:u.reason,'no-release':u.reason||'В GitHub пока нет опубликованного релиза',available:'Доступна версия '+u.version+' — скачивание через колокольчик',checking:'Проверка…',current:'Установлена последняя версия',downloading:'Загрузка '+(u.version||'')+(u.percent?' · '+Math.round(u.percent)+'%':''),ready:'Доступно обновление '+u.version,error:u.message};$('#updateStatus',box).textContent=t[u.state]||u.state;$('#updateInstall',box).hidden=u.state!=='ready';}showUpdate(await call('updateStatus'));bind('#updateCheck',async()=>{const u=await call('checkUpdates');showUpdate(u);if(u.state==='manual'&&u.url)await call('openExternal',u.url);},box);bind('#updateInstall',()=>call('installUpdate'),box);}
