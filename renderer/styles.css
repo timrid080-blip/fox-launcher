@@ -1054,3 +1054,8 @@ body[data-compact="1"] .section-title{margin-top:19px}
 .guard-result.error{border-color:#d866664c;background:#d866660b}.guard-result.warning{border-color:#d9a44d45;background:#d9a44d08}
 .guard-result b{font-size:12px}.guard-result p{margin:6px 0;color:var(--text);font-size:13px}.guard-result small{color:var(--muted);font-size:11px}
 @media(max-width:650px){.home-guard-card{align-items:flex-start;flex-direction:column}.home-guard-card .btn{width:100%}.guard-summary{align-items:flex-start;flex-direction:column}}
+
+
+.cinema-skip{position:absolute;top:22px;right:26px;z-index:12;display:inline-flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #ffffff35;border-radius:10px;background:#111217bd;color:#f5f3f0;font:600 12px inherit;cursor:pointer;backdrop-filter:blur(12px);transition:background .15s,border-color .15s}
+.cinema-skip:hover{background:#2a201a;border-color:#ff9b4a88}.cinema-skip span{padding:3px 6px;border:1px solid #ffffff35;border-radius:5px;color:#ffbd83;font-size:10px}
+@media(max-width:600px){.cinema-skip{top:12px;right:12px;padding:8px 10px}}
