@@ -431,7 +431,7 @@ const api = {
 
   // java
   findJavas: () => java.findJavas(ROOT),
-  async downloadJava(major) { return java.downloadJava(ROOT, +major, p => send('progress', { ...p, scope: 'java' })); },
+  async downloadJava(major) { try { const result = await java.downloadJava(ROOT, +major, p => send('progress', { ...p, scope: 'java' })); send('progress', { scope: 'java', text: 'Java установлена', done: 1, total: 1, complete: true }); return result; } catch (e) { send('progress', { scope: 'java', text: e.message, failed: true }); throw e; } },
   async pickJava() {
     const r = await dialog.showOpenDialog(win, { title: 'Выберите java.exe / javaw.exe', properties: ['openFile'], filters: process.platform === 'win32' ? [{ name: 'Java', extensions: ['exe'] }] : [] });
     if (r.canceled) return null;
@@ -469,9 +469,11 @@ const api = {
         if ((await getSettings()).selectedInstance === inst.id) await saveSettings({ selectedInstance: previous });
         throw e;
       }
-      send('progress', { text: 'Сборка установлена — можно играть', done: 1, total: 1 });
+      send('progress', { scope: 'modpack', text: 'Сборка установлена — можно играть', done: 1, total: 1, complete: true });
+      if(inst)send('progress', { scope: 'modpack', instanceId: inst.id, text: 'Сборка установлена — можно играть', done: 1, total: 1, complete: true });
       return inst;
-    } finally { installingMods.delete(lock); if (inst) installingMods.delete(inst.id); }
+    } catch (e) { send('progress', { scope: 'modpack', text: e.message, failed: true }); if(inst?.id)send('progress', { scope: 'modpack', instanceId: inst.id, text: e.message, failed: true }); throw e; }
+    finally { installingMods.delete(lock); if (inst) installingMods.delete(inst.id); }
   },
 
   // моды
@@ -481,9 +483,10 @@ const api = {
     const inst = (await getInstances()).find(x => x.id === instanceId);
     if (!inst) throw new Error('Выберите сборку');
     idle(instanceId); installingMods.add(instanceId);
-    try { return await modrinth.install(instDir(instanceId), projectId, { gameVersion: inst.mc, loader: inst.loader === 'vanilla' ? null : inst.loader, ...opts,
-      onProgress: p => send('progress', { ...p, scope: 'mods', instanceId }) });
-    } finally { installingMods.delete(instanceId); }
+    try { const result = await modrinth.install(instDir(instanceId), projectId, { gameVersion: inst.mc, loader: inst.loader === 'vanilla' ? null : inst.loader, ...opts,
+      onProgress: p => send('progress', { ...p, scope: 'mods', instanceId }) }); send('progress', { scope: 'mods', instanceId, text: 'Мод установлен', done: 1, total: 1, complete: true }); return result;
+    } catch (e) { send('progress', { scope: 'mods', instanceId, text: e.message, failed: true }); throw e; }
+    finally { installingMods.delete(instanceId); }
   },
   async installedNames(instanceId, type) {
     const dir = path.join(instDir(instanceId), modrinth.FOLDERS[type] || 'mods');
