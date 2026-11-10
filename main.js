@@ -456,13 +456,13 @@ const api = {
         buttons: ['Отмена', 'Установить'], defaultId: 0, cancelId: 0 });
       if (r.response !== 1) return null;
       await java.ensureJava(ROOT, await versions.resolveVersion(ROOT, info.instance.mc), {
-        customPath: (await getSettings()).javaPath, onProgress: p => send('progress', p),
+        customPath: (await getSettings()).javaPath, onProgress: p => send('progress', { ...p, scope: 'modpack' }),
       });
       const previous = (await getSettings()).selectedInstance;
       inst = await api.createInstance(info.instance);
       installingMods.add(inst.id);
       try {
-        await modpacks.install(info, instDir(inst.id), p => send('progress', p));
+        await modpacks.install(info, instDir(inst.id), p => send('progress', { ...p, scope: 'modpack', instanceId: inst.id }));
       } catch (e) {
         await fsp.rm(instDir(inst.id), { recursive: true, force: true });
         await saveInstances((await getInstances()).filter(i => i.id !== inst.id));
@@ -482,7 +482,7 @@ const api = {
     if (!inst) throw new Error('Выберите сборку');
     idle(instanceId); installingMods.add(instanceId);
     try { return await modrinth.install(instDir(instanceId), projectId, { gameVersion: inst.mc, loader: inst.loader === 'vanilla' ? null : inst.loader, ...opts,
-      onProgress: p => send('toast', p.text) });
+      onProgress: p => send('progress', { ...p, scope: 'mods', instanceId }) });
     } finally { installingMods.delete(instanceId); }
   },
   async installedNames(instanceId, type) {
