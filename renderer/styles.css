@@ -1227,3 +1227,44 @@ textarea{line-height:1.55}
 #page-home .home-footer-note{border-top:1px solid rgba(132,153,184,.1);padding-top:15px}
 @media(max-width:900px){#page-home .home-copy{max-width:100%}#page-home .home-orbit{opacity:.28;right:4%}#page-home .home-aurora{padding:28px;min-height:350px}}
 @media(max-width:560px){#page-home .home-copy h2{font-size:34px}#page-home .home-aurora{padding:22px;min-height:390px}#page-home .home-orbit{right:10px;top:190px;width:125px;height:125px}#page-home .home-orbit img{width:62px;height:62px}}
+
+
+/* FOX 4.0 — distinct visual treatments for builds, social, support and admin workspaces */
+#page-instances .inst-grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+#page-instances .inst{position:relative;overflow:hidden;padding:21px;border-radius:19px;background:linear-gradient(155deg,#1b2432 0%,#151b25 65%,#17191f 100%);border-color:rgba(132,153,184,.16)}
+#page-instances .inst:before{content:"";position:absolute;right:-55px;top:-65px;width:155px;height:155px;border-radius:50%;background:radial-gradient(circle,rgba(255,132,46,.09),transparent 68%);pointer-events:none}
+#page-instances .inst .top{position:relative;z-index:1;gap:14px}
+#page-instances .inst .ava{width:54px;height:54px;border-radius:15px!important;display:grid;place-items:center;background:#101620!important;border:1px solid rgba(132,153,184,.2);color:#ffad63}
+#page-instances .inst .ava .instance-loader-icon svg{width:24px;height:24px}
+#page-instances .inst h4{font-size:17px;font-weight:750;letter-spacing:-.35px}
+#page-instances .inst .tags{gap:6px;margin-top:6px}
+#page-instances .inst .info{position:relative;display:flex;justify-content:space-between;gap:8px;color:#91a0b5;font-size:11px;margin-top:5px}
+#page-instances .inst .acts{gap:7px;flex-wrap:wrap}
+#page-instances .inst .acts .btn.primary{flex:1;min-width:100px}
+#page-instances .inst>[data-act=export]{width:100%;margin-top:3px;border:1px solid rgba(132,153,184,.1);background:rgba(132,153,184,.035)}
+#page-modpacks .page-head{padding-bottom:13px;border-bottom:1px solid rgba(132,153,184,.1)}
+#page-modpacks .grid-3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+#page-modpacks .card{overflow:hidden;border-radius:18px;background:linear-gradient(155deg,#1b2432,#151b25);border-color:rgba(132,153,184,.15)}
+#page-modpacks .card img{border-radius:12px}
+#page-mods .page-head,#page-skins .page-head,#page-files .page-head{padding-bottom:12px;border-bottom:1px solid rgba(132,153,184,.1)}
+#page-friends .friend-row,#page-players .player-row{display:flex;align-items:center;gap:13px;border-radius:16px!important;background:linear-gradient(115deg,#192231,#151b25)!important;border-color:rgba(132,153,184,.15)!important;padding:14px 16px!important}
+#page-friends .friend-info{min-width:0;flex:1}
+#page-friends .friend-info b{font-size:14px;letter-spacing:-.15px}
+#page-friends .friend-actions .btn{height:34px;border-radius:10px}
+#page-friends .friend-chat-messages{padding:14px;border:1px solid rgba(132,153,184,.12);border-radius:17px;background:#101620}
+#page-friends .friend-chat-message{max-width:min(78%,560px);padding:10px 13px;border-radius:13px;background:#202b3b;border:1px solid rgba(132,153,184,.09);margin:6px 0}
+#page-support .ticket-toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+#page-support .ticket-row{padding:0!important;overflow:hidden;background:linear-gradient(125deg,#192231,#151b25)!important;border-color:rgba(132,153,184,.15)!important}
+#page-support .ticket-row-main{padding:15px 17px;display:flex;align-items:center;gap:12px}
+#page-support .ticket-thread{padding:17px;border-radius:17px;background:#101620;border:1px solid rgba(132,153,184,.12)}
+#page-support .ticket-message-head{font-size:11px;color:#93a1b5;margin-bottom:5px}
+#page-admin .admin-login{border-radius:22px;background:linear-gradient(150deg,#1b2432,#141a24);border:1px solid rgba(132,153,184,.18);box-shadow:0 24px 70px rgba(0,0,0,.25)}
+#page-admin .admin-section{border-radius:18px;background:linear-gradient(155deg,#1a2230,#141a24);border-color:rgba(132,153,184,.15)}
+#page-admin .admin-grid{gap:14px}
+#page-admin .admin-list-row{border-radius:12px;background:rgba(132,153,184,.045);border:1px solid rgba(132,153,184,.1);padding:11px 13px}
+#page-settings .set-group,#page-profile-settings .set-group{border-radius:18px;background:linear-gradient(155deg,#1a2230,#141a24);border-color:rgba(132,153,184,.15)}
+#page-settings .set-item,#page-profile-settings .set-item{padding:15px 0}
+#page-news .news-toolbar{padding:12px 14px;border:1px solid rgba(132,153,184,.12);border-radius:14px;background:#151b25}
+#page-news .news-featured{border-radius:22px;background:linear-gradient(125deg,rgba(255,132,46,.08),rgba(20,26,36,.92));border-color:rgba(255,132,46,.17)}
+#page-news .news-card{border-radius:17px;background:linear-gradient(155deg,#1b2432,#151b25);border-color:rgba(132,153,184,.15)}
+@media(max-width:760px){#page-instances .inst-grid,#page-modpacks .grid-3{grid-template-columns:1fr}#page-friends .friend-row{align-items:flex-start;flex-wrap:wrap}#page-friends .friend-actions{width:100%}}
