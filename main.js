@@ -444,7 +444,7 @@ const api = {
   openExternal: url => { if (/^https?:\/\//.test(url)) shell.openExternal(url); },
 
   // готовые сборки
-  async mpInstall(projectId, versionId) {
+  async mpInstall(projectId, versionId, withOptiFine = false) {
     if (launching.size || installingMods.size) throw new Error('Дождитесь окончания другой установки');
     const lock = 'modpack:' + crypto.randomUUID();
     installingMods.add(lock);
@@ -452,7 +452,7 @@ const api = {
     try {
       const info = await modpacks.prepare(ROOT, projectId, versionId);
       const r = await dialog.showMessageBox(win, { type: 'question', title: 'Установка сборки', message: info.instance.name,
-        detail: `Minecraft ${info.instance.mc} · ${info.instance.loader}\nБудет создана отдельная сборка. Ваши миры не изменятся.\nМоды могут выполнять код — устанавливайте сборки только от авторов, которым доверяете.`,
+        detail: `Minecraft ${info.instance.mc} · ${info.instance.loader}${withOptiFine ? ' · OptiFine' : ''}\nБудет создана отдельная сборка. Ваши миры не изменятся.\nМоды могут выполнять код — устанавливайте сборки только от авторов, которым доверяете.`,
         buttons: ['Отмена', 'Установить'], defaultId: 0, cancelId: 0 });
       if (r.response !== 1) return null;
       await java.ensureJava(ROOT, await versions.resolveVersion(ROOT, info.instance.mc), {
@@ -463,6 +463,14 @@ const api = {
       installingMods.add(inst.id);
       try {
         await modpacks.install(info, instDir(inst.id), p => send('progress', { ...p, scope: 'modpack', instanceId: inst.id }));
+        if (withOptiFine) {
+          if (String(info.instance.loader).toLowerCase() !== 'forge') throw new Error('OptiFine можно добавить только к Forge-сборке.');
+          const release = await optifine.findOfficialRelease(info.instance.mc);
+          send('progress', { scope: 'modpack', instanceId: inst.id, text: 'Скачивание OptiFine ' + release.fileName });
+          const file = await optifine.downloadOfficial(release, path.join(ROOT, 'cache', 'optifine'));
+          optifine.inspect(file, info.instance.mc, info.instance.loader);
+          await optifine.install(file, path.join(instDir(inst.id), 'mods'), info.instance.mc, info.instance.loader);
+        }
       } catch (e) {
         await fsp.rm(instDir(inst.id), { recursive: true, force: true });
         await saveInstances((await getInstances()).filter(i => i.id !== inst.id));
