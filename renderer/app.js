@@ -8,78 +8,6 @@
   let activeCall=null, callPollBusy=false, incomingPromptId=null;
   const callSeenIce={caller:0,callee:0};
   const callSignal=(op,payload={})=>call('cloudAction','call_signal',{op,payload});
-  let activeGroupCall=null;
-  const groupCallSignal=(op,payload={})=>call('cloudAction','group_call',{op,payload});
-  async function groupVoiceCall(id,name,join=false){
-    if(activeCall||activeGroupCall)throw new Error('Сначала заверши текущий звонок');
-    const me=S.cloud?.profile?.id;if(!me)throw new Error('Войди в Fox ID');
-    if(join)await groupCallSignal('join',{id});
-    const g={id,name,me,stream:null,peers:new Map(),since:0,timer:null,busy:false,ending:false,modal:null};
-    activeGroupCall=g;
-    try{
-      try{g.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});}
-      catch{try{g.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});toast('Камера недоступна — групповой звонок будет только с голосом','ok');}catch{throw new Error('Нет доступа к микрофону. Разреши микрофон в Windows и повтори звонок.');}}
-      const body='<div class="group-call-local"><video id="groupCallLocal" autoplay muted playsinline></video><span>Вы</span></div><div class="group-call-remotes" id="groupCallRemotes"></div><p class="dim" id="groupCallStatus">Подключаем участников…</p><small class="dim">Групповой звонок поддерживает до 6 участников. Медиа передаётся напрямую между устройствами.</small>';
-      g.modal=modal('Групповой звонок · '+name,body,[{text:'Выйти из звонка',danger:true,run:async m=>{await endGroupVoiceCall(true);}}],true);
-      const local=g.modal.q('#groupCallLocal');if(local){local.srcObject=g.stream;local.play().catch(()=>{});}
-      const close=g.modal.close.bind(g.modal);g.closeModal=close;g.modal.close=()=>{if(!g.ending)endGroupVoiceCall(true).catch(()=>{});close();};
-      function peerFor(p){
-        let peer=g.peers.get(p.id);if(peer)return peer;
-        const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
-        peer={id:p.id,nickname:p.nickname||'Участник',pc,offered:false,remoteSet:false,iceQueue:[],video:null,hangup:false};g.peers.set(p.id,peer);
-        g.stream.getTracks().forEach(t=>pc.addTrack(t,g.stream));
-        const wrap=document.createElement('div');wrap.className='group-call-remote';wrap.innerHTML='<video autoplay playsinline></video><span></span>';wrap.querySelector('span').textContent=peer.nickname;peer.video=wrap.querySelector('video');g.modal.q('#groupCallRemotes')?.append(wrap);
-        pc.ontrack=ev=>{if(peer.video){peer.video.srcObject=ev.streams[0];peer.video.play().catch(()=>{});}};
-        pc.onicecandidate=ev=>{if(ev.candidate&&!g.ending)groupCallSignal('signal',{id:g.id,recipient:p.id,kind:'ice',payload:ev.candidate.toJSON()}).catch(()=>{});};
-        pc.onconnectionstatechange=()=>{if(peer.video)peer.video.parentElement?.classList.toggle('disconnected',['failed','disconnected','closed'].includes(pc.connectionState));};
-        return peer;
-      }
-      async function processSignals(signals){
-        for(const s of signals||[]){
-          const peer=g.peers.get(s.sender);if(!peer||peer.hangup)continue;
-          try{
-            if(s.kind==='offer'){
-              await peer.pc.setRemoteDescription(s.payload);peer.remoteSet=true;
-              for(const ice of peer.iceQueue.splice(0))await peer.pc.addIceCandidate(ice).catch(()=>{});
-              const answer=await peer.pc.createAnswer();await peer.pc.setLocalDescription(answer);
-              await groupCallSignal('signal',{id:g.id,recipient:peer.id,kind:'answer',payload:peer.pc.localDescription.toJSON()});
-            }else if(s.kind==='answer'){
-              if(!peer.pc.currentRemoteDescription){await peer.pc.setRemoteDescription(s.payload);peer.remoteSet=true;for(const ice of peer.iceQueue.splice(0))await peer.pc.addIceCandidate(ice).catch(()=>{});}
-            }else if(s.kind==='ice'){
-              const candidate=new RTCIceCandidate(s.payload);
-              if(peer.pc.remoteDescription)await peer.pc.addIceCandidate(candidate).catch(()=>{});else peer.iceQueue.push(candidate);
-            }else if(s.kind==='hangup'){
-              peer.hangup=true;peer.pc.close();peer.video?.parentElement?.remove();g.peers.delete(peer.id);
-            }
-          }catch(err){console.warn('Group call signaling failed',err);}
-        }
-      }
-      async function poll(){
-        if(g.ending||g.busy||!g.modal?.root.isConnected)return;g.busy=true;
-        try{
-          const data=await groupCallSignal('poll',{id:g.id,since_id:g.since});
-          if(data.status!=='active'){g.modal.q('#groupCallStatus').textContent='Звонок завершён';await endGroupVoiceCall(false);return;}
-          g.since=Number(data.last_id||g.since);
-          const participants=data.participants||[];
-          if(g.modal?.root.isConnected)g.modal.q('#groupCallStatus').textContent='Участников в звонке: '+participants.length+' / 6';
-          for(const p of participants){if(p.id===g.me)continue;const peer=peerFor(p);peer.nickname=p.nickname||peer.nickname;const label=peer.video?.parentElement?.querySelector('span');if(label)label.textContent=peer.nickname;
-            if(g.me.localeCompare(p.id)<0&&!peer.offered){peer.offered=true;try{const offer=await peer.pc.createOffer();await peer.pc.setLocalDescription(offer);await groupCallSignal('signal',{id:g.id,recipient:p.id,kind:'offer',payload:peer.pc.localDescription.toJSON()});}catch(err){peer.offered=false;console.warn('Group call offer failed',err);}}
-          }
-          await processSignals(data.signals);
-        }catch(err){if(g.modal?.root.isConnected)g.modal.q('#groupCallStatus').textContent='Переподключение…';}
-        finally{g.busy=false;}
-      }
-      await poll();g.timer=setInterval(()=>poll().catch(()=>{}),900);
-      toast('Групповой звонок запущен','ok');
-    }catch(err){await endGroupVoiceCall(false);throw err;}
-  }
-  async function endGroupVoiceCall(notify=true){
-    const g=activeGroupCall;if(!g||g.ending)return;g.ending=true;activeGroupCall=null;if(g.timer)clearInterval(g.timer);
-    try{if(notify)await groupCallSignal('leave',{id:g.id});}catch{}
-    for(const p of g.peers.values()){try{p.pc.close();}catch{}try{p.video?.parentElement?.remove();}catch{}}
-    g.peers.clear();g.stream?.getTracks().forEach(t=>t.stop());
-    const m=g.modal;g.modal=null;if(m?.root?.isConnected){m.close=()=>{};g.closeModal?.();}
-  }
   async function callPeer(friend){
     if(activeCall)throw new Error('Сначала заверши текущий звонок');
     const row=await callSignal('start',{friend:friend.public_key});
@@ -812,10 +740,6 @@
   async function renderFriends(){const e=$('#page-friends'),s=await socialState(e,'Друзья');if(!s)return;const friends=await call('cloudAction','friends');let presenceByKey={};try{const presence=await call('cloudAction','presence',{op:'friends'});for(const p of (Array.isArray(presence)?presence:[]))presenceByKey[p.public_key]=p;}catch{}for(const f of friends){const p=presenceByKey[f.public_key];f.presence=p?.activity||'offline';f.last_seen=p?.last_seen||null;}e.innerHTML=foxHero(s)+foxTabs('friends')+head('Друзья','Общие приключения — без лишних сервисов.',btn('findFriends','Найти игрока','search')+btn('friendsRefresh','Обновить','refresh'))+`<div class="card pack-exchange"><span class="tag accent">ОБМЕН СБОРКАМИ</span><h2>Экспорт → отправка → импорт</h2><p class="muted">Сохрани сборку в файл .foxpack и передай другу через Telegram, Discord, флешку или любой удобный сервис. Друг нажимает «Импорт сборки». Облачное хранилище Fox не нужно.</p><div class="row wrap">${btn('friendsExport','Экспорт сборки','upload','primary')}${btn('friendsImport','Импорт сборки','download')}</div><small class="dim">Миры и аккаунты по умолчанию исключены. Моды — исполняемый код: импортируй только от тех, кому доверяешь.</small></div><div class="section-title"><h3>Список и заявки</h3></div>${friends.map(f=>`<div class="friend-row"><span class="collection-symbol">${cosmeticInfo(f.equipped_cosmetic)?.symbol||'🦊'}</span><div class="friend-info"><b>${esc(f.nickname)}</b><p class="dim">${f.status==='accepted'?({'online':'🟢 В сети','afk':'🌙 АФК','away':'🟡 Отошёл','offline':'⚫ Не в сети'}[f.presence]||'⚫ Не в сети')+(f.presence==='offline'&&f.last_seen?' · был(а) '+new Date(f.last_seen).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''):f.outgoing?'Заявка отправлена':'Входящая заявка'}</p></div><div class="friend-actions"><button class="btn sm" data-friend-profile="${esc(f.public_key)}">Профиль</button>${f.status==='pending'&&!f.outgoing?`<button class="btn sm primary" data-friend-accept="${esc(f.id)}">Принять</button>`:''}${f.status==='accepted'?`<button class="btn sm primary" data-friend-export="${esc(f.public_key)}">Экспорт для друга</button><button class="btn sm" data-friend-call="${esc(f.public_key)}">Позвонить</button><button class="btn sm" data-friend-chat="${esc(f.public_key)}">Чат</button><button class="btn sm" data-friend-invite="${esc(f.public_key)}">Пригласить</button>`:''}<button class="btn sm ghost" data-friend-remove="${esc(f.id)}">${f.status==='accepted'?'Удалить':f.outgoing?'Отменить':'Отклонить'}</button></div></div>`).join('')||empty('Пока нет друзей. Найди игрока и отправь заявку.')}`;
     bind('#findFriends',()=>nav('players'),e);bind('#friendsRefresh',renderFriends,e);bind('#friendsExport',()=>shareDialog(),e);bind('#friendsImport',async()=>{const i=await call('importPack');if(i){S.instances=await call('getInstances');renderBar();toast('Сборка импортирована','ok');}},e);
     for(const f of friends){bind(`[data-friend-profile="${f.public_key}"]`,()=>showPlayer({key:f.public_key}),e);bind(`[data-friend-accept="${f.id}"]`,async()=>{await call('cloudAction','friend_accept',{id:f.id});await renderFriends();},e);bind(`[data-friend-remove="${f.id}"]`,()=>confirm('Убрать из друзей или заявок?',f.nickname,async()=>{await call('cloudAction','friend_remove',{id:f.id});await renderFriends();}),e);bind(`[data-friend-export="${f.public_key}"]`,()=>shareDialog(f),e);if(f.status==='accepted')bind(`[data-friend-call="${f.public_key}"]`,()=>busy(e.querySelector(`[data-friend-call="${f.public_key}"]`),()=>callPeer(f)),e);if(f.status==='accepted')bind(`[data-friend-chat="${f.public_key}"]`,()=>friendChatDialog(f),e);if(f.status==='accepted')bind(`[data-friend-invite="${f.public_key}"]`,()=>inviteFriendToGame(f),e);}}
-  async function renderFriendGroups(root,friends){const box=$('#foxGroupList',root);if(!box)return;try{const groups=await call('cloudAction','group_chat',{op:'list',payload:{}});box.innerHTML=groups.map(g=>`<button class="btn group-chat-row" type="button" data-group-open="${esc(g.id)}"><span class="collection-symbol">👥</span><span class="group-chat-row-main"><b>${esc(g.name)}</b><small class="dim">${Number(g.member_count)||0} участников${g.last_message?' · '+esc(g.last_message):' · Пока нет сообщений'}</small></span><span class="dim">${date(g.updated_at)}</span></button>`).join('')||'<p class="dim" style="margin-top:14px">Групп пока нет. Создай первую и добавь друзей.</p>';$('[data-group-open]',box).forEach(b=>b.addEventListener('click',()=>groupChatDialog(b.dataset.groupOpen,friends).catch(err=>toast(err.message||String(err),'err'))));}catch(err){box.innerHTML=empty('Не удалось загрузить группы: '+esc(err.message));}}
-  async function createFriendGroup(friends,root){if(friends.length<1)throw new Error('Сначала добавь хотя бы одного друга');const options=friends.map(f=>`<label class="group-friend-choice"><input type="checkbox" name="groupFriend" value="${esc(f.public_key)}"><span>${esc(f.nickname)}</span></label>`).join('');modal('Создать группу',`<label class="field">Название группы<input class="input full-input" id="groupName" maxlength="48" placeholder="Например, Наша команда"></label><div class="group-friend-select"><b>Добавить друзей</b>${options}</div><small class="dim">Можно добавить до 20 друзей. Участники смогут видеть сообщения группы.</small>`,[{text:'Отмена',run:m=>m.close()},{text:'Создать',primary:true,run:async m=>{const name=m.q('#groupName').value.trim(),members=$('input[name="groupFriend"]:checked',m.root).map(x=>x.value);if(name.length<2)throw new Error('Название группы должно быть от 2 символов');if(!members.length)throw new Error('Выбери хотя бы одного друга');await call('cloudAction','group_chat',{op:'create',payload:{name,members}});m.close();toast('Группа создана','ok');await renderFriendGroups(root,friends);}}],true);}
-  async function groupChatDialog(id,friends){const m=modal('Групповой чат','<div class="friend-chat-messages" id="groupChatMessages" aria-live="polite"><div class="spinner"></div></div><label class="field">Сообщение<textarea class="input full-input" id="groupChatInput" rows="3" maxlength="2000" placeholder="Напиши группе…"></textarea></label><small class="dim">История групповых сообщений автоматически очищается через 3 дня.</small>',[{text:'Добавить друзей',run:async m=>{const g=await call('cloudAction','group_chat',{op:'get',payload:{id}});const current=new Set((g.members||[]).map(x=>x.public_key));const choices=friends.filter(x=>!current.has(x.public_key));if(!choices.length)throw new Error('Все твои друзья уже в группе');const opts=choices.map(x=>`<label class="group-friend-choice"><input type="checkbox" name="groupAddFriend" value="${esc(x.public_key)}"><span>${esc(x.nickname)}</span></label>`).join('');modal('Добавить в группу',`<div class="group-friend-select">${opts}</div>`,[{text:'Отмена',run:m=>m.close()},{text:'Добавить',primary:true,run:async a=>{const members=$('input[name="groupAddFriend"]:checked',a.root).map(x=>x.value);if(!members.length)throw new Error('Выбери хотя бы одного друга');await call('cloudAction','group_chat',{op:'add',payload:{id,members}});a.close();toast('Участники добавлены','ok');await loadMessages();}}],true);}},{text:'Групповой звонок',primary:true,run:async m=>{const active=await groupCallSignal('active',{group_id:id});let row;if(active?.id){row=active;await groupVoiceCall(row.id,'Группа',true);}else{row=await groupCallSignal('start',{group_id:id});await groupVoiceCall(row.id,'Группа',false);}m.close();}},{text:'Закрыть',run:m=>m.close()},{text:'Отправить',primary:true,run:async m=>{const body=m.q('#groupChatInput').value.trim();if(!body)throw new Error('Напиши сообщение');await call('cloudAction','group_chat',{op:'send',payload:{id,body}});m.q('#groupChatInput').value='';await loadMessages();}}],true);const close=m.close.bind(m);let timer=null;m.close=()=>{if(timer)clearInterval(timer);close();};async function loadMessages(){if(!m.root.isConnected)return;const box=m.q('#groupChatMessages');try{const g=await call('cloudAction','group_chat',{op:'get',payload:{id}});if(!m.root.isConnected)return;const self=S.cloud?.profile?.id;box.innerHTML=`<div class="group-chat-members">${(g.members||[]).map(x=>esc(x.nickname)).join(' · ')}</div>`+(g.messages||[]).map(x=>`<article class="friend-chat-message ${x.sender===self?'mine':''}"><b>${esc(x.nickname)}</b><p>${esc(x.body)}</p><small>${esc(new Date(x.created_at).toLocaleString('ru-RU'))}</small></article>`).join('')||empty('Пока нет сообщений','news');box.scrollTop=box.scrollHeight;}catch(err){box.innerHTML=empty(esc(err.message));}}await loadMessages();timer=setInterval(()=>loadMessages().catch(()=>{}),5000);m.q('#groupChatInput').addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();m.root.querySelector('.mf button:last-child')?.click();}});}
-  function parseGameInvite(body){const m=/\[\[FOX_INVITE\|(\d+)\|([^|]+)\|([^|]+)\|([^|]+)\|([^\]]+)\]\]$/.exec(String(body||''));if(!m)return null;try{return {expiresAt:Number(m[1]),name:decodeURIComponent(m[2]),mc:m[3],loader:m[4],type:m[5],visible:String(body).slice(0,m.index).trim()};}catch{return null;}}
   async function friendChatDialog(friend){
     const m=modal('Чат · '+friend.nickname,'<div class="friend-chat-messages" id="friendChatMessages" aria-live="polite"><div class="spinner"></div></div><label class="field">Сообщение<textarea class="input full-input" id="friendChatInput" rows="3" maxlength="2000" placeholder="Напиши другу…"></textarea></label><small class="dim">Личный чат доступен только подтверждённым друзьям. История загружается с Fox ID.</small>',[{text:'Закрыть',run:m=>m.close()},{text:'Отправить',primary:true,run:async m=>{const body=m.q('#friendChatInput').value.trim();if(!body)throw new Error('Напиши сообщение');enforceChatCooldown('friend:'+friend.public_key,2000);enforceChatCooldown('invite:'+friend.public_key,60000);await call('cloudAction','friend_chat',{op:'send',payload:{friend:friend.public_key,body}});m.q('#friendChatInput').value='';await loadMessages();}}],true);
     const close=m.close.bind(m);let timer=null;m.close=()=>{if(timer)clearInterval(timer);close();};
