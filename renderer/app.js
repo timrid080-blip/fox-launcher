@@ -584,8 +584,9 @@
   function showFoxEmailWaiting(m,email,password){
     let finished=false,checking=false,timer=null,attempts=0;
     const closeOriginal=m.close;
+    const finishAndClose=()=>{if(finished)return;finished=true;if(timer)clearInterval(timer);closeOriginal();};
     m.close=()=>{if(finished)closeOriginal();};
-    const x=m.q('.x');if(x){x.disabled=true;x.setAttribute('aria-hidden','true');x.title='Подтверди Email, чтобы продолжить';}
+    const x=m.q('.x');if(x){x.disabled=false;x.removeAttribute('aria-hidden');x.title='Закрыть ожидание подтверждения';x.addEventListener('click',ev=>{ev.preventDefault();finishAndClose();});}
     m.root.querySelector('.mf').replaceChildren();
     m.root.querySelector('.mh h3').textContent='Подтверждение Email';
     m.body.innerHTML='<div class="fox-wait"><div class="fox-wait-orbit"><div class="fox-wait-icon">✉</div><i></i><i></i><i></i></div>'+
@@ -620,9 +621,7 @@
     };
     m.q('#foxWaitCheck')?.addEventListener('click',check);
     m.q('#foxWaitChangeEmail')?.addEventListener('click',()=>{
-      if(finished)return;
-      finished=true;if(timer)clearInterval(timer);
-      closeOriginal();
+      finishAndClose();
       foxLoginDialog(true);
     });
     m.q('#foxWaitCancel')?.addEventListener('click',()=>{
