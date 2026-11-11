@@ -234,12 +234,12 @@
     try{
       const list=(await call('mrVersions',h.project_id,{gameVersion:mc||undefined})).filter(v=>v.loaders?.some(l=>['fabric','quilt','forge','neoforge','minecraft'].includes(l)));
       if(!m.root.isConnected)return;
-      m.body.innerHTML='<p class="muted">Установка в новую сборку. Существующие миры и моды не изменятся. Поддерживаются Fabric, Quilt и NeoForge.</p>'+(list.length?`<div class="col">${list.slice(0,60).map(v=>`<div class="card pack-version"><div><b>${esc(v.name)}</b><p class="dim">Minecraft ${esc(v.game_versions.join(', '))} · ${esc(v.loaders.join(', '))}</p></div><button class="btn primary sm" data-pack-version="${esc(v.id)}">Установить</button></div>`).join('')}</div>`:empty('Нет поддерживаемых версий сборки. Попробуй другую версию Minecraft.'));
-      $$('[data-pack-version]',m.root).forEach(b=>bind('[data-pack-version="'+CSS.escape(b.dataset.packVersion)+'"]',()=>busy(b,async()=>{
+      m.body.innerHTML='<p class="muted">Установка в новую сборку. Существующие миры и моды не изменятся. OptiFine можно добавить к Forge-сборкам, если для выбранной версии Minecraft доступен релиз.</p>'+(list.length?`<div class="col">${list.slice(0,60).map(v=>`<div class="card pack-version"><div><b>${esc(v.name)}</b><p class="dim">Minecraft ${esc(v.game_versions.join(', '))} · ${esc(v.loaders.join(', '))}</p></div><div class="row wrap"><button class="btn primary sm" data-pack-version="${esc(v.id)}" data-pack-optifine="false">Установить</button>${v.loaders?.includes('forge')?'<button class="btn sm" data-pack-version="'+esc(v.id)+'" data-pack-optifine="true">С OptiFine</button>':''}</div></div>`).join('')}</div>`:empty('Нет поддерживаемых версий сборки. Попробуй другую версию Minecraft.'));
+      $('[data-pack-version]',m.root).forEach(b=>bind('[data-pack-version="'+CSS.escape(b.dataset.packVersion)+'"]',()=>busy(b,async()=>{
         if(MP.installing)throw new Error('Дождись окончания установки сборки');MP.installing=true;
-        try{const inst=await call('mpInstall',h.project_id,b.dataset.packVersion);if(inst){await refreshInstances();m.close();nav('instances');sound('success');toast('Сборка установлена. Выбери аккаунт и нажми «Играть».','ok');}}
+        try{const inst=await call('mpInstall',h.project_id,b.dataset.packVersion,b.dataset.packOptifine==='true');if(inst){await refreshInstances();m.close();nav('instances');sound('success');toast(b.dataset.packOptifine==='true'?'Сборка с OptiFine установлена. Выбери аккаунт и нажми «Играть».':'Сборка установлена. Выбери аккаунт и нажми «Играть».','ok');}}
         finally{MP.installing=false;}
-      },'Установка…'),m.root));
+      },b.dataset.packOptifine==='true'?'Установка с OptiFine…':'Установка…'),m.root));
     }catch(err){if(m.root.isConnected)m.body.innerHTML=empty(esc(err.message));}
   }
   // --------- Modrinth ---------
