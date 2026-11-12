@@ -710,7 +710,7 @@ input,textarea{user-select:text}
 .admin-section{padding:clamp(18px,2.5vw,30px);border-radius:18px;background:linear-gradient(145deg,#1b1b20,#151519)}.admin-section h2{letter-spacing:-.025em}.admin-section .field{margin-top:16px}.admin-section .input{min-height:44px}
 @media(prefers-reduced-motion:reduce){.cinema-glow,.cinema-avatar,.cinema-run .cinema-version-number,.launcher-mode-overlay[data-mode="alarm"] .launcher-mode-card{animation:none}}
 
-/* Fox Launcher 4.0 interface refresh */
+/* Fox Launcher 6.0 interface refresh */
 #page-home .hero{min-height:390px;border-radius:26px;overflow:hidden;border:1px solid #ffffff18;box-shadow:0 24px 70px #0000002e}
 #page-home .hero .bg{background:radial-gradient(ellipse at 75% 20%,#ff8c3b38,transparent 38%),linear-gradient(125deg,#20140f,#17171d 54%,#101115)!important}
 #page-home .hero .content{max-width:720px;padding:clamp(26px,4vw,52px)}
@@ -735,7 +735,7 @@ input,textarea{user-select:text}
 @keyframes fox-toast-in{from{opacity:0;transform:translateY(12px) scale(.98);filter:blur(3px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 @keyframes fox-toast-out{to{opacity:0;transform:translateY(-8px);filter:blur(3px)}}
 
-/* Fox 4.0 responsive home and mod workspace */
+/* Fox 6.0 responsive home and mod workspace */
 
 
 
@@ -749,7 +749,7 @@ input,textarea{user-select:text}
 @media(max-width:900px){#page-mods .mods-top{grid-template-columns:1fr 1fr}#page-mods .mods-top .search{grid-column:1/-1}}
 
 
-/* Fox 4.0 UI pass — home, mod workspace, admin console and profile trust marker */
+/* Fox 6.0 UI pass — home, mod workspace, admin console and profile trust marker */
 
 
 
@@ -795,10 +795,10 @@ input,textarea{user-select:text}
 
 .group-chat-panel{padding:22px}.group-chat-row{width:100%;display:flex;align-items:center;gap:12px;text-align:left;margin-top:8px;padding:12px}.group-chat-row-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}.group-chat-row-main small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.group-friend-select{display:flex;flex-direction:column;gap:8px;max-height:45vh;overflow:auto}.group-friend-choice{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--panel)}.group-friend-choice input{accent-color:var(--accent)}.group-chat-members{padding:8px 10px;margin-bottom:8px;border-radius:9px;background:var(--panel);color:var(--muted);font-size:12px}.group-call-local,.group-call-remote{position:relative;overflow:hidden;border-radius:12px;background:#080a0c;min-height:100px}.group-call-local video,.group-call-remote video{display:block;width:100%;max-height:220px;aspect-ratio:16/9;object-fit:cover}.group-call-local span,.group-call-remote span{display:block;padding:6px 9px;background:var(--panel);font-size:12px}.group-call-remotes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.group-call-remote.disconnected{opacity:.45}.group-call-local{max-width:50%;margin:0 auto}.group-call-local video{max-height:150px}@media(max-width:520px){.group-chat-panel{padding:15px}.group-chat-row{padding:9px}.group-call-remotes{grid-template-columns:1fr}.group-call-local{max-width:100%}}
 
-/* Fox 4.0.0 cinematic sequence refinements */
+/* Fox 6.0.0 cinematic sequence refinements */
 .cinema-stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(2px 2px at 15% 25%,#fff9 45%,transparent 60%),radial-gradient(1px 1px at 80% 18%,#ffbd8b 45%,transparent 60%),radial-gradient(2px 2px at 72% 72%,#fff8 45%,transparent 60%),radial-gradient(1px 1px at 28% 78%,#fff8 45%,transparent 60%);background-size:300px 240px;animation:cinema-stars 16s linear infinite}.cinema-run .cinema-version-number.cinema-number-change{animation:cinema-number 1.45s cubic-bezier(.16,1,.3,1) both}.cinema-finale .cinema-glow{background:#ff7a1a48;animation:cinema-glow .9s ease-in-out infinite alternate}.cinema-finale .cinema-avatar{animation:cinema-avatar 1.2s ease both,cinema-float 3s ease-in-out infinite alternate}@keyframes cinema-progress{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}@keyframes cinema-stars{from{background-position:0 0,0 0,0 0,0 0}to{background-position:300px 240px,-200px 240px,150px -200px,-100px 300px}}@keyframes cinema-float{from{transform:translateY(0) scale(1)}to{transform:translateY(-14px) scale(1.035)}}
 
-/* 4.0.0 cinematic polish: longer transitions, no clipping, no dismiss control. */
+/* 6.0.0 cinematic polish: longer transitions, no clipping, no dismiss control. */
 .version-cinema{opacity:1;transition:opacity 1s ease,filter 1s ease}.version-cinema.cinema-leaving{opacity:0;filter:blur(14px)}
 .cinema-version-number{width:100%;max-width:100vw;padding:0 .12em;font-size:clamp(54px,12.5vw,176px);line-height:1.08;letter-spacing:-.04em;white-space:normal;overflow:visible;overflow-wrap:anywhere;text-shadow:0 10px 45px #ff7a1a26}
 .cinema-version-number.cinema-number-exit{opacity:0;transform:translateY(-30px) scale(.92);filter:blur(12px);transition:opacity .42s ease,transform .42s ease,filter .42s ease}
@@ -1193,7 +1193,7 @@ textarea{line-height:1.55}
 @media(max-height:760px){.sidebar{padding-top:10px;padding-bottom:10px}.nav button{min-height:38px}.nav{gap:3px}.acc-card{padding:8px}}
 
 
-/* FOX 4.0 — redesigned dashboard visual hierarchy (existing actions/IDs preserved) */
+/* FOX 6.0 — redesigned dashboard visual hierarchy (existing actions/IDs preserved) */
 #page-home{padding-top:22px;background:radial-gradient(ellipse at 72% 0%,rgba(255,132,46,.055),transparent 45%)}
 #page-home>.page-head{margin-bottom:18px;align-items:center}
 #page-home>.page-head h1{font-size:28px;letter-spacing:-1px}
@@ -1229,7 +1229,7 @@ textarea{line-height:1.55}
 @media(max-width:560px){#page-home .home-copy h2{font-size:34px}#page-home .home-aurora{padding:22px;min-height:390px}#page-home .home-orbit{right:10px;top:190px;width:125px;height:125px}#page-home .home-orbit img{width:62px;height:62px}}
 
 
-/* FOX 4.0 — distinct visual treatments for builds, social, support and admin workspaces */
+/* FOX 6.0 — distinct visual treatments for builds, social, support and admin workspaces */
 #page-instances .inst-grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
 #page-instances .inst{position:relative;overflow:hidden;padding:21px;border-radius:19px;background:linear-gradient(155deg,#1b2432 0%,#151b25 65%,#17191f 100%);border-color:rgba(132,153,184,.16)}
 #page-instances .inst:before{content:"";position:absolute;right:-55px;top:-65px;width:155px;height:155px;border-radius:50%;background:radial-gradient(circle,rgba(255,132,46,.09),transparent 68%);pointer-events:none}
