@@ -753,11 +753,92 @@
     if(!accepted.length)throw new Error('Сначала добавь друзей');
     const m=modal('Новая группа',`<label class="field">Название группы<input class="input full-input" id="groupName" maxlength="48" placeholder="Например, Наша команда"></label><p class="dim">Выбери подтверждённых друзей. В группе может быть до 21 участника.</p><div class="col" id="groupFriendChoices">${accepted.map(f=>'<label class="row"><input type="checkbox" value="'+esc(f.public_key)+'"> '+esc(f.nickname)+'</label>').join('')}</div>`,[{text:'Отмена',run:m=>m.close()},{text:'Создать группу',primary:true,run:async m=>{const members=$('#groupFriendChoices input:checked',m.root).map(x=>x.value);if(!members.length)throw new Error('Выбери хотя бы одного друга');await call('cloudAction','group_chat',{op:'create',payload:{name:m.q('#groupName').value.trim(),members}});m.close();toast('Группа создана','ok');await renderFriends();}}],true);
   }
+  // Multi-party WebRTC mesh calls. Supabase stores signaling only; media stays peer-to-peer.
+  let activeGroupCall=null;
+  async function groupCallRpc(op,payload={}){return call('cloudAction','group_call',{op,payload});}
+  async function startGroupCall(group){
+    if(activeGroupCall)throw new Error('Ты уже участвуешь в групповом звонке');
+    if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection)throw new Error('Групповые звонки недоступны в этой системе');
+    let stream;
+    try{stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});}
+    catch(e){try{stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});toast('Камера недоступна — подключён только микрофон','ok');}
+      catch{throw new Error('Нет доступа к микрофону. Разреши его в Windows и повтори попытку.');}}
+    const state={group,stream,id:null,side:new Map(),lastId:0,timer:null,modal:null,closed:false,pollBusy:false};
+    activeGroupCall=state;
+    try{
+      let current=await groupCallRpc('active',{group_id:group.id});
+      if(current?.id){if((current.participants||[]).length>=6&&!current.participants.some(p=>p.id===S.cloud?.profile?.id))throw new Error('В звонке уже 6 участников');await groupCallRpc('join',{id:current.id});state.id=current.id;}
+      else{const created=await groupCallRpc('start',{group_id:group.id});state.id=created.id;}
+      const markup='<div class="group-call-shell"><div class="group-call-top"><span class="tag accent" id="groupCallStatus">Подключаемся…</span><span class="dim">До 6 участников</span></div><div class="group-call-grid" id="groupCallGrid"><div class="group-call-tile local"><video id="groupCallLocal" autoplay muted playsinline></video><b>Ты</b></div></div><div class="group-call-controls"><button class="btn" id="groupCallMic">Выключить микрофон</button><button class="btn" id="groupCallCamera">Выключить камеру</button></div><p class="dim">Если соединение не устанавливается, сеть может требовать TURN-сервер. Сейчас используется прямое WebRTC-соединение.</p></div>';
+      state.modal=modal('Групповой звонок · '+group.name,markup,[{text:'Завершить звонок',primary:true,danger:true,run:async m=>{m.close();await stopGroupCall(true);}}],true);
+      const modalRef=state.modal,rawClose=modalRef.close.bind(modalRef);modalRef.close=()=>{rawClose();if(activeGroupCall===state&&!state.closed)stopGroupCall(true);};
+      const local=modalRef.q('#groupCallLocal');if(local){local.srcObject=stream;local.play().catch(()=>{});}
+      modalRef.q('#groupCallMic').onclick=()=>{const tracks=stream.getAudioTracks();const enabled=tracks.some(t=>t.enabled);tracks.forEach(t=>t.enabled=!enabled);modalRef.q('#groupCallMic').textContent=enabled?'Включить микрофон':'Выключить микрофон';};
+      modalRef.q('#groupCallCamera').onclick=()=>{const tracks=stream.getVideoTracks();if(!tracks.length){toast('Камера не подключена','err');return;}const enabled=tracks.some(t=>t.enabled);tracks.forEach(t=>t.enabled=!enabled);modalRef.q('#groupCallCamera').textContent=enabled?'Включить камеру':'Выключить камеру';};
+      state.timer=setInterval(()=>pollGroupCall(state).catch(()=>{}),1200);
+      await pollGroupCall(state);
+    }catch(e){await stopGroupCall(false);throw e;}
+  }
+  async function stopGroupCall(notify=true){
+    const c=activeGroupCall;if(!c||c.closed)return;c.closed=true;activeGroupCall=null;if(c.timer)clearInterval(c.timer);
+    if(notify&&c.id)try{await groupCallRpc('leave',{id:c.id});}catch{}
+    for(const peer of c.side.values()){try{peer.pc.close();}catch{}}
+    c.side.clear();try{c.stream.getTracks().forEach(t=>t.stop());}catch{}
+    if(c.modal?.root?.isConnected){const close=c.modal.close;c.modal.close=()=>{};close();}
+  }
+  async function sendGroupSignal(c,recipient,kind,payload=null){return groupCallRpc('signal',{id:c.id,recipient,kind,payload});}
+  function groupCallTile(c,id,name){
+    if(!c.modal?.root?.isConnected)return null;const grid=c.modal.q('#groupCallGrid');let tile=grid.querySelector('[data-peer="'+CSS.escape(id)+'"]');
+    if(!tile){tile=document.createElement('div');tile.className='group-call-tile';tile.dataset.peer=id;tile.innerHTML='<video autoplay playsinline></video><b></b>';grid.append(tile);}
+    tile.querySelector('b').textContent=name||'Участник';return tile;
+  }
+  async function ensureGroupPeer(c,participant){
+    if(c.closed||participant.id===S.cloud?.profile?.id||c.side.has(participant.id))return c.side.get(participant.id);
+    if(c.side.size>=5)return null;
+    const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
+    const peer={pc,name:participant.nickname||'Участник',ice:[],ready:false};c.side.set(participant.id,peer);
+    c.stream.getTracks().forEach(track=>pc.addTrack(track,c.stream));
+    pc.ontrack=ev=>{const tile=groupCallTile(c,participant.id,peer.name);const video=tile?.querySelector('video');if(video){video.srcObject=ev.streams[0];video.play().catch(()=>{});}};
+    pc.onicecandidate=ev=>{if(ev.candidate)sendGroupSignal(c,participant.id,'ice',ev.candidate.toJSON()).catch(()=>{});};
+    pc.onconnectionstatechange=()=>{const status=c.modal?.q('#groupCallStatus');if(status&&pc.connectionState==='failed')status.textContent='Есть проблемы с сетью';};
+    groupCallTile(c,participant.id,peer.name);
+    const self=String(S.cloud?.profile?.id||'');
+    if(self.localeCompare(String(participant.id))<0){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await sendGroupSignal(c,participant.id,'offer',pc.localDescription.toJSON());}
+    return peer;
+  }
+  async function handleGroupSignal(c,sig){
+    let peer=c.side.get(sig.sender);
+    if(!peer)peer=await ensureGroupPeer(c,{id:sig.sender,nickname:'Участник'});if(!peer)return;
+    const pc=peer.pc;
+    if(sig.kind==='offer'){
+      if(pc.signalingState!=='stable')try{await pc.setLocalDescription({type:'rollback'});}catch{}
+      await pc.setRemoteDescription(sig.payload);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await sendGroupSignal(c,sig.sender,'answer',pc.localDescription.toJSON());
+      peer.ready=true;while(peer.ice.length)try{await pc.addIceCandidate(peer.ice.shift());}catch{}
+    }else if(sig.kind==='answer'){
+      if(!pc.currentRemoteDescription)await pc.setRemoteDescription(sig.payload);peer.ready=true;while(peer.ice.length)try{await pc.addIceCandidate(peer.ice.shift());}catch{}
+    }else if(sig.kind==='ice'&&sig.payload){if(pc.remoteDescription)try{await pc.addIceCandidate(sig.payload);}catch{}else peer.ice.push(sig.payload);}
+    else if(sig.kind==='hangup'){try{pc.close();}catch{}c.side.delete(sig.sender);c.modal?.root?.querySelector('[data-peer="'+CSS.escape(sig.sender)+'"]')?.remove();}
+  }
+  async function pollGroupCall(c){
+    if(c.closed||c.pollBusy)return;c.pollBusy=true;
+    try{
+      const data=await groupCallRpc('poll',{id:c.id,since_id:c.lastId});
+      if(c.closed)return;if(data.status!=='active'){toast('Групповой звонок завершён','ok');await stopGroupCall(false);return;}
+      const participants=data.participants||[],self=S.cloud?.profile?.id,known=new Set(participants.map(p=>p.id));
+      for(const [id,p] of c.side){if(!known.has(id)){try{p.pc.close();}catch{}c.side.delete(id);c.modal?.root?.querySelector('[data-peer="'+CSS.escape(id)+'"]')?.remove();}}
+      for(const p of participants)if(p.id!==self&&!c.side.has(p.id))await ensureGroupPeer(c,p);
+      for(const sig of (data.signals||[]).sort((a,b)=>Number(a.id)-Number(b.id))){await handleGroupSignal(c,sig);c.lastId=Math.max(c.lastId,Number(sig.id)||0);}
+      c.lastId=Math.max(c.lastId,Number(data.last_id)||0);
+      const status=c.modal?.q('#groupCallStatus');if(status)status.textContent='Участников: '+participants.length+' / 6';
+      for(const p of participants)if(p.id!==self){const tile=c.modal?.root?.querySelector('[data-peer="'+CSS.escape(p.id)+'"]');if(tile)tile.querySelector('b').textContent=p.nickname||'Участник';}
+    }catch(e){if(!c.closed){const status=c.modal?.q('#groupCallStatus');if(status)status.textContent='Переподключаемся…';}}
+    finally{c.pollBusy=false;}
+  }
   async function friendGroupChatDialog(group){
-    const m=modal('Группа · '+group.name,'<div class="friend-chat-messages" id="groupChatMessages" aria-live="polite"><div class="spinner"></div></div><label class="field">Сообщение<textarea class="input full-input" id="groupChatInput" rows="3" maxlength="2000" placeholder="Сообщение для группы…"></textarea></label><small class="dim">История хранится в Fox ID до трёх дней. Только участники группы могут читать и писать.</small>',[{text:'Закрыть',run:m=>m.close()},{text:'Отправить',primary:true,run:async m=>{const body=m.q('#groupChatInput').value.trim();if(!body.length)throw new Error('Напиши сообщение');enforceChatCooldown('group:'+group.id,2000);await call('cloudAction','group_chat',{op:'send',payload:{id:group.id,body}});m.q('#groupChatInput').value='';await load();}}],true);
+    const m=modal('Группа · '+group.name,'<div class="group-chat-callbar"><button class="btn primary" id="groupCallStart">Групповой звонок</button><span class="dim" id="groupCallHint">Голос и видео · до 6 участников</span></div><div class="friend-chat-messages" id="groupChatMessages" aria-live="polite"><div class="spinner"></div></div><label class="field">Сообщение<textarea class="input full-input" id="groupChatInput" rows="3" maxlength="2000" placeholder="Сообщение для группы…"></textarea></label><small class="dim">История хранится в Fox ID до трёх дней. Только участники группы могут читать и писать.</small>',[{text:'Закрыть',run:m=>m.close()},{text:'Отправить',primary:true,run:async m=>{const body=m.q('#groupChatInput').value.trim();if(!body.length)throw new Error('Напиши сообщение');enforceChatCooldown('group:'+group.id,2000);await call('cloudAction','group_chat',{op:'send',payload:{id:group.id,body}});m.q('#groupChatInput').value='';await load();}}],true);
     let timer=null;const close=m.close.bind(m);m.close=()=>{if(timer)clearInterval(timer);close();};
-    async function load(){if(!m.root.isConnected)return;const box=m.q('#groupChatMessages');try{const data=await call('cloudAction','group_chat',{op:'get',payload:{id:group.id}});if(!m.root.isConnected)return;const self=S.cloud?.profile?.id;box.innerHTML=(data.messages||[]).map(x=>'<article class="friend-chat-message '+(x.sender===self?'mine':'')+'"><p>'+esc(x.body)+'</p><small>'+esc(x.nickname)+' · '+esc(new Date(x.created_at).toLocaleString('ru-RU'))+'</small></article>').join('')||empty('Пока нет сообщений','news');box.scrollTop=box.scrollHeight;}catch(err){box.innerHTML=empty(esc(err.message),'news');}}
-    await load();timer=setInterval(()=>load().catch(()=>{}),5000);m.q('#groupChatInput').addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();m.root.querySelector('.mf button:last-child')?.click();}});
+    async function load(){if(!m.root.isConnected)return;const box=m.q('#groupChatMessages');try{const active=await groupCallRpc('active',{group_id:group.id}).catch(()=>({}));const callButton=m.q('#groupCallStart'),hint=m.q('#groupCallHint');if(callButton){callButton.textContent=active?.id?'Присоединиться к звонку':'Начать групповой звонок';callButton.disabled=!!active?.id&&(active.participants||[]).length>=6&&!(active.participants||[]).some(p=>p.id===S.cloud?.profile?.id);}if(hint)hint.textContent=active?.id?'Сейчас в звонке: '+(active.participants||[]).length+' / 6':'Голос и видео · до 6 участников';const data=await call('cloudAction','group_chat',{op:'get',payload:{id:group.id}});if(!m.root.isConnected)return;const self=S.cloud?.profile?.id;box.innerHTML=(data.messages||[]).map(x=>'<article class="friend-chat-message '+(x.sender===self?'mine':'')+'"><p>'+esc(x.body)+'</p><small>'+esc(x.nickname)+' · '+esc(new Date(x.created_at).toLocaleString('ru-RU'))+'</small></article>').join('')||empty('Пока нет сообщений','news');box.scrollTop=box.scrollHeight;}catch(err){box.innerHTML=empty(esc(err.message),'news');}}
+    await load();m.q('#groupCallStart').addEventListener('click',async()=>{try{await startGroupCall(group);}catch(err){toast(err.message||String(err),'err');}});timer=setInterval(()=>load().catch(()=>{}),5000);m.q('#groupChatInput').addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();m.root.querySelector('.mf button:last-child')?.click();}});
   }
   async function inviteFriendToGame(friend){
     S.instances=await call('getInstances');
