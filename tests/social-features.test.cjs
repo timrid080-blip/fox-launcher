@@ -84,3 +84,13 @@ test('skin editor installs CustomSkinLoader into the selected modded instance vi
   assert.match(modrinth, /project\/\$\{id\}\/version/);
   assert.match(app, /CustomSkinLoader требует Fabric, Forge, NeoForge или Quilt/);
 });
+
+
+test('download history offers safe retries for interrupted launches and Modrinth installs', () => {
+  const app = read('renderer/app.js');
+  const main = read('main.js');
+  assert.match(app, /async function retryDownloadItem/);
+  assert.match(app, /data-queue-retry=/);
+  assert.match(app, /q\.key\?\.startsWith\('modrinth:'\)/);
+  assert.match(main, /key: 'modrinth:'/);
+});
