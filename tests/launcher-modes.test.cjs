@@ -1,3 +1,4 @@
+  assert.match(renderer, /sound\('success'\);toast\(b\.dataset\.packOptifine/);
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -34,8 +35,6 @@ test('launcher UI uses server modes and maintenance launch gate', () => {
   assert.match(renderer, /launcherModeAcknowledge/);
   assert.match(renderer, /mode\.blocked/);
   assert.match(renderer, /const message=String\(text\?\?''\),now=Date\.now\(\)/);
-  assert.match(renderer, /sound\('success'\);toast\('Установлено: '/);
-  assert.match(renderer, /sound\('success'\);toast\('Сборка установлена\./);
   assert.match(renderer, /id="playVersionCinema"/);
 });
 
