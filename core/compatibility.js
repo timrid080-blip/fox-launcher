@@ -40,7 +40,7 @@ async function scanMods(instanceDir,{loader='vanilla',mc=null}={}){
  const inspected=names.map(name=>inspectJar(path.join(instanceDir,'mods',name))),ids=inspected.map(x=>String(x.id||'').toLowerCase()),warnings=[];
  for(const [a,b,message] of KNOWN_CONFLICTS){if(ids.some(id=>a.some(x=>id===x||id.includes(x)))&&ids.some(id=>b.some(x=>id===x||id.includes(x))))warnings.push({severity:'error',mods:[...a,...b],message});}
  const available=new Set(ids),byId=new Map();for(const mod of inspected){if(!mod.metadata)continue;const id=String(mod.id||'').toLowerCase();if(!byId.has(id))byId.set(id,[]);byId.get(id).push(mod);}
- for(const [id,files] of byId)if(id&&files.length>1)warnings.push({severity:'error',mods:files.map(x=>x.file),message:'Обнаружены несколько JAR с одним mod ID «'+id+'». Оставь только одну версию.'});
+ for(const [id,files] of byId)if(id&&files.length>1)warnings.push({severity:'error',mods:files.map(x=>x.file),message:'Обнаружены несколько JAR, использующих один mod ID «'+id+'». Оставь только одну версию.'});
  for(const mod of inspected){
   const fileName=path.basename(mod.file);
   if(mod.metadataError)warnings.push({severity:'warning',file:fileName,message:'Метаданные JAR не удалось прочитать. Проверь, что файл не повреждён.'});
