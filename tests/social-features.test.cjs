@@ -79,7 +79,7 @@ test('skin editor installs CustomSkinLoader into the selected modded instance vi
   const main = read('main.js');
   const modrinth = read('core/modrinth.js');
   assert.match(app, /skinInstallLoader/);
-  assert.match(app, /mrInstall',build\\.id,'customskinloader'/);
+  assert.match(app, /mrInstall',build\.id,'customskinloader'/);
   assert.match(main, /async mrInstall\(instanceId, projectId, opts\)/);
   assert.match(modrinth, /project\$\{id\}\/version/);
   assert.match(app, /CustomSkinLoader требует Fabric, Forge, NeoForge или Quilt/);
