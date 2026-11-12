@@ -58,6 +58,7 @@ jobs:
             backend/migrate-2.8-ticket-archive-cleanup.sql
             backend/migrate-2.9-group-chat.sql
             backend/migrate-3.0-group-calls.sql
+            backend/migrate-3.1-expired-invite-cleanup.sql
             backend/migrate-4.0.0-hotfix.sql
       - name: Publish tagged release
         if: startsWith(github.ref, 'refs/tags/')
