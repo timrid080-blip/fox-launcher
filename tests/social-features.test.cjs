@@ -72,3 +72,15 @@ test('group chats expose multi-party WebRTC calls with bounded peer count and co
   assert.match(migration, /p_op='signal'/);
   assert.match(migration, /p_op='join'/);
 });
+
+
+test('skin editor installs CustomSkinLoader into the selected modded instance via Modrinth', () => {
+  const app = read('renderer/app.js');
+  const main = read('main.js');
+  const modrinth = read('core/modrinth.js');
+  assert.match(app, /skinInstallLoader/);
+  assert.match(app, /mrInstall',skinBuild\.id,'customskinloader'/);
+  assert.match(main, /async mrInstall\(instanceId, projectId, opts\)/);
+  assert.match(modrinth, /project\$\{id\}\/version/);
+  assert.match(app, /CustomSkinLoader требует Fabric, Forge, NeoForge или Quilt/);
+});
