@@ -24,7 +24,7 @@ test('Fox Guard reads mod metadata, detects duplicate IDs, missing dependencies 
   const report = await compatibility.scanMods(root, { loader: 'fabric', mc: '1.21.1' });
   assert.equal(report.confidence, 'metadata-assisted');
   assert.ok(report.warnings.some(w => /один mod ID/.test(w.message)));
-  assert.ok(report.warnings.some(w => /обязательную зависимость/.test(w.message)));
+  assert.ok(report.warnings.some(w => /обязательн(?:ую|ая) зависимость/.test(w.message)));
   assert.ok(report.warnings.some(w => /требуют Minecraft/.test(w.message)));
   assert.equal(compatibility.versionConstraintMatches('1.20.1', '[1.20,1.21)'), true);
   assert.equal(compatibility.versionConstraintMatches('1.21.1', '[1.20,1.21)'), false);
