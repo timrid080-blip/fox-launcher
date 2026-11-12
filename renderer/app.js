@@ -96,7 +96,8 @@
   let localNoticeHistory=[];try{const saved=JSON.parse(localStorage.getItem('fox.localNoticeHistory')||'[]');if(Array.isArray(saved))localNoticeHistory=saved.slice(0,80);}catch{}
   let persistedQueue=[];try{const saved=JSON.parse(localStorage.getItem('fox.downloadQueue')||'[]');if(Array.isArray(saved))persistedQueue=saved.slice(0,30).map(q=>q.state==='active'?{...q,state:'failed',text:'Прервано: лаунчер был перезапущен',updatedAt:Date.now()}:q);}catch{}
   const S={appliedPromo:null,settings:{},instances:[],accounts:[],news:[],versions:null,info:{totalMem:8192},page:'home',running:new Set(),downloadQueue:persistedQueue,busy:null,admin:null,heads:new Map()};
-  function persistDownloadQueue(){try{localStorage.setItem('fox.downloadQueue',JSON.stringify(S.downloadQueue.slice(0,30)));}catch{}}\n  // Persist the recovery state immediately: interrupted tasks should not reappear as active on every restart.\n  persistDownloadQueue();
+  function persistDownloadQueue(){try{localStorage.setItem('fox.downloadQueue',JSON.stringify(S.downloadQueue.slice(0,30)));}catch{}}
+  // Persist the recovery state immediately: interrupted tasks should not reappear as active on every restart.\n  persistDownloadQueue();
   const chatSendAt=new Map();function enforceChatCooldown(key,delay=2000){const now=Date.now(),last=chatSendAt.get(key)||0,remaining=delay-(now-last);if(remaining>0)throw new Error('Антиспам: подожди '+Math.ceil(remaining/1000)+' сек. перед следующим сообщением');chatSendAt.set(key,now);}
   const selected = () => S.instances.find(i=>i.id===S.settings.selectedInstance)||S.instances[0];
   const account = () => S.accounts.find(a=>a.id===S.settings.selectedAccount)||S.accounts[0];
