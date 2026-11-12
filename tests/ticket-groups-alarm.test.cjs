@@ -72,7 +72,7 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   const app = read('renderer/app.js');
   const html = read('renderer/index.html');
   const css = read('renderer/styles.css');
-  assert.match(app, /value=Math\.min\(50,value\+1\)/);
+  assert.match(app, /value=Math\.min\(40,value\+1\)/);
   assert.match(app, /Math\.pow\(progress,1\.25\)/);
   assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
   assert.match(app, /const chapters=\[/);
