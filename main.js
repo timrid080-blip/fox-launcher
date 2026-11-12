@@ -492,8 +492,8 @@ const api = {
     if (!inst) throw new Error('Выберите сборку');
     idle(instanceId); installingMods.add(instanceId);
     try { const result = await modrinth.install(instDir(instanceId), projectId, { gameVersion: inst.mc, loader: inst.loader === 'vanilla' ? null : inst.loader, ...opts,
-      onProgress: p => send('progress', { ...p, scope: 'mods', instanceId }) }); send('progress', { scope: 'mods', instanceId, text: 'Мод установлен', done: 1, total: 1, complete: true }); return result;
-    } catch (e) { send('progress', { scope: 'mods', instanceId, text: e.message, failed: true }); throw e; }
+      onProgress: p => send('progress', { ...p, scope: 'mods', instanceId, key: 'modrinth:'+projectId+':'+(opts.type||'mod')+':'+(opts.versionId||'') }) }); send('progress', { scope: 'mods', instanceId, key: 'modrinth:'+projectId+':'+(opts.type||'mod')+':'+(opts.versionId||''), text: 'Мод установлен', done: 1, total: 1, complete: true }); return result;
+    } catch (e) { send('progress', { scope: 'mods', instanceId, key: 'modrinth:'+projectId+':'+(opts.type||'mod')+':'+(opts.versionId||''), text: e.message, failed: true }); throw e; }
     finally { installingMods.delete(instanceId); }
   },
   async installedNames(instanceId, type) {
