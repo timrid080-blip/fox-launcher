@@ -33,7 +33,7 @@ test('launcher UI uses server modes and maintenance launch gate', () => {
   assert.doesNotMatch(renderer, /if\(!S\.cloud\?\.configured\)return;/, 'mode checks must run even before account login');
   assert.match(renderer, /launcherModeAcknowledge/);
   assert.match(renderer, /mode\.blocked/);
-  assert.match(renderer, /function toast\(text,kind=''\) \{ const e=document\.createElement\('div'\);e\.className='toast '\+kind/);
+  assert.match(renderer, /const message=String\(text\?\?''\),now=Date\.now\(\)/);
   assert.match(renderer, /sound\('success'\);toast\('Установлено: '/);
   assert.match(renderer, /sound\('success'\);toast\('Сборка установлена\./);
   assert.match(renderer, /id="playVersionCinema"/);
