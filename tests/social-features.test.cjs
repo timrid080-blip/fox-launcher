@@ -52,3 +52,23 @@ test('chat and call SQL migrations are included in the Windows artifact', () => 
   assert.match(read('backend/migrate-2.0.sql'), /fox_friend_chat/);
   assert.match(read('backend/migrate-2.2.sql'), /fox_call_signal/);
 });
+
+
+test('group chats expose multi-party WebRTC calls with bounded peer count and controls', () => {
+  const app = read('renderer/app.js');
+  const css = read('renderer/styles.css');
+  const cloud = read('core/cloud.js');
+  const main = read('main.js');
+  const migration = read('backend/migrate-3.0-group-calls.sql');
+  assert.match(app, /async function startGroupCall/);
+  assert.match(app, /async function pollGroupCall/);
+  assert.match(app, /group_call/);
+  assert.match(app, /До 6 участников/);
+  assert.match(app, /groupCallMic/);
+  assert.match(app, /groupCallCamera/);
+  assert.match(css, /\.group-call-grid/);
+  assert.match(cloud, /fox_group_call_signal/);
+  assert.match(main, /'group_call'/);
+  assert.match(migration, /p_op='signal'/);
+  assert.match(migration, /p_op='join'/);
+});
