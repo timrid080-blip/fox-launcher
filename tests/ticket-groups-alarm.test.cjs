@@ -42,8 +42,8 @@ test('friend groups support member management, chat and multi-party WebRTC signa
   assert.match(sql, /public\.fox_are_friends\(u,target\)/);
   assert.match(callSql, /create table if not exists public\.fox_group_call_signals/);
   assert.match(callSql, /if \(select count\(\*\) from public\.fox_group_call_participants where call_id=cid\)>=6/);
-  assert.match(app, /async function createFriendGroup/);
-  assert.match(app, /async function groupVoiceCall/);
+  assert.match(app, /function createFriendGroup/);
+  assert.match(app, /async function startGroupCall/);
   assert.match(app, /Групповой звонок/);
   assert.match(cloud, /fox_group_call_signal/);
   assert.match(cloud, /fox_group_chat/);
@@ -76,7 +76,7 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   assert.match(app, /Math\.pow\(progress,1\.25\)/);
   assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
   assert.match(app, /const chapters=\[/);
-  assert.match(app, /FOX LAUNCHER 5\.0 · ANDROID · НОВАЯ ЭРА/);
+  assert.match(app, /Fox Launcher 6.0 для Windows/);
   assert.match(app, /nav\('admin'\)/);
   assert.match(html, /cinema-callout-left/);
   assert.match(css, /cinema-super-impact/);
@@ -97,7 +97,7 @@ test('Ctrl+Shift+A restores the legacy news admin and the cinematic counter roll
   const css = read('renderer/styles.css');
   assert.match(app, /ev\.ctrlKey&&ev\.shiftKey&&ev\.code==='KeyA'\)\{ev\.preventDefault\(\);nav\('admin'\);/);
   assert.match(app, /number\.textContent=\(value\/10\)\.toFixed\(1\)/);
-  assert.match(app, /FOX LAUNCHER 5\.0/);
+  assert.match(app, /FOX LAUNCHER 6.0/);
   assert.match(css, /@keyframes cinema-single-number/);
   assert.match(css, /\.cinema-story/);
 });
