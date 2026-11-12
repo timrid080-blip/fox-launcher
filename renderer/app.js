@@ -596,7 +596,7 @@
       ['Глава IV · Творчество без границ','Моды и сборки помогают каждому настроить свой Minecraft. Файлы, аккаунты и инструменты собраны рядом, чтобы меньше времени уходило на поиски и больше — на игру.'],
       ['Глава V · Голос каждого игрока','Задания и достижения отмечают маленькие победы. Поддержка помогает разобраться с проблемами, а новости сообщают, что происходит в мире Fox.'],
       ['Глава VI · Мир меняется','Праздничные события, предупреждения и технические режимы помогают сообщать важное всем подключённым игрокам. Интерфейс становится яснее, а настройки — удобнее.'],
-      ['Глава VII · Fox Launcher 6.0 для Android','Fox Launcher 6.0 для Android — новый этап развития: удобный вход и регистрация, баланс, чаты, звонки, моды и достижения.'],
+      ['Глава VII · Fox Launcher 6.0 для Windows','Fox Launcher 6.0 для Windows — новый этап развития: управление сборками, модами, игровыми аккаунтами, социальными функциями и настройками лаунчера.'],
       ['Глава VIII · Дальше — вместе','Шесть-ноль — не финальная точка, а обещание продолжать улучшать лаунчер вместе с сообществом. Спасибо каждому, кто тестирует, сообщает об ошибках и помогает Fox становиться лучше. История продолжается — запускай Minecraft и создавай свою.']
     ];
     number.textContent='1.0';number.classList.remove('cinema-number-exit','cinema-number-roll','cinema-number-enter');
@@ -620,7 +620,7 @@
         status.textContent=['ИНИЦИАЛИЗАЦИЯ FOX','СБОРКА НОВОГО МИРА','СИСТЕМЫ ВЫХОДЯТ НА ПОЛНУЮ МОЩНОСТЬ','ГОТОВНОСТЬ К НОВОЙ ГЛАВЕ'][phase];
         if(value>=40){
           c.classList.add('cinema-finale');stopCinemaMusic();sound('celebration',{channel:'cinema'});
-          status.textContent='FOX LAUNCHER 6.0 · ANDROID · НОВАЯ ЭРА';label.textContent='ВСТРЕЧАЙ FOX LAUNCHER 6.0';
+          status.textContent='FOX LAUNCHER 6.0 · WINDOWS · НОВАЯ ЭРА';label.textContent='ВСТРЕЧАЙ FOX LAUNCHER 6.0';
           const showStory=setTimeout(()=>{
             if(runId!==cinemaRunId)return;
             c.classList.add('cinema-story-mode');if(story)story.hidden=false;if(frame)frame.hidden=true;label.hidden=true;
@@ -629,7 +629,7 @@
               if(runId!==cinemaRunId||!story)return;
               const [title,body]=chapters[idx];
               story.innerHTML='<div class="cinema-story-count">ИСТОРИЯ FOX · '+String(idx+1).padStart(2,'0')+' / 08</div><h2>'+esc(title)+'</h2><p>'+esc(body)+'</p>';
-              if(description)description.textContent='FOX LAUNCHER 6.0 · ANDROID · ЧАТЫ · ЗВОНКИ · МОДЫ · ДОСТИЖЕНИЯ';
+              if(description)description.textContent='FOX LAUNCHER 6.0 · WINDOWS · СБОРКИ · МОДЫ · СОЦИАЛЬНЫЕ ФУНКЦИИ';
               idx++;
               if(idx<chapters.length){const t=setTimeout(present,7500);cinemaTimers.push(t);}
               else {const finish=setTimeout(()=>{if(runId===cinemaRunId){c.classList.add('cinema-leaving');const hide=setTimeout(()=>{if(runId===cinemaRunId){c.hidden=true;c.classList.remove('cinema-run','cinema-finale','cinema-leaving','cinema-story-mode','cinema-intro');}},1300);cinemaTimers.push(hide);}},7500);cinemaTimers.push(finish);}
