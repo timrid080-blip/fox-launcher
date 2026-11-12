@@ -119,3 +119,12 @@ test('Fox Launcher 5.0 Android project provides the account-only mobile cabinet'
   assert.match(workflow, /assembleDebug/);
   assert.match(android, /private fun loadAccountSummary/);
 });
+
+
+test('expired 15-minute game invitations are removed from direct chat during cleanup', () => {
+  const sql = read('backend/migrate-3.1-expired-invite-cleanup.sql');
+  assert.match(sql, /FOX_INVITE/);
+  assert.match(sql, /deleted_expired_invites/);
+  assert.match(sql, /extract\(epoch from now\(\)\)\*1000/);
+  assert.match(sql, /created_at<=now\(\)-interval '3 days'/);
+});
