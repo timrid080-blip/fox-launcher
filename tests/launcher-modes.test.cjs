@@ -65,3 +65,14 @@ test('achievements screen exposes working leaderboard and player-profile shortcu
   assert.ok(renderer.includes("bind('#achLeaderboard',()=>nav('leaderboards'),e)"));
   assert.ok(renderer.includes("bind('#achPlayers',()=>nav('players'),e)"));
 });
+
+
+test('Aurora visual polish stays scoped to News, Support and Download Manager', () => {
+  const css = read('renderer/styles.css');
+  assert.ok(css.includes('#page-news .news-featured{padding:16px'));
+  assert.ok(css.includes('#page-support .support-intro{align-items:center'));
+  assert.ok(css.includes('.modal:has(.download-queue-list) .download-queue-item{padding:15px 16px'));
+  assert.ok(css.includes('.modal:has(.ticket-thread) .ticket-message.staff{border-left:3px solid #ff9a4d'));
+  assert.ok(!css.includes('Fox Aurora 6.0 — unified Windows desktop redesign layer'));
+  assert.ok(!css.includes('.sidebar{width:248px;padding:18px 13px 14px;background:linear-gradient(180deg,#10151e'));
+});
