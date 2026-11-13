@@ -47,3 +47,12 @@ test('Windows autostart defaults on and user preference is preserved', () => {
   assert.match(renderer, /\['autoStart','Запускать Fox Launcher вместе с Windows'/);
   assert.match(renderer, /call\('setAutoStart',autoStart\)/);
 });
+
+
+test('restored sidebar exposes the tutorial and launcher diagnostics screens', () => {
+  const renderer = read('renderer/app.js');
+  const css = read('renderer/styles.css');
+  assert.match(renderer, /const pages=\\[[^\\n]*\\['tutorial','Обучение','file'\\][^\\n]*\\['v3-tools','Инструменты','settings'\\]/);
+  assert.match(renderer, /\\$\\$\\('#nav button'\\)\\.forEach\\(b=>b\\.onclick=\\(\\)=>nav\\(b\\.dataset\\.page\\)\\)/);
+  assert.match(css, /\\.sidebar \\.nav\\{[^}]*overflow-y:auto/);
+});
