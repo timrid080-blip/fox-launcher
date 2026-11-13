@@ -52,16 +52,16 @@ test('Windows autostart defaults on and user preference is preserved', () => {
 test('restored sidebar exposes the tutorial and launcher diagnostics screens', () => {
   const renderer = read('renderer/app.js');
   const css = read('renderer/styles.css');
-  assert.match(renderer, /const pages=\\[[^\\n]*\\['tutorial','Обучение','file'\\][^\\n]*\\['v3-tools','Инструменты','settings'\\]/);
-  assert.match(renderer, /\\$\\$\\('#nav button'\\)\\.forEach\\(b=>b\\.onclick=\\(\\)=>nav\\(b\\.dataset\\.page\\)\\)/);
-  assert.match(css, /\\.sidebar \\.nav\\{[^}]*overflow-y:auto/);
+  assert.ok(renderer.includes("['tutorial','Обучение','file']"));
+  assert.ok(renderer.includes("['v3-tools','Инструменты','settings']"));
+  assert.ok(renderer.includes("b.onclick=()=>nav(b.dataset.page)"));
+  assert.ok(css.includes(".sidebar .nav{flex:0 1 auto;min-height:0;max-height:calc(100% - 88px);overflow-y:auto"));
 });
-
 
 test('achievements screen exposes working leaderboard and player-profile shortcuts', () => {
   const renderer = read('renderer/app.js');
-  assert.match(renderer, /btn\\('achLeaderboard','Топ игроков','user'\\)/);
-  assert.match(renderer, /btn\\('achPlayers','Профили игроков','search'\\)/);
-  assert.match(renderer, /bind\\('#achLeaderboard',\\(\\)=>nav\\('leaderboards'\\),e\\)/);
-  assert.match(renderer, /bind\\('#achPlayers',\\(\\)=>nav\\('players'\\),e\\)/);
+  assert.ok(renderer.includes("btn('achLeaderboard','Топ игроков','user')"));
+  assert.ok(renderer.includes("btn('achPlayers','Профили игроков','search')"));
+  assert.ok(renderer.includes("bind('#achLeaderboard',()=>nav('leaderboards'),e)"));
+  assert.ok(renderer.includes("bind('#achPlayers',()=>nav('players'),e)"));
 });
