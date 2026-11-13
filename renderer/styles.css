@@ -1310,3 +1310,52 @@ textarea{line-height:1.55}
 .group-call-tile b{position:absolute;left:10px;bottom:10px;padding:5px 9px;border-radius:8px;background:rgba(5,8,13,.75);font-size:12px}
 .group-call-tile.local video{transform:scaleX(-1)}
 .group-call-controls{display:flex;gap:8px;flex-wrap:wrap}
+
+
+/* Fox Aurora accents intentionally scoped to News, Support and Download Manager only */
+#page-news .page-head h1{font-size:clamp(25px,2vw,31px);letter-spacing:-.7px;font-weight:750}
+#page-news .news-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 16px;border:1px solid rgba(132,153,184,.15);border-radius:15px;background:linear-gradient(145deg,#1a2230,#141a24);margin-bottom:18px}
+#page-news .news-toolbar .chips{display:flex;gap:7px;flex-wrap:wrap}
+#page-news .news-toolbar .chip{border-radius:10px;padding:8px 12px;font-weight:600;transition:background .15s,border-color .15s}
+#page-news .news-toolbar .chip.on{background:linear-gradient(120deg,rgba(255,129,43,.19),rgba(255,129,43,.07));border-color:rgba(255,173,99,.38);color:#ffc08e}
+#page-news .news-featured{padding:16px;border-radius:22px;background:linear-gradient(125deg,rgba(255,132,46,.09),rgba(20,26,36,.96));border:1px solid rgba(255,132,46,.2);box-shadow:0 14px 38px rgba(0,0,0,.18);margin-bottom:24px}
+#page-news .news-featured-label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+#page-news .news-featured .news-card{border-radius:17px;background:linear-gradient(155deg,#1b2432,#151b25);border-color:rgba(132,153,184,.16)}
+#page-news .news-card{border-radius:17px;background:linear-gradient(155deg,#1b2432,#151b25);border-color:rgba(132,153,184,.15);box-shadow:0 8px 24px rgba(0,0,0,.13);transition:transform .16s,border-color .16s,box-shadow .16s}
+#page-news .news-card:hover{transform:translateY(-3px);border-color:rgba(255,173,99,.27);box-shadow:0 14px 32px rgba(0,0,0,.24)}
+#page-news .news-card .body{padding:17px 18px 19px;gap:8px}
+#page-news .news-card h4{font-size:16px;line-height:1.4;letter-spacing:-.15px}
+#page-news .news-card p{line-height:1.55}
+#page-news .news-feed-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 14px}
+#page-news .news-feed-heading h2{font-size:19px;letter-spacing:-.3px}
+#page-support .page-head h1{font-size:clamp(25px,2vw,31px);letter-spacing:-.7px;font-weight:750}
+#page-support .support-intro{align-items:center;min-height:94px;background:linear-gradient(112deg,rgba(255,129,43,.13),rgba(255,255,255,.018) 70%);border-color:rgba(255,145,66,.22);box-shadow:inset 3px 0 rgba(255,145,66,.65);border-radius:15px}
+#page-support .support-intro-icon{width:46px;height:46px;flex-basis:46px;border-radius:13px}
+#page-support .support-stat{background:linear-gradient(145deg,#1b2432,#141b26);border-color:rgba(160,180,210,.14);border-radius:14px}
+#page-support .support-stat strong{font-size:26px}
+#page-support .support-filter .input{border-radius:11px;min-height:42px}
+#page-support .ticket-row{min-height:76px;border-radius:13px;background:linear-gradient(125deg,#192231,#151b25);border-color:rgba(132,153,184,.16);transition:transform .15s,border-color .15s,background .15s}
+#page-support .ticket-row:hover{transform:translateY(-1px);border-color:rgba(255,145,66,.4);background:linear-gradient(125deg,#202b3b,#18212d)}
+#page-support .support-mode-switch{padding:5px;border-radius:12px;background:linear-gradient(145deg,#1a2230,#141a24);border-color:rgba(132,153,184,.15)}
+#page-support .support-mode-switch .btn{border-radius:9px}
+#page-support .support-clear{border-radius:9px}
+.modal:has(.ticket-thread){background:linear-gradient(145deg,#1a2230,#121822);border-color:rgba(177,194,220,.18);border-radius:18px;box-shadow:0 28px 90px rgba(0,0,0,.58)}
+.modal:has(.ticket-thread) .ticket-thread{max-height:min(44vh,420px);padding:12px;border-radius:15px;background:#101620;border:1px solid rgba(132,153,184,.14)}
+.modal:has(.ticket-thread) .ticket-message{padding:13px 14px;border-radius:13px}
+.modal:has(.ticket-thread) .ticket-message.staff{border-left:3px solid #ff9a4d}
+.modal:has(.ticket-thread) .ticket-toolbar{position:sticky;top:0;background:#171f2b;padding:10px 0 12px;z-index:1}
+.modal:has(.ticket-thread) #ticketReply{min-height:100px;border-radius:11px;resize:vertical}
+.modal:has(.download-queue-list){background:linear-gradient(145deg,#1a2230,#121822);border:1px solid rgba(177,194,220,.18);border-radius:18px;box-shadow:0 28px 90px rgba(0,0,0,.58)}
+.modal:has(.download-queue-list) .mh{border-bottom-color:rgba(255,255,255,.07)}
+.modal:has(.download-queue-list) .mf{border-top-color:rgba(255,255,255,.07)}
+.modal:has(.download-queue-list) .queue-intro{padding:15px 16px;margin-bottom:14px;border:1px solid rgba(255,173,99,.16);border-radius:14px;background:linear-gradient(125deg,rgba(255,129,43,.09),rgba(255,255,255,.02))}
+.modal:has(.download-queue-list) .queue-intro p{line-height:1.55;margin-top:8px}
+.modal:has(.download-queue-list) .download-queue-list{gap:11px;max-height:55vh;padding:1px 3px 2px}
+.modal:has(.download-queue-list) .download-queue-item{padding:15px 16px;border-radius:14px;background:linear-gradient(145deg,#1b2432,#151b25);border-color:rgba(132,153,184,.16);box-shadow:0 7px 20px rgba(0,0,0,.13)}
+.modal:has(.download-queue-list) .queue-item-head b{min-width:0;overflow-wrap:anywhere;font-size:14px}
+.modal:has(.download-queue-list) .download-queue-item p{line-height:1.5}
+.modal:has(.download-queue-list) .queue-track{height:7px;background:rgba(255,255,255,.08)}
+.modal:has(.download-queue-list) .queue-track i{background:linear-gradient(90deg,#ff812b,#ffbd7d);box-shadow:0 0 12px rgba(255,129,43,.18)}
+.modal:has(.download-queue-list) .download-queue-item .row{align-items:center;justify-content:space-between;gap:10px}
+.modal:has(.download-queue-list) .download-queue-item .btn{border-radius:9px}
+@media(max-width:760px){#page-news .news-featured{padding:10px}#page-news .news-toolbar{align-items:flex-start}#page-news .news-feed-heading{margin-top:18px}#page-support .support-intro{align-items:flex-start}#page-support .page-head .actions{width:100%}#page-support .page-head .actions .btn{flex:1}.modal:has(.download-queue-list) .download-queue-item{padding:12px}}
