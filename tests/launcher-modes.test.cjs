@@ -56,3 +56,12 @@ test('restored sidebar exposes the tutorial and launcher diagnostics screens', (
   assert.match(renderer, /\\$\\$\\('#nav button'\\)\\.forEach\\(b=>b\\.onclick=\\(\\)=>nav\\(b\\.dataset\\.page\\)\\)/);
   assert.match(css, /\\.sidebar \\.nav\\{[^}]*overflow-y:auto/);
 });
+
+
+test('achievements screen exposes working leaderboard and player-profile shortcuts', () => {
+  const renderer = read('renderer/app.js');
+  assert.match(renderer, /btn\\('achLeaderboard','Топ игроков','user'\\)/);
+  assert.match(renderer, /btn\\('achPlayers','Профили игроков','search'\\)/);
+  assert.match(renderer, /bind\\('#achLeaderboard',\\(\\)=>nav\\('leaderboards'\\),e\\)/);
+  assert.match(renderer, /bind\\('#achPlayers',\\(\\)=>nav\\('players'\\),e\\)/);
+});
