@@ -33,9 +33,8 @@ test('launcher UI uses server modes and maintenance launch gate', () => {
   assert.doesNotMatch(renderer, /if\(!S\.cloud\?\.configured\)return;/, 'mode checks must run even before account login');
   assert.match(renderer, /launcherModeAcknowledge/);
   assert.match(renderer, /mode\.blocked/);
-  assert.match(renderer, /function toast\(text,kind=''\) \{ const e=document\.createElement\('div'\);e\.className='toast '\+kind/);
-  assert.match(renderer, /sound\('success'\);toast\('Установлено: '/);
-  assert.match(renderer, /sound\('success'\);toast\('Сборка установлена\./);
+  assert.match(renderer, /const message=String\(text\?\?''\),now=Date\.now\(\)/);
+  assert.match(renderer, /sound\('success'\);toast\(b\.dataset\.packOptifine/);
   assert.match(renderer, /id="playVersionCinema"/);
 });
 
@@ -47,4 +46,33 @@ test('Windows autostart defaults on and user preference is preserved', () => {
   assert.match(main, /async setAutoStart\(enabled\)/);
   assert.match(renderer, /\['autoStart','Запускать Fox Launcher вместе с Windows'/);
   assert.match(renderer, /call\('setAutoStart',autoStart\)/);
+});
+
+
+test('restored sidebar exposes the tutorial and launcher diagnostics screens', () => {
+  const renderer = read('renderer/app.js');
+  const css = read('renderer/styles.css');
+  assert.ok(renderer.includes("['tutorial','Обучение','file']"));
+  assert.ok(renderer.includes("['v3-tools','Инструменты','settings']"));
+  assert.ok(renderer.includes("b.onclick=()=>nav(b.dataset.page)"));
+  assert.ok(css.includes(".sidebar .nav{flex:0 1 auto;min-height:0;max-height:calc(100% - 88px);overflow-y:auto"));
+});
+
+test('achievements screen exposes working leaderboard and player-profile shortcuts', () => {
+  const renderer = read('renderer/app.js');
+  assert.ok(renderer.includes("btn('achLeaderboard','Топ игроков','user')"));
+  assert.ok(renderer.includes("btn('achPlayers','Профили игроков','search')"));
+  assert.ok(renderer.includes("bind('#achLeaderboard',()=>nav('leaderboards'),e)"));
+  assert.ok(renderer.includes("bind('#achPlayers',()=>nav('players'),e)"));
+});
+
+
+test('Aurora visual polish stays scoped to News, Support and Download Manager', () => {
+  const css = read('renderer/styles.css');
+  assert.ok(css.includes('#page-news .news-featured{padding:16px'));
+  assert.ok(css.includes('#page-support .support-intro{align-items:center'));
+  assert.ok(css.includes('.modal:has(.download-queue-list) .download-queue-item{padding:15px 16px'));
+  assert.ok(css.includes('.modal:has(.ticket-thread) .ticket-message.staff{border-left:3px solid #ff9a4d'));
+  assert.ok(!css.includes('Fox Aurora 6.0 — unified Windows desktop redesign layer'));
+  assert.ok(!css.includes('.sidebar{width:248px;padding:18px 13px 14px;background:linear-gradient(180deg,#10151e'));
 });

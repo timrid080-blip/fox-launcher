@@ -42,8 +42,8 @@ test('friend groups support member management, chat and multi-party WebRTC signa
   assert.match(sql, /public\.fox_are_friends\(u,target\)/);
   assert.match(callSql, /create table if not exists public\.fox_group_call_signals/);
   assert.match(callSql, /if \(select count\(\*\) from public\.fox_group_call_participants where call_id=cid\)>=6/);
-  assert.match(app, /async function createFriendGroup/);
-  assert.match(app, /async function groupVoiceCall/);
+  assert.match(app, /function createFriendGroup/);
+  assert.match(app, /async function startGroupCall/);
   assert.match(app, /Групповой звонок/);
   assert.match(cloud, /fox_group_call_signal/);
   assert.match(cloud, /fox_group_chat/);
@@ -73,9 +73,10 @@ test('cinematic reveal accelerates from 1.0 through 4.0 and lets victory audio f
   const html = read('renderer/index.html');
   const css = read('renderer/styles.css');
   assert.match(app, /value=Math\.min\(40,value\+1\)/);
-  assert.match(app, /Math\.pow\(progress,1\.35\)/);
+  assert.match(app, /Math\.pow\(progress,1\.25\)/);
   assert.match(app, /sound\('celebration',\{channel:'cinema'\}\)/);
-  assert.match(app, /Let the victory track finish naturally even after the visual scene fades away/);
+  assert.match(app, /const chapters=\[/);
+  assert.match(app, /Fox Launcher 6.0 для Windows/);
   assert.match(app, /nav\('admin'\)/);
   assert.match(html, /cinema-callout-left/);
   assert.match(css, /cinema-super-impact/);
@@ -95,8 +96,35 @@ test('Ctrl+Shift+A restores the legacy news admin and the cinematic counter roll
   const app = read('renderer/app.js');
   const css = read('renderer/styles.css');
   assert.match(app, /ev\.ctrlKey&&ev\.shiftKey&&ev\.code==='KeyA'\)\{ev\.preventDefault\(\);nav\('admin'\);/);
-  assert.match(app, /cinema-roll-old/);
-  assert.match(app, /cinema-roll-new/);
-  assert.match(css, /@keyframes cinema-roll-up/);
-  assert.match(css, /@keyframes cinema-roll-in/);
+  assert.match(app, /number\.textContent=\(value\/10\)\.toFixed\(1\)/);
+  assert.match(app, /FOX LAUNCHER 6.0/);
+  assert.match(css, /@keyframes cinema-single-number/);
+  assert.match(css, /\.cinema-story/);
+});
+
+
+test('Fox Launcher 5.0 Android project provides the account-only mobile cabinet', () => {
+  const android = read('android/app/src/main/java/com/foxbro/launcher/MainActivity.kt');
+  const manifest = read('android/app/src/main/AndroidManifest.xml');
+  const gradle = read('android/app/build.gradle.kts');
+  const workflow = read('.github/workflows/android.yml');
+  assert.match(android, /auth\/v1\/signup/);
+  assert.match(android, /auth\/v1\/token\?grant_type=password/);
+  assert.match(android, /state\.optBoolean\("is_admin"\)/);
+  assert.match(android, /fox_owner_broadcast/);
+  assert.match(android, /Мобильная версия — кабинет аккаунта/);
+  assert.match(android, /paid_kopeks/);
+  assert.match(manifest, /android\.permission\.INTERNET/);
+  assert.match(gradle, /versionName = "5\.0\.0"/);
+  assert.match(workflow, /assembleDebug/);
+  assert.match(android, /private fun loadAccountSummary/);
+});
+
+
+test('expired 15-minute game invitations are removed from direct chat during cleanup', () => {
+  const sql = read('backend/migrate-3.1-expired-invite-cleanup.sql');
+  assert.match(sql, /FOX_INVITE/);
+  assert.match(sql, /deleted_expired_invites/);
+  assert.match(sql, /extract\(epoch from now\(\)\)\*1000/);
+  assert.match(sql, /created_at<=now\(\)-interval '3 days'/);
 });

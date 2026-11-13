@@ -8,3 +8,25 @@ test('news CRUD, escaping is text, export/import and deduplication',async()=>{co
 test('file manager rejects traversal, invalid names and symlink escapes',async()=>{const root=await tmp(),outside=await tmp();await fs.writeFile(path.join(outside,'private.txt'),'secret');await fs.mkdir(path.join(root,'mods'));assert.throws(()=>files.safe(root,'../private'));await assert.rejects(files.rename(root,'mods','..'));await assert.rejects(files.mkdir(root,'','../escape'));await fs.symlink(outside,path.join(root,'outside'),process.platform==='win32'?'junction':'dir');assert.throws(()=>files.safe(root,'outside/private.txt'));await fs.rm(root,{recursive:true});await fs.rm(outside,{recursive:true});});
 test('modpack round trip excludes accounts, logs and saves by default',async()=>{const root=await tmp(),dest=await tmp(),file=path.join(root,'test.foxpack');for(const d of ['mods','config','saves','logs'])await fs.mkdir(path.join(root,d));await fs.writeFile(path.join(root,'mods','test.jar'),'test-jar');await fs.writeFile(path.join(root,'config','test.json'),'{}');await fs.writeFile(path.join(root,'accounts.json'),'SECRET');await fs.writeFile(path.join(root,'saves','level.dat'),'WORLD');await fs.writeFile(path.join(root,'logs','latest.log'),'LOG');const inst={name:'Friends',mc:'1.21.1',loader:'fabric',type:'release',color:'#ff7a1a'};const r=await packs.exportPack(root,inst,file);assert.equal(r.count,2);const info=packs.inspect(file);assert.equal(info.instance.name,'Friends');await packs.extract(info,dest);assert.equal(await fs.readFile(path.join(dest,'mods','test.jar'),'utf8'),'test-jar');await assert.rejects(fs.access(path.join(dest,'accounts.json')));await assert.rejects(fs.access(path.join(dest,'saves','level.dat')));const evil=new AdmZip();evil.addFile('foxpack.json',Buffer.from(JSON.stringify({format:'foxpack',version:1,instance:inst})));evil.addFile('files/evil.exe',Buffer.from('bad'));evil.writeZip(path.join(root,'evil.foxpack'));assert.throws(()=>packs.inspect(path.join(root,'evil.foxpack')),/Недопустимый/);await fs.rm(root,{recursive:true});await fs.rm(dest,{recursive:true});});
 test('download verifies checksum and size',async()=>{const root=await tmp(),http=require('http'),payload=Buffer.from('hello-fox'),sha1=crypto.createHash('sha1').update(payload).digest('hex');const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Length':payload.length});res.end(payload);});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;try{await util.download(url,path.join(root,'good'),{size:payload.length,sha1,retries:1});assert.equal(await fs.readFile(path.join(root,'good'),'utf8'),'hello-fox');await assert.rejects(util.download(url,path.join(root,'bad'),{sha1:'0'.repeat(40),retries:1}),/сумма/);}finally{server.close();await fs.rm(root,{recursive:true});}});
+
+
+const compatibility = require('../core/compatibility');
+test('Fox Guard reads mod metadata, detects duplicate IDs, missing dependencies and version ranges', async () => {
+  const root = await tmp();
+  await fs.mkdir(path.join(root, 'mods'));
+  const makeJar = (name, metadata) => {
+    const zip = new AdmZip();
+    zip.addFile('fabric.mod.json', Buffer.from(JSON.stringify(metadata)));
+    zip.writeZip(path.join(root, 'mods', name));
+  };
+  makeJar('alpha.jar', { id: 'alpha', depends: { minecraft: '[1.20.1,1.21)', fabricloader: '>=0.15.0', missinglib: '*' } });
+  makeJar('alpha-copy.jar', { id: 'alpha', depends: { minecraft: '1.20.1' } });
+  const report = await compatibility.scanMods(root, { loader: 'fabric', mc: '1.21.1' });
+  assert.equal(report.confidence, 'metadata-assisted');
+  assert.ok(report.warnings.some(w => /один mod ID/.test(w.message)));
+  assert.ok(report.warnings.some(w => /обязательн(?:ую|ая) зависимость/.test(w.message)));
+  assert.ok(report.warnings.some(w => /требуют Minecraft/.test(w.message)));
+  assert.equal(compatibility.versionConstraintMatches('1.20.1', '[1.20,1.21)'), true);
+  assert.equal(compatibility.versionConstraintMatches('1.21.1', '[1.20,1.21)'), false);
+  await fs.rm(root, { recursive: true, force: true });
+});
